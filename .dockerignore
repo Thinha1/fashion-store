@@ -1,0 +1,10 @@
+.git
+.idea
+.vscode
+.env
+.docker/composer-cache
+node_modules
+public/build
+public/hot
+storage/logs/*.log
+vendor
