@@ -24,9 +24,8 @@ class CategoryCrudTest extends TestCase
 
     public function test_admin_can_view_category_list(): void
     {
-        Category::factory()->create(['name' => 'Nam']);
+        $parent = Category::factory()->create(['name' => 'Nam']);
         $child = Category::factory()->create(['name' => 'Áo Thun Nam']);
-        $parent = Category::find(1);
 
         $child->update(['parent_id' => $parent->id]);
 
