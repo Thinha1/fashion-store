@@ -4,6 +4,7 @@ Chia phần **còn lại** của [`IMPLEMENTATION_SPEC.md`](IMPLEMENTATION_SPEC.
 
 - ✅ Đã xong: Giai đoạn 1 (Nền tảng: auth, phân quyền, layout) và Giai đoạn 2 (Catalog & kho: Brand/Category/Product/Variant/Supplier/GoodsReceipt/Discount biến thể).
 - ⚠️ Nợ nhỏ từ Giai đoạn 2: các controller admin (`BrandController`, `ProductController`...) chưa gán `created_by`/`updated_by` khi tạo/sửa — bất kỳ ai đụng lại các controller này nên tiện tay vá (`'created_by' => auth()->id()` lúc create, `'updated_by' => auth()->id()` lúc update).
+- 🔄 Quyết định mới: **bỏ hẳn luồng khách vãng lai** — đặt hàng, giỏ hàng, theo dõi/hủy đơn, đổi/trả đều bắt buộc đăng nhập. `carts.guest_token_hash` và `orders.guest_access_token_hash` đã bị xóa khỏi schema (migration `2026_09_11_000200_require_login_for_cart_and_order.php`); `carts.user_id`/`orders.user_id` giờ bắt buộc (not null).
 
 Nguyên tắc chia: mỗi người sở hữu trọn một luồng nghiệp vụ (ít đụng file chung), phần phụ thuộc chéo (giá/giảm giá, dữ liệu đơn hàng) được khai báo rõ interface để 2 người còn lại dùng mà không cần chờ nhau code xong 100%.
 
@@ -12,21 +13,21 @@ Nguyên tắc chia: mỗi người sở hữu trọn một luồng nghiệp vụ
 Không phụ thuộc ai, có thể bắt đầu ngay.
 
 - **Catalog phía khách**: `Storefront/HomeController` (banner, danh mục, mới/bán chạy), `Storefront/ProductController` (`/san-pham`, `/danh-muc/{slug}`, `/san-pham/{slug}`) — filter theo query string (danh mục, thương hiệu, khoảng giá, size, màu, còn hàng), phân trang.
-- **Giỏ hàng**: `Storefront/CartController` (`/gio-hang/*`) cho khách vãng lai (guest token hash) và khách đăng nhập; `Actions/MergeGuestCartIntoUserCart` khi đăng nhập.
+- **Giỏ hàng**: `Storefront/CartController` (`/gio-hang/*`, sau middleware `auth`) — chỉ cho tài khoản đã đăng nhập, không có luồng khách vãng lai (đặt hàng bắt buộc đăng nhập, xem `fashion-store-plan.md` §"Quy tắc nghiệp vụ").
 - **Yêu thích**: `Storefront/WishlistController` (`/yeu-thich/*`).
 - **Sổ địa chỉ**: CRUD địa chỉ trong `/tai-khoan/*` (tối đa 1 địa chỉ mặc định/user).
 - **Giao cho Người 2**: route `/gio-hang` phải trả về đúng `Cart`/`CartItem` model chuẩn (không đổi cấu trúc) vì Checkout (Người 2) đọc trực tiếp từ đó.
 
-Test: thêm/sửa số lượng giỏ hàng, gộp giỏ khi login, wishlist toggle, filter catalog qua query string, sổ địa chỉ.
+Test: thêm/sửa số lượng giỏ hàng, khách chưa đăng nhập bị redirect sang đăng nhập khi vào giỏ hàng, wishlist toggle, filter catalog qua query string, sổ địa chỉ.
 
 ## Người 2 — Giá/giảm giá, Checkout & quản lý đơn (Giai đoạn 4 + nửa đầu Giai đoạn 5)
 
 Cần `Cart`/`CartItem` đọc được (đã có model sẵn, không cần chờ Người 1 xong UI để bắt đầu code).
 
 - **Service dùng chung** (Người 1 và Người 3 đều gọi lại): `Services/PriceCalculator` — áp discount biến thể đang hiệu lực + coupon (`scope=order`) lên một tập `CartItem`/`OrderItem`. Đây là interface chung, hoàn thành và thông báo sớm cho 2 người kia.
-- **Checkout**: `Storefront/CheckoutController` (`/thanh-toan`) + `Actions/PlaceOrder` (transaction, `lockForUpdate()` trên `product_variants`, snapshot vào `order_items`, sinh `order_number`/`guest_access_token_hash`).
+- **Checkout**: `Storefront/CheckoutController` (`/thanh-toan`, sau `auth`) + `Actions/PlaceOrder` (transaction, `lockForUpdate()` trên `product_variants`, snapshot vào `order_items`, sinh `order_number`, `orders.user_id` luôn lấy từ `auth()->id()`).
 - **Thanh toán**: `Storefront/PaymentProofController` (`/chung-tu-thanh-toan`, COD/chuyển khoản).
-- **Theo dõi/hủy đơn** (khách): `/don-hang/*`, xác thực bằng access token (khách vãng lai) hoặc `auth` — không dùng riêng `order_number`.
+- **Theo dõi/hủy đơn** (khách): `/don-hang/*` (sau `auth`) — chỉ xem/thao tác đơn của chính mình (so `orders.user_id` với `auth()->id()`).
 - **Quản lý đơn (admin)**: `Admin/OrderController` — luồng `pending → confirmed → preparing → shipping → delivered` (+ `cancelled`/`returned`), ghi `status_history` + `audit_logs`.
 - **Duyệt chứng từ chuyển khoản (admin)**: `Admin/PaymentReviewController`.
 - **Giao cho Người 3**: field `orders.status`, `order_items` schema giữ nguyên như migration hiện có (Người 3 dùng để làm return request và dashboard).

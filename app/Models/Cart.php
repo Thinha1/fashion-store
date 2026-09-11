@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'guest_token_hash', 'status', 'expires_at'])]
+#[Fillable(['user_id', 'status', 'expires_at'])]
 class Cart extends Model
 {
     use HasFactory;

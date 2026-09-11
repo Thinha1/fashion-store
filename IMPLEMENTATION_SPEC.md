@@ -71,21 +71,20 @@ Entity: `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Suppl
 
 - **Catalog phía khách**: `Storefront/HomeController` (banner, danh mục, mới/bán chạy), `Storefront/ProductController` (`/san-pham`, `/danh-muc/{slug}`, `/san-pham/{slug}`) — filter (danh mục, thương hiệu, khoảng giá, size, màu, còn hàng) qua query string bằng Eloquent scope/query object, phân trang, giữ trạng thái filter trên URL để chia sẻ/SEO.
 - **Giá hiển thị**: `Services/PriceCalculator` (hoặc tương đương) áp dụng discount biến thể đang hiệu lực — dùng lại được ở giỏ hàng/checkout.
-- **Giỏ hàng** (`Cart`, `CartItem`, lưu DB cho cả khách vãng lai lẫn đã đăng nhập):
-  - `Storefront/CartController` (`/gio-hang/*`): thêm/sửa/xóa dòng, unique (`cart_id`, `product_variant_id`), giá luôn tính lại chứ không lưu ở cart item (plan §3 mục 14).
-  - Guest cart dùng `guest_token_hash` (hash lưu DB, token thật ở cookie); action gộp giỏ khi đăng nhập (`Actions/MergeGuestCartIntoUserCart`, trong transaction, mỗi user chỉ 1 cart `active`).
-- **Yêu thích** (`Wishlist`): `Storefront/WishlistController` (`/yeu-thich/*`).
+- **Giỏ hàng** (`Cart`, `CartItem`, chỉ cho tài khoản đã đăng nhập — không có giỏ hàng khách vãng lai):
+  - `Storefront/CartController` (`/gio-hang/*`, sau middleware `auth`): thêm/sửa/xóa dòng, unique (`cart_id`, `product_variant_id`), giá luôn tính lại chứ không lưu ở cart item (plan §3 mục 14); mỗi user chỉ có một `cart` `active`.
+- **Yêu thích** (`Wishlist`): `Storefront/WishlistController` (`/yeu-thich/*`, sau `auth`).
 - **Đánh giá** (`Review`): `Storefront/ReviewController` — chỉ cho phép khi `order_item` thuộc đơn đã giao của đúng user/sản phẩm, `order_item_id` unique (plan §3 mục 17).
 - **Sổ địa chỉ** (`Address`): CRUD trong `/tai-khoan/*`, đảm bảo tối đa 1 địa chỉ mặc định/user.
-- **Test**: thêm/sửa số lượng giỏ hàng, gộp giỏ khi login, review chỉ tạo được sau khi giao hàng, wishlist toggle.
+- **Test**: thêm/sửa số lượng giỏ hàng, review chỉ tạo được sau khi giao hàng, wishlist toggle, khách chưa đăng nhập bị redirect sang `/dang-nhap` khi vào `/gio-hang`.
 
 ## Giai đoạn 4 — Checkout
 
 - **Tính tiền server-side hoàn toàn** (không tin dữ liệu từ client): subtotal từ cart, áp `Discount` (`scope=order`, tức coupon) kiểm tra thời gian/điều kiện/số lượt dùng, cộng `shipping_fee` cố định từ `config('store.shipping_fee')`.
-- `Storefront/CheckoutController` (`/thanh-toan`): hiển thị review đơn + form nhận địa chỉ/thanh toán; `Actions/PlaceOrder` là action trung tâm — transaction bao gồm: `lockForUpdate()` từng `product_variants` liên quan, kiểm tra đủ tồn, trừ kho, snapshot toàn bộ dữ liệu vào `order_items` (giá gốc, giảm giá, tên/sku/size/color tại thời điểm mua), khóa bản ghi `discounts` để tăng `used_count`, sinh `order_number`, sinh `guest_access_token_hash` ngẫu nhiên nếu là khách vãng lai.
+- `Storefront/CheckoutController` (`/thanh-toan`, sau `auth`): hiển thị review đơn + form nhận địa chỉ/thanh toán; `Actions/PlaceOrder` là action trung tâm — transaction bao gồm: `lockForUpdate()` từng `product_variants` liên quan, kiểm tra đủ tồn, trừ kho, snapshot toàn bộ dữ liệu vào `order_items` (giá gốc, giảm giá, tên/sku/size/color tại thời điểm mua), khóa bản ghi `discounts` để tăng `used_count`, sinh `order_number`.
 - Thanh toán: `payment_method` = `cod` | `bank_transfer`. Với chuyển khoản: form nhập `transaction_code` + upload ảnh chứng từ (`Storefront/PaymentProofController`, route `/chung-tu-thanh-toan`) — set `payment_status=pending_review`.
-- Theo dõi/hủy đơn (`/don-hang/*`): route công khai xác thực bằng access token (khách vãng lai) hoặc `auth` (đã đăng nhập) — **không** dùng riêng `order_number` để xác thực (plan §3). Hủy chỉ khi `status=pending`; hoàn tồn kho nếu đã trừ.
-- **Test**: đặt hàng COD/chuyển khoản, áp coupon hợp lệ/hết hạn/vượt lượt dùng, 2 đơn mua đồng thời cùng biến thể sắp hết hàng không được âm kho, hủy đơn hoàn đúng tồn kho, truy cập theo dõi đơn sai token bị từ chối.
+- Theo dõi/hủy đơn (`/don-hang/*`, sau `auth`): chỉ xem/thao tác được đơn của chính user đang đăng nhập (so khớp `orders.user_id` với `auth()->id()`, 404/403 nếu khác chủ). Hủy chỉ khi `status=pending`; hoàn tồn kho nếu đã trừ.
+- **Test**: đặt hàng COD/chuyển khoản, áp coupon hợp lệ/hết hạn/vượt lượt dùng, 2 đơn mua đồng thời cùng biến thể sắp hết hàng không được âm kho, hủy đơn hoàn đúng tồn kho, user A không xem/hủy được đơn của user B, khách chưa đăng nhập bị chặn khỏi `/thanh-toan`.
 
 ## Giai đoạn 5 — Vận hành (admin)
 
