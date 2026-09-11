@@ -66,4 +66,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(ReturnRequest::class);
     }
+
+    /**
+     * Determine whether the user's role grants the given permission code.
+     */
+    public function hasPermission(string $code): bool
+    {
+        return $this->role !== null && $this->role->hasPermission($code);
+    }
 }

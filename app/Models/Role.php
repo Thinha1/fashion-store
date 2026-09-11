@@ -34,4 +34,16 @@ class Role extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    /**
+     * Determine whether this role grants the given permission code.
+     *
+     * A role with the wildcard `*` permission is granted everything.
+     */
+    public function hasPermission(string $code): bool
+    {
+        $permissions = $this->permissions ?? [];
+
+        return in_array('*', $permissions, true) || in_array($code, $permissions, true);
+    }
 }
