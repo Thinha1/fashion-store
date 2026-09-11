@@ -2,6 +2,8 @@
 
 Tài liệu này cụ thể hóa [`fashion-store-plan.md`](../fashion-store-plan.md) (đặc tả nghiệp vụ & dữ liệu, đã chốt) và [`CONTEXT.md`](../CONTEXT.md) (thuật ngữ) thành các hạng mục kỹ thuật cần code, theo đúng 7 giai đoạn ở mục 4 của plan. Đây là checklist triển khai — quy tắc nghiệp vụ chi tiết (số tiền, tồn kho, transaction...) vẫn tra ở plan §3, không lặp lại đầy đủ ở đây.
 
+Trước khi code Giai đoạn 3 trở đi, đọc [`BUSINESS_FLOWS.md`](BUSINESS_FLOWS.md) — các luồng nhiều nhánh (checkout, trạng thái đơn, tính giá/giảm giá, đổi/trả) đã được chốt bằng sơ đồ để tránh mỗi người hiểu một kiểu rồi phải sửa lại lúc tích hợp.
+
 Quy ước tham chiếu: `S/…` = Storefront, `A/…` = Admin, đường dẫn viết tắt từ `app/`, `resources/views/`, `routes/web.php`.
 
 ## Trạng thái hiện tại (đã xong)

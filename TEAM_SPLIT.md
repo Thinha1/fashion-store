@@ -8,6 +8,8 @@ Chia phần **còn lại** của [`IMPLEMENTATION_SPEC.md`](IMPLEMENTATION_SPEC.
 
 Nguyên tắc chia: mỗi người sở hữu trọn một luồng nghiệp vụ (ít đụng file chung), phần phụ thuộc chéo (giá/giảm giá, dữ liệu đơn hàng) được khai báo rõ interface để 2 người còn lại dùng mà không cần chờ nhau code xong 100%.
 
+📊 **Đọc [`BUSINESS_FLOWS.md`](BUSINESS_FLOWS.md) trước khi code** — sơ đồ trạng thái đơn hàng, trình tự transaction checkout, và hợp đồng `Services/PriceCalculator` đã chốt cứng ở đó; đừng tự suy diễn thứ tự bước khác đi.
+
 ## Người 1 — Storefront & giỏ hàng (trọn Giai đoạn 3, trừ đánh giá)
 
 Không phụ thuộc ai, có thể bắt đầu ngay.
