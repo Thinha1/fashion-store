@@ -16,8 +16,9 @@ Lần chạy đầu, service `setup` tự cài Composer dependency, sinh `APP_KE
 - Vite HMR: http://localhost:5173
 - MySQL từ máy host: `127.0.0.1:3307`
 - MySQL trong Compose: `mysql:3306`
+- Mailpit (xem email đăng ký/xác minh/quên mật khẩu gửi ra trong môi trường dev): http://localhost:8025
 
-Các service chính gồm PHP 8.4-FPM (`app`), Nginx, MySQL 8.4, Node 22/Vite, queue worker và scheduler.
+Các service chính gồm PHP 8.4-FPM (`app`), Nginx, MySQL 8.4, Node 22/Vite, Mailpit, queue worker và scheduler. App gửi mail qua SMTP tới `mailpit:1025` (cấu hình sẵn trong `.env.example`); không có mail nào rời khỏi máy dev.
 
 ## Lệnh thường dùng
 
