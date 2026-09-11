@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['product_id', 'user_id', 'order_item_id', 'rating', 'comment', 'status'])]
+#[Fillable(['product_id', 'user_id', 'order_item_id', 'rating', 'comment', 'status', 'updated_by'])]
 class Review extends Model
 {
     use HasFactory;
@@ -25,5 +25,10 @@ class Review extends Model
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

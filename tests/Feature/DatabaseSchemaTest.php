@@ -48,4 +48,24 @@ class DatabaseSchemaTest extends TestCase
         $this->assertFalse(Schema::hasTable('shipments'));
         $this->assertSame(30000, config('store.shipping_fee'));
     }
+
+    public function test_admin_managed_catalog_tables_track_creator_and_editor(): void
+    {
+        $tables = [
+            'roles', 'brands', 'categories', 'products', 'product_variants',
+            'product_images', 'discounts', 'suppliers',
+        ];
+
+        foreach ($tables as $table) {
+            $this->assertTrue(Schema::hasColumn($table, 'created_by'), "Missing created_by on {$table}");
+            $this->assertTrue(Schema::hasColumn($table, 'updated_by'), "Missing updated_by on {$table}");
+        }
+    }
+
+    public function test_customer_originated_tables_only_track_the_staff_editor(): void
+    {
+        foreach (['goods_receipts', 'orders', 'reviews'] as $table) {
+            $this->assertTrue(Schema::hasColumn($table, 'updated_by'), "Missing updated_by on {$table}");
+        }
+    }
 }

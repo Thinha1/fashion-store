@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'category_id', 'brand_id', 'name', 'slug', 'description',
-    'base_price', 'status', 'is_featured',
+    'base_price', 'status', 'is_featured', 'created_by', 'updated_by',
 ])]
 class Product extends Model
 {
@@ -53,5 +53,15 @@ class Product extends Model
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

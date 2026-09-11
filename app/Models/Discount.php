@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'product_variant_id', 'code', 'scope', 'discount_type', 'discount_value',
     'max_discount_amount', 'min_order_amount', 'usage_limit', 'used_count',
     'usage_limit_per_customer', 'starts_at', 'ends_at', 'is_active',
+    'created_by', 'updated_by',
 ])]
 class Discount extends Model
 {
@@ -42,5 +43,15 @@ class Discount extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

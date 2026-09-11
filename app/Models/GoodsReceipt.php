@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'receipt_number', 'supplier_id', 'status', 'total_cost', 'notes',
-    'created_by', 'confirmed_by', 'confirmed_at',
+    'created_by', 'confirmed_by', 'confirmed_at', 'updated_by',
 ])]
 class GoodsReceipt extends Model
 {
@@ -37,6 +37,11 @@ class GoodsReceipt extends Model
     public function confirmedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function items(): HasMany

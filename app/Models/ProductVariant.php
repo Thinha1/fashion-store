@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'product_id', 'size', 'color', 'sku', 'price', 'stock_quantity',
-    'low_stock_threshold', 'is_active',
+    'low_stock_threshold', 'is_active', 'created_by', 'updated_by',
 ])]
 class ProductVariant extends Model
 {
@@ -53,5 +53,15 @@ class ProductVariant extends Model
     public function goodsReceiptItems(): HasMany
     {
         return $this->hasMany(GoodsReceiptItem::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

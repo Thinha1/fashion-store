@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'payment_reviewed_at', 'payment_rejection_reason', 'customer_name',
     'customer_email', 'customer_phone', 'province_name', 'district_name',
     'ward_name', 'shipping_address', 'customer_note', 'subtotal',
-    'discount_amount', 'shipping_fee', 'grand_total', 'placed_at',
+    'discount_amount', 'shipping_fee', 'grand_total', 'placed_at', 'updated_by',
 ])]
 class Order extends Model
 {
@@ -53,5 +53,10 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
