@@ -1,3 +1,65 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project status
+
+Early-stage Laravel 13 monolith (server-rendered, no SPA/API layer) for a Vietnamese fashion e-commerce store. The full functional/data-model plan is written up in [`../fashion-store-plan.md`](../fashion-store-plan.md) (Vietnamese) and the domain glossary in [`../CONTEXT.md`](../CONTEXT.md) — read these before implementing a feature, they are the spec.
+
+Only the foundation phase is built so far: all 20 domain migrations and their Eloquent models exist, but `routes/web.php` still only has the default `welcome` route — controllers, Blade views, policies and feature tests for the actual storefront/admin functionality have not been written yet.
+
+## Commands
+
+Primary workflow is Docker Compose (see [README.md](README.md); requires Docker Desktop running):
+
+```powershell
+docker compose up -d --build          # first run: installs deps, generates APP_KEY, runs migrations
+docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed
+docker compose exec app php artisan test
+docker compose exec app vendor/bin/pint
+docker compose logs -f
+docker compose down
+```
+
+Website at http://localhost:8080, Vite HMR at http://localhost:5173. Seeded dev login: `admin@example.com` / `password`.
+
+If working directly (PHP/Composer/Node installed locally) instead of through Docker, run from `fashion-store/`:
+
+```powershell
+php artisan test                       # full suite (PHPUnit, not Pest)
+php artisan test --filter=testName     # single test
+vendor/bin/phpunit path/to/SomeTest.php
+vendor/bin/pint --dirty --format agent # run after any PHP change, before finishing
+npm run dev                            # Vite dev server
+npm run build                          # production assets
+```
+
+Tests run against an in-memory SQLite DB (`phpunit.xml`); the app itself runs on MySQL 8.4 (via Docker) in dev/prod.
+
+## Architecture
+
+- Laravel 13 on PHP 8.5, MySQL. Blade views rendered server-side; Tailwind CSS v4 + Alpine.js handle interactivity (menus, modals, variant pickers); Vite bundles `resources/js/app.js` / `resources/css/app.css`. Forms use POST/Redirect/GET; `fetch` is only for small local updates against ordinary Laravel routes protected by session/CSRF/Policy — there is no separate REST API layer.
+- The data model is a fixed set of **20 business tables** (plan §3 in `fashion-store-plan.md`) — don't add/rename/remove tables without checking that doc first. Current `app/Models/*` mirror them 1:1: `User`, `Address`, `Role`, `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Discount`, `Supplier`, `GoodsReceipt`, `GoodsReceiptItem`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Review`, `Wishlist`, `ReturnRequest`, `AuditLog`.
+- Models declare mass-assignable fields via the PHP 8.5 `#[Fillable([...])]` attribute (see `app/Models/Product.php`), not the classic `$fillable` property — follow this for new models.
+- Planned (not yet present) controller split, per the plan: `app/Http/Controllers/Storefront/*` for customer-facing pages and `app/Http/Controllers/Admin/*` for the admin panel, under Vietnamese-slug routes (`/san-pham`, `/gio-hang`, `/thanh-toan`, `/don-hang`, `/doi-tra`, `/admin/*`, ...). Admin routes are meant to sit behind `auth` + `verified` + a permission middleware.
+- Business rules to preserve when implementing features (plan §3):
+  - All prices/discounts/totals are recalculated server-side; nothing from the client is trusted.
+  - Stock-affecting operations (placing an order, confirming a goods receipt, approving a return) run inside a DB transaction with `lockForUpdate()` on the relevant `product_variants` row(s), and record before/after quantities to `audit_logs`.
+  - Shipping is a single fixed fee from `config('store.shipping_fee')` (env `STORE_SHIPPING_FEE`, see `config/store.php`), snapshotted onto `orders.shipping_fee` at checkout — there is no shipping/zone table.
+  - Guest (no-account) orders are identified by a hashed random access token (`guest_access_token_hash`), never by order number alone.
+  - `discounts` is one table used for both automatic per-variant discounts (`scope=variant`) and checkout coupons (`scope=order`) — see the column rules in plan §3 table 9 before touching it.
+- Domain terminology is standardized in [`../CONTEXT.md`](../CONTEXT.md) (e.g. Brand vs Supplier, Discount vs Coupon, Cart vs Order) — use those terms consistently in code, comments, and UI copy, and check it before naming new concepts.
+
+## Working conventions
+
+- This project is set up for Laravel Boost: `.mcp.json` exposes a `laravel-boost` MCP server (`database-query`, `database-schema`, `search-docs`, `browser-logs`, etc.) — prefer those tools over raw shell/SQL/tinker when available. `.claude/skills/` has project skills (`infer-conventions`, `laravel-best-practices`, `tailwindcss-development`, `testing-best-practices`) that activate automatically for matching work.
+- If a `.ai/rules/` directory exists (it does not yet), read `.ai/rules/index.md` and every rule file matching the path(s) you're editing before writing code — see the full guidelines below for the exact procedure.
+
+---
+
+The section below is generated by `php artisan boost:install` (Laravel Boost) and kept in sync automatically — treat it as authoritative, don't hand-edit it.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

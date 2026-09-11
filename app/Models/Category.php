@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['parent_id', 'name', 'slug', 'description', 'image_path', 'is_active', 'sort_order'])]
+#[Fillable([
+    'parent_id', 'name', 'slug', 'description', 'image_path', 'is_active', 'sort_order',
+    'created_by', 'updated_by',
+])]
 class Category extends Model
 {
     use HasFactory;
@@ -31,5 +34,15 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
