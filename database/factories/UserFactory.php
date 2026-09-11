@@ -47,4 +47,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Assign the user a role with the wildcard ("*") permission.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role_id' => Role::factory()->admin(),
+        ]);
+    }
 }
