@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Str;
@@ -15,14 +16,19 @@ class StoreProductRequest extends BaseAdminRequest
         return 'products.manage';
     }
 
+    /**
+     * Slug is always server-generated from the name, never taken from the
+     * client — on create it's derived (with a numeric suffix on collision);
+     * on update it stays whatever the product already has (immutable after
+     * creation).
+     */
     protected function prepareForValidation(): void
     {
         $product = $this->route('product');
 
-        // Auto-generate slug from name when not provided on create.
-        if (! $product && $this->input('slug') === null && $this->input('name') !== null) {
-            $this->merge(['slug' => Str::slug((string) $this->input('name'))]);
-        }
+        $this->merge([
+            'slug' => $product ? $product->slug : $this->generateUniqueSlug((string) $this->input('name')),
+        ]);
     }
 
     /**
@@ -114,5 +120,17 @@ class StoreProductRequest extends BaseAdminRequest
                 }
             }
         });
+    }
+
+    private function generateUniqueSlug(string $name): string
+    {
+        $base = Str::slug($name) ?: 'san-pham';
+        $slug = $base;
+
+        for ($suffix = 2; Product::query()->where('slug', $slug)->exists(); $suffix++) {
+            $slug = "{$base}-{$suffix}";
+        }
+
+        return $slug;
     }
 }

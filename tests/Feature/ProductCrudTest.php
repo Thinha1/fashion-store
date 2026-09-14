@@ -25,7 +25,6 @@ class ProductCrudTest extends TestCase
     {
         return array_merge([
             'name' => 'Áo Thun Cơ Bản',
-            'slug' => 'ao-thun-co-ban',
             'category_id' => Category::factory()->create()->id,
             'brand_id' => Brand::factory()->create()->id,
             'description' => 'Áo thun chất liệu cotton 100%',
@@ -79,13 +78,15 @@ class ProductCrudTest extends TestCase
         ]);
     }
 
-    public function test_product_requires_unique_slug(): void
+    public function test_slug_gets_a_numeric_suffix_when_the_base_slug_is_taken(): void
     {
-        Product::factory()->create(['slug' => 'taken']);
+        // Different names (so no other rule blocks this) that slugify to
+        // the same base string.
+        Product::factory()->create(['name' => 'Áo Thun Cơ Bản', 'slug' => 'ao-thun-co-ban']);
 
-        $response = $this->actingAs($this->admin())->post(route('admin.products.store'), $this->makePayload(['slug' => 'taken']));
+        $this->actingAs($this->admin())->post(route('admin.products.store'), $this->makePayload(['name' => 'Áo Thun Cơ Bản!']));
 
-        $response->assertSessionHasErrors(['slug']);
+        $this->assertDatabaseHas('products', ['name' => 'Áo Thun Cơ Bản!', 'slug' => 'ao-thun-co-ban-2']);
     }
 
     public function test_product_variant_sku_cannot_collide_with_other_product(): void
@@ -98,7 +99,7 @@ class ProductCrudTest extends TestCase
             'color' => 'Xanh',
         ]);
 
-        $payload = $this->makePayload(['slug' => 'new-product']);
+        $payload = $this->makePayload();
         $payload['variants'][0]['sku'] = 'SHARED-SKU-123';
 
         $response = $this->actingAs($this->admin())->post(route('admin.products.store'), $payload);
@@ -109,7 +110,7 @@ class ProductCrudTest extends TestCase
 
     public function test_product_variant_sku_cannot_duplicate_within_request(): void
     {
-        $payload = $this->makePayload(['slug' => 'new-product']);
+        $payload = $this->makePayload();
         $payload['variants'][0]['sku'] = 'DUPE-SKU';
         $payload['variants'][1]['sku'] = 'DUPE-SKU';
 
@@ -121,7 +122,7 @@ class ProductCrudTest extends TestCase
 
     public function test_product_can_upload_images(): void
     {
-        Storage::fake('public');
+        Storage::fake('s3');
 
         $payload = $this->makePayload();
         $payload['images'] = [
@@ -135,8 +136,8 @@ class ProductCrudTest extends TestCase
         $this->assertSame(2, $product->images()->count());
 
         $images = $product->images()->get();
-        Storage::disk('public')->assertExists($images[0]->path);
-        Storage::disk('public')->assertExists($images[1]->path);
+        Storage::disk('s3')->assertExists($images[0]->path);
+        Storage::disk('s3')->assertExists($images[1]->path);
     }
 
     public function test_product_image_rejects_non_image_file(): void

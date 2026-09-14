@@ -45,7 +45,7 @@
             <div class="mt-3 grid grid-cols-3 gap-4 sm:grid-cols-6">
                 @foreach ($product->images as $image)
                     <figure class="overflow-hidden rounded-md border border-gray-200">
-                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $image->alt_text }}" class="aspect-square w-full object-cover">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $image->alt_text }}" class="aspect-square w-full object-cover">
                         <figcaption class="px-2 py-1 text-xs text-gray-500">
                             @if ($image->is_primary) <span class="text-green-600">Ảnh chính</span> @endif
                         </figcaption>

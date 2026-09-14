@@ -75,23 +75,57 @@
             @endforeach
         </div>
 
-        <button type="button" class="text-sm text-gray-700 hover:underline"
-                onclick="
-                    var i = {{ $itemIndex }};
-                    var selectOptions = @foreach (\App\Models\ProductVariant::query()->where('is_active', true)->with('product:id,name')->get() as $v)
-                        '&lt;option value={{ $v->id }}&gt;{{ $v->product->name }} — {{ $v->size }} / {{ $v->color }} ({{ $v->sku }})&lt;/option&gt;';
-                    @endforeach;
-                    var html = '&lt;div class=\\"grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-4\\"&gt;'
-                        + '&lt;div&gt;&lt;label class=\\"block text-sm font-medium text-gray-700\\"&gt;Biến thể&lt;/label&gt;&lt;select name=\\"items['.i.'][product_variant_id]\\" required class=\\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm\\">&lt;option value=\\"\\"&gt;— Chọn biến thể —&lt;/option&gt;'.selectOptions+'&lt;/select&gt;&lt;/div&gt;'
-                        + '&lt;div&gt;&lt;label class=\\"block text-sm font-medium text-gray-700\\"&gt;Số lượng&lt;/label&gt;&lt;input type=\\"number\\" name=\\"items['.i.'][quantity]\\" value=\\"1\\" min=\\"1\\" required class=\\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm\\"&gt;&lt;/div&gt;'
-                        + '&lt;div&gt;&lt;label class=\\"block text-sm font-medium text-gray-700\\"&gt;Giá nhập (VNĐ)&lt;/label&gt;&lt;input type=\\"number\\" name=\\"items['.i.'][cost_price]\\" value=\\"0\\" min=\\"0\\" step=\\"0.01\\" required class=\\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm\\"&gt;&lt;/div&gt;'
-                        + '&lt;div&gt;&lt;label class=\\"block text-sm font-medium text-gray-700\\"&gt;Thành tiền&lt;/label&gt;&lt;div class=\\"mt-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700\\"&gt;0 ₫&lt;/div&gt;&lt;/div&gt;'
-                        + '&lt;/div&gt;';
-                    document.getElementById('items-list').insertAdjacentHTML('beforeend', html);
-                "
-        >+ Thêm dòng hàng</button>
+        {{-- Template cho 1 dòng hàng mới — trình duyệt tự parse thành DOM thật,
+             không cần dựng chuỗi HTML bằng JS (tránh lỗi escape lồng nhau). --}}
+        <template id="item-row-template">
+            <div class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Biến thể</label>
+                    <select name="items[__INDEX__][product_variant_id]" required
+                            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        <option value="">— Chọn biến thể —</option>
+                        @foreach (\App\Models\ProductVariant::query()->where('is_active', true)->with('product:id,name')->get() as $v)
+                            <option value="{{ $v->id }}">{{ $v->product->name }} — {{ $v->size }} / {{ $v->color }} ({{ $v->sku }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Số lượng</label>
+                    <input type="number" name="items[__INDEX__][quantity]" value="1" min="1" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Giá nhập (VNĐ)</label>
+                    <input type="number" name="items[__INDEX__][cost_price]" value="0" min="0" step="0.01" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Thành tiền</label>
+                    <div class="mt-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">0 ₫</div>
+                </div>
+            </div>
+        </template>
+
+        <button type="button" id="add-item-row" class="text-sm text-gray-700 hover:underline">+ Thêm dòng hàng</button>
         <div id="items-list" class="space-y-3"></div>
         <x-input-error :messages="$errors->get('items')" />
+
+        <script>
+            (function () {
+                var nextIndex = {{ $itemIndex }};
+                var template = document.getElementById('item-row-template');
+                var list = document.getElementById('items-list');
+
+                document.getElementById('add-item-row').addEventListener('click', function () {
+                    var row = template.content.cloneNode(true);
+                    row.querySelectorAll('[name]').forEach(function (el) {
+                        el.name = el.name.replace('__INDEX__', nextIndex);
+                    });
+                    list.appendChild(row);
+                    nextIndex++;
+                });
+            })();
+        </script>
     </section>
 
     <div class="flex items-center gap-2 border-t border-gray-200 pt-4">

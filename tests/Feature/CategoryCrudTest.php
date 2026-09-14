@@ -36,11 +36,10 @@ class CategoryCrudTest extends TestCase
             ->assertSee('Áo Thun Nam');
     }
 
-    public function test_admin_can_create_root_category(): void
+    public function test_admin_can_create_root_category_with_auto_generated_slug(): void
     {
         $response = $this->actingAs($this->admin())->post(route('admin.categories.store'), [
             'name' => 'Nam',
-            'slug' => 'nam',
             'is_active' => '1',
             'sort_order' => 0,
         ]);
@@ -55,13 +54,24 @@ class CategoryCrudTest extends TestCase
 
         $response = $this->actingAs($this->admin())->post(route('admin.categories.store'), [
             'name' => 'Áo Thun',
-            'slug' => 'ao-thun',
             'parent_id' => $parent->id,
             'is_active' => '1',
         ]);
 
-        $this->assertDatabaseHas('categories', ['name' => 'Áo Thun', 'parent_id' => $parent->id]);
+        $this->assertDatabaseHas('categories', ['name' => 'Áo Thun', 'slug' => 'ao-thun', 'parent_id' => $parent->id]);
         $response->assertRedirect(route('admin.categories.index'));
+    }
+
+    public function test_slug_gets_a_numeric_suffix_when_the_base_slug_is_taken(): void
+    {
+        Category::factory()->create(['name' => 'Áo Thun', 'slug' => 'ao-thun']);
+
+        $this->actingAs($this->admin())->post(route('admin.categories.store'), [
+            'name' => 'Áo Thun!',
+            'is_active' => '1',
+        ]);
+
+        $this->assertDatabaseHas('categories', ['name' => 'Áo Thun!', 'slug' => 'ao-thun-2']);
     }
 
     public function test_category_cannot_be_its_own_parent(): void
@@ -70,7 +80,6 @@ class CategoryCrudTest extends TestCase
 
         $response = $this->actingAs($this->admin())->put(route('admin.categories.update', $category), [
             'name' => $category->name,
-            'slug' => $category->slug,
             'parent_id' => $category->id,
             'is_active' => '1',
         ]);
@@ -78,13 +87,12 @@ class CategoryCrudTest extends TestCase
         $response->assertSessionHasErrors(['parent_id']);
     }
 
-    public function test_admin_can_update_category(): void
+    public function test_admin_can_update_category_and_slug_stays_unchanged(): void
     {
-        $category = Category::factory()->create();
+        $category = Category::factory()->create(['name' => 'Original', 'slug' => 'original']);
 
         $response = $this->actingAs($this->admin())->put(route('admin.categories.update', $category), [
             'name' => 'Updated',
-            'slug' => $category->slug,
             'is_active' => '0',
             'sort_order' => 5,
         ]);
@@ -92,6 +100,7 @@ class CategoryCrudTest extends TestCase
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
             'name' => 'Updated',
+            'slug' => 'original',
             'is_active' => false,
             'sort_order' => 5,
         ]);

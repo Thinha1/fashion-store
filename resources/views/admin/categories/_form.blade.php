@@ -11,12 +11,11 @@
         <x-label for="name">Tên danh mục</x-label>
         <x-input id="name" name="name" value="{{ old('name', $category->name) }}" required class="mt-1" />
         <x-input-error :messages="$errors->get('name')" />
-    </div>
-
-    <div>
-        <x-label for="slug">Slug</x-label>
-        <x-input id="slug" name="slug" value="{{ old('slug', $category->slug) }}" required class="mt-1" />
-        <x-input-error :messages="$errors->get('slug')" />
+        @if ($category->exists)
+            <p class="mt-1 text-xs text-gray-500">Slug: <code>{{ $category->slug }}</code> (sinh tự động từ tên lúc tạo, không đổi sau đó).</p>
+        @else
+            <p class="mt-1 text-xs text-gray-500">Slug (định danh URL) sẽ được sinh tự động từ tên.</p>
+        @endif
     </div>
 
     <div>
@@ -44,17 +43,10 @@
         <x-input-error :messages="$errors->get('description')" />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-        <div>
-            <x-label for="image_path">Đường dẫn ảnh</x-label>
-            <x-input id="image_path" name="image_path" value="{{ old('image_path', $category->image_path) }}" class="mt-1" />
-            <x-input-error :messages="$errors->get('image_path')" />
-        </div>
-        <div>
-            <x-label for="sort_order">Thứ tự hiển thị</x-label>
-            <x-input id="sort_order" type="number" name="sort_order" value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" class="mt-1" />
-            <x-input-error :messages="$errors->get('sort_order')" />
-        </div>
+    <div>
+        <x-label for="sort_order">Thứ tự hiển thị</x-label>
+        <x-input id="sort_order" type="number" name="sort_order" value="{{ old('sort_order', $category->sort_order ?? 0) }}" min="0" class="mt-1" />
+        <x-input-error :messages="$errors->get('sort_order')" />
     </div>
 
     <div>

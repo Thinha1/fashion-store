@@ -149,7 +149,7 @@ class ProductController extends Controller
                 continue;
             }
 
-            $path = $image->store('products', 'public');
+            $path = $image->store('products', 's3');
 
             ProductImage::query()->create([
                 'product_id' => $product->id,
