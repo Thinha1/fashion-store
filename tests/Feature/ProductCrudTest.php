@@ -192,6 +192,54 @@ class ProductCrudTest extends TestCase
         $response->assertRedirect(route('admin.products.show', $product));
     }
 
+    public function test_admin_can_add_a_new_variant_row_alongside_an_existing_one(): void
+    {
+        // Mirrors what the "+ Thêm biến thể" button's JS actually submits:
+        // the existing variant keyed by its real id, plus a new row keyed
+        // "new-0" (non-numeric on purpose, see products/_form.blade.php) so
+        // it can never collide with a real variant id and get treated as an
+        // update instead of a create.
+        $product = Product::factory()->create();
+        $existingVariant = ProductVariant::factory()->create(['product_id' => $product->id, 'sku' => 'EXISTING-SKU']);
+
+        $payload = $this->makePayload([
+            'name' => $product->name,
+            'variants' => [
+                $existingVariant->id => [
+                    'size' => $existingVariant->size,
+                    'color' => $existingVariant->color,
+                    'sku' => $existingVariant->sku,
+                    'stock_quantity' => 5,
+                    'low_stock_threshold' => 5,
+                ],
+                'new-0' => [
+                    'size' => 'XL',
+                    'color' => 'Vàng',
+                    'sku' => 'NEW-VARIANT-SKU',
+                    'stock_quantity' => 7,
+                    'low_stock_threshold' => 5,
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->admin())->put(route('admin.products.update', $product), $payload);
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame(2, $product->variants()->count());
+        $this->assertDatabaseHas('product_variants', [
+            'id' => $existingVariant->id,
+            'sku' => 'EXISTING-SKU',
+            'stock_quantity' => 5,
+        ]);
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'sku' => 'NEW-VARIANT-SKU',
+            'size' => 'XL',
+            'color' => 'Vàng',
+            'stock_quantity' => 7,
+        ]);
+    }
+
     public function test_admin_can_soft_delete_product(): void
     {
         $product = Product::factory()->create();
