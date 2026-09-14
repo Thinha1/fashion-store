@@ -2,9 +2,8 @@
 @php($method = $method ?? 'POST')
 @php($variants = $variants ?? collect())
 @php($images = $images ?? collect())
-@php($existingVariantCount = $variants->count())
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="space-y-6" x-data="{ variantCount: {{ $existingVariantCount }} }">
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="space-y-6">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -95,16 +94,14 @@
     <section class="space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Biến thể</h2>
-            <button type="button"
-                    @click="variantCount += 1"
-                    class="text-sm text-gray-700 hover:underline">
+            <button type="button" id="add-variant-row" class="text-sm text-gray-700 hover:underline">
                 + Thêm biến thể
             </button>
         </div>
         <p class="text-xs text-gray-500">Size/màu được chuẩn hóa hoa-thường trước khi lưu. Mỗi SKU phải duy nhất.</p>
 
         @php($variantIndex = 0)
-        <div class="space-y-3">
+        <div id="variants-list" class="space-y-3">
             @foreach ($variants as $variant)
                 @php($rowIndex = $variant->exists ? $variant->id : $variantIndex)
                 <div class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-6">
@@ -146,8 +143,63 @@
             @endforeach
         </div>
 
-        {{-- Alpine.js template for new variant rows --}}
-        <template x-teleport="body"></template>
+        {{-- Template cho 1 dòng biến thể mới — clone qua JS thay vì dựng chuỗi
+             HTML (tránh lỗi escape như đã gặp ở phiếu nhập). Index dùng tiền
+             tố "new-" (không phải số) để không bao giờ trùng với id thật của
+             biến thể đã có — nếu trùng, controller sẽ hiểu nhầm là sửa biến
+             thể cũ thay vì tạo mới. --}}
+        <template id="variant-row-template">
+            <div class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Size</label>
+                    <input type="text" name="variants[__INDEX__][size]" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Màu</label>
+                    <input type="text" name="variants[__INDEX__][color]" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">SKU</label>
+                    <input type="text" name="variants[__INDEX__][sku]" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Giá (VNĐ)</label>
+                    <input type="number" name="variants[__INDEX__][price]" min="0" step="0.01"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tồn kho</label>
+                    <input type="number" name="variants[__INDEX__][stock_quantity]" value="0" min="0" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Cảnh báo tồn</label>
+                    <input type="number" name="variants[__INDEX__][low_stock_threshold]" value="5" min="0" required
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+            </div>
+        </template>
+
+        <script>
+            (function () {
+                var nextNewIndex = 0;
+                var template = document.getElementById('variant-row-template');
+                var list = document.getElementById('variants-list');
+
+                document.getElementById('add-variant-row').addEventListener('click', function () {
+                    var row = template.content.cloneNode(true);
+                    row.querySelectorAll('[name]').forEach(function (el) {
+                        el.name = el.name.replace('__INDEX__', 'new-' + nextNewIndex);
+                    });
+                    list.appendChild(row);
+                    nextNewIndex++;
+                });
+            })();
+        </script>
+
         <x-input-error :messages="$errors->get('variants')" />
     </section>
 
