@@ -64,7 +64,7 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
                 <x-label for="base_price">Giá cơ bản (VNĐ)</x-label>
-                <x-input id="base_price" type="number" name="base_price" value="{{ old('base_price', $product->base_price) }}" min="0" step="0.01" required class="mt-1" />
+                <x-currency-input id="base_price" name="base_price" :value="old('base_price', $product->base_price)" required class="mt-1" />
                 <x-input-error :messages="$errors->get('base_price')" />
             </div>
 
@@ -94,9 +94,7 @@
     <section class="space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Biến thể</h2>
-            <button type="button" id="add-variant-row" class="text-sm text-gray-700 hover:underline">
-                + Thêm biến thể
-            </button>
+            <x-button type="button" id="add-variant-row" variant="secondary">+ Thêm biến thể</x-button>
         </div>
         <p class="text-xs text-gray-500">Size/màu được chuẩn hóa hoa-thường trước khi lưu. Mỗi SKU phải duy nhất.</p>
 
