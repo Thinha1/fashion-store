@@ -8,7 +8,7 @@
     @endif
     @if (isset($actions) && $actions)
         <div class="mt-4 flex items-center gap-2">
-            {{ $actions }}
+            {!! $actions !!}
         </div>
     @endif
 </div>

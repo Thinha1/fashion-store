@@ -1,7 +1,7 @@
 @php($route = $route ?? 'admin.brands.store')
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="max-w-2xl space-y-4">
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="max-w-2xl space-y-4">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -11,13 +11,11 @@
         <x-label for="name">Tên thương hiệu</x-label>
         <x-input id="name" name="name" value="{{ old('name', $brand->name) }}" required class="mt-1" />
         <x-input-error :messages="$errors->get('name')" />
-    </div>
-
-    <div>
-        <x-label for="slug">Slug</x-label>
-        <x-input id="slug" name="slug" value="{{ old('slug', $brand->slug) }}" required class="mt-1" />
-        <x-input-error :messages="$errors->get('slug')" />
-        <p class="mt-1 text-xs text-gray-500">Dùng để định danh URL, không đổi sau khi lưu.</p>
+        @if ($brand->exists)
+            <p class="mt-1 text-xs text-gray-500">Slug: <code>{{ $brand->slug }}</code> (sinh tự động từ tên lúc tạo, không đổi sau đó).</p>
+        @else
+            <p class="mt-1 text-xs text-gray-500">Slug (định danh URL) sẽ được sinh tự động từ tên.</p>
+        @endif
     </div>
 
     <div>
@@ -33,10 +31,27 @@
             <x-input id="country" name="country" value="{{ old('country', $brand->country) }}" class="mt-1" />
             <x-input-error :messages="$errors->get('country')" />
         </div>
-        <div>
-            <x-label for="logo_path">Đường dẫn logo</x-label>
-            <x-input id="logo_path" name="logo_path" value="{{ old('logo_path', $brand->logo_path) }}" class="mt-1" />
-            <x-input-error :messages="$errors->get('logo_path')" />
+        <div x-data="{ preview: null }">
+            <x-label for="logo">Logo</x-label>
+
+            {{-- Ảnh đang chọn (client-side, chưa lưu) — ưu tiên hiện thay cho logo cũ khi có --}}
+            <template x-if="preview">
+                <img :src="preview" alt="Xem trước logo mới" class="mt-1 mb-2 h-16 w-16 rounded object-cover ring-2 ring-gray-900">
+            </template>
+            @if ($brand->logo_path)
+                <img x-show="!preview" src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="Logo hiện tại" class="mt-1 mb-2 h-16 w-16 rounded object-cover">
+            @endif
+
+            <input id="logo" name="logo" type="file" accept="image/*" class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-gray-700"
+                   x-on:change="
+                       const file = $event.target.files[0];
+                       if (! file) { preview = null; return; }
+                       const reader = new FileReader();
+                       reader.onload = () => { preview = reader.result };
+                       reader.readAsDataURL(file);
+                   " />
+            <x-input-error :messages="$errors->get('logo')" />
+            <p class="mt-1 text-xs text-gray-500">Ảnh (jpg/png/webp...), tối đa 2MB. Bỏ trống để giữ logo hiện tại.</p>
         </div>
     </div>
 

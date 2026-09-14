@@ -47,6 +47,9 @@ return [
             'report' => false,
         ],
 
+        // Trong dev, trỏ vào MinIO (S3-compatible) chạy trong compose.yaml —
+        // xem AWS_* trong .env.example. Production trỏ cùng disk này sang S3
+        // thật bằng cách đổi AWS_ENDPOINT/AWS_URL, không cần đổi code.
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

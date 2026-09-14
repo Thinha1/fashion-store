@@ -7,8 +7,15 @@
         @forelse ($brands as $brand)
             <tr>
                 <td class="px-4 py-3 font-medium">
-                    <a href="{{ route('admin.brands.show', $brand) }}" class="text-gray-900 hover:underline">{{ $brand->name }}</a>
-                    <span class="ml-2 text-xs text-gray-400">/{{ $brand->slug }}</span>
+                    <div class="flex items-center gap-2">
+                        @if ($brand->logo_path)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="" class="h-8 w-8 rounded object-cover">
+                        @endif
+                        <div>
+                            <a href="{{ route('admin.brands.show', $brand) }}" class="text-gray-900 hover:underline">{{ $brand->name }}</a>
+                            <span class="ml-2 text-xs text-gray-400">/{{ $brand->slug }}</span>
+                        </div>
+                    </div>
                 </td>
                 <td class="px-4 py-3 text-gray-600">{{ $brand->country ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $brand->products_count }}</td>
