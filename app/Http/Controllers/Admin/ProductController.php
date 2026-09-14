@@ -143,6 +143,7 @@ class ProductController extends Controller
 
         $existingImages = $product->images()->get()->keyBy('id');
         $sortOrder = $existingImages->count();
+        $hasPrimary = $existingImages->contains('is_primary', true);
 
         foreach ($images as $image) {
             if (! $image || ! $image->isValid()) {
@@ -157,8 +158,10 @@ class ProductController extends Controller
                 'path' => $path,
                 'alt_text' => $product->name,
                 'sort_order' => $sortOrder++,
-                'is_primary' => false,
+                'is_primary' => ! $hasPrimary,
             ]);
+
+            $hasPrimary = true;
         }
     }
 
