@@ -10,6 +10,14 @@
     ])
 
     <dl class="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+        @if ($brand->logo_path)
+            <div class="sm:col-span-2">
+                <dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Logo</dt>
+                <dd class="mt-1">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="Logo {{ $brand->name }}" class="h-20 w-20 rounded object-cover">
+                </dd>
+            </div>
+        @endif
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Tên</dt>
             <dd class="mt-1 text-sm text-gray-900">{{ $brand->name }}</dd>
