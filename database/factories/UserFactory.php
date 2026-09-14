@@ -28,7 +28,7 @@ class UserFactory extends Factory
         return [
             'role_id' => fn () => Role::query()->firstOrCreate(
                 ['code' => 'customer'],
-                ['name' => 'Khách hàng', 'permissions' => []],
+                ['name' => 'Khách hàng'],
             )->id,
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
@@ -49,7 +49,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Assign the user a role with the wildcard ("*") permission.
+     * Assign the user a role with every permission in the catalog attached.
      */
     public function admin(): static
     {

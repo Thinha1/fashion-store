@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,14 +18,21 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $roles = collect([
-            ['name' => 'Quản trị viên', 'code' => 'admin', 'permissions' => ['*']],
-            ['name' => 'Nhân viên', 'code' => 'staff', 'permissions' => []],
-            ['name' => 'Khách hàng', 'code' => 'customer', 'permissions' => []],
+            ['name' => 'Quản trị viên', 'code' => 'admin'],
+            ['name' => 'Nhân viên', 'code' => 'staff'],
+            ['name' => 'Khách hàng', 'code' => 'customer'],
         ])->mapWithKeys(function (array $role): array {
             $model = Role::query()->updateOrCreate(['code' => $role['code']], $role);
 
             return [$role['code'] => $model];
         });
+
+        // Admin toàn quyền: gán toàn bộ danh mục quyền hiện có (không phải
+        // wildcard) — quyền mới thêm vào danh mục sau này cần seed lại.
+        $roles['admin']->permissions()->sync(Permission::query()->pluck('id'));
+
+        // Nhân viên chưa có quyền nào theo mặc định; Admin gán theo nhóm
+        // qua Admin/StaffController (chưa hiện thực, xem TEAM_SPLIT.md).
 
         User::factory()->create([
             'role_id' => $roles['admin']->id,
