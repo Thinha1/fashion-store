@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\AdminExcel;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
+use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -13,6 +15,15 @@ Route::prefix('admin')
     ->middleware(['auth', 'verified'])
     ->name('admin.')
     ->group(function (): void {
+        Route::prefix('excel/{resource}')
+            ->whereIn('resource', array_keys(AdminExcel::resources()))
+            ->name('excel.')
+            ->group(function (): void {
+                Route::get('xuat', [ExcelController::class, 'export'])->name('export');
+                Route::get('file-mau', [ExcelController::class, 'template'])->name('template');
+                Route::post('nhap', [ExcelController::class, 'import'])->middleware('throttle:10,1')->name('import');
+            });
+
         // Dashboard — needs the admin.access permission.
         Route::middleware('permission:admin.access')
             ->get('dashboard', DashboardController::class)

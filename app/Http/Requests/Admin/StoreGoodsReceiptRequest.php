@@ -25,10 +25,18 @@ class StoreGoodsReceiptRequest extends BaseAdminRequest
             'supplier_id' => ['required', 'integer', Rule::exists('suppliers', 'id')],
             'notes' => ['nullable', 'string', 'max:2000'],
 
-            'items' => ['array', 'min:1'],
+            'items' => ['required', 'array', 'min:1'],
             'items.*.product_variant_id' => ['required', 'integer', Rule::exists('product_variants', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
             'items.*.cost_price' => ['required', 'numeric', 'min:0', 'max:9999999999999'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Thêm ít nhất một dòng hàng trước khi lưu phiếu nhập.',
+            'items.min' => 'Phiếu nhập phải có ít nhất một dòng hàng.',
         ];
     }
 

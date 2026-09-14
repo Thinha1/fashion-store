@@ -1,7 +1,7 @@
 @php($route = $route ?? route('admin.discounts.store'))
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="max-w-2xl space-y-4">
+<form method="POST" action="{{ $route }}" class="admin-form max-w-2xl space-y-4">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -21,7 +21,7 @@
         <x-input-error :messages="$errors->get('product_variant_id')" />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
             <x-label for="discount_type">Loại giảm giá</x-label>
             <select id="discount_type" name="discount_type" required

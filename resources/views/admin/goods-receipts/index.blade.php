@@ -5,8 +5,11 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhập hàng',
+        'subtitle' => 'Theo dõi phiếu nhập. Chỉ phiếu đã xác nhận mới làm tăng tồn kho.',
         'actions' => '<a href="'.route('admin.goods-receipts.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm phiếu nhập</a>',
     ])
+
+    <x-excel-tools resource="goods-receipts" />
 
     <x-admin-table :header="['Số phiếu', 'Nhà cung cấp', 'Dòng hàng', 'Tổng chi phí', 'Trạng thái', 'Xác nhận bởi', 'Thao tác']">
         @forelse ($receipts as $receipt)

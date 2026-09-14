@@ -5,8 +5,11 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Giảm giá biến thể',
+        'subtitle' => 'Thiết lập mức giảm và thời gian áp dụng cho từng biến thể sản phẩm.',
         'actions' => '<a href="'.route('admin.discounts.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm giảm giá</a>',
     ])
+
+    <x-excel-tools resource="discounts" />
 
     <x-admin-table :header="['Biến thể', 'Loại', 'Giá trị', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Thao tác']">
         @forelse ($discounts as $discount)

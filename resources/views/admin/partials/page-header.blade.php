@@ -1,13 +1,15 @@
 @php($title = $title ?? 'Trang')
 @php($subtitle = $subtitle ?? null)
 
-<div class="mb-6">
-    <h1 class="text-xl font-semibold">{{ $title }}</h1>
+<div class="page-header">
+    <div>
+    <h1>{{ $title }}</h1>
     @if ($subtitle)
         <p class="mt-1 text-sm text-gray-600">{{ $subtitle }}</p>
     @endif
+    </div>
     @if (isset($actions) && $actions)
-        <div class="mt-4 flex items-center gap-2">
+        <div class="page-actions">
             {!! $actions !!}
         </div>
     @endif

@@ -27,8 +27,8 @@
             <dd class="mt-1 text-sm text-gray-900">{{ $product->status }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-gray-500">F nổi bật</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ $product->is_featured ? '★' : '—' }}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Sản phẩm nổi bật</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ $product->is_featured ? 'Có' : 'Không' }}</dd>
         </div>
     </dl>
 

@@ -3,6 +3,13 @@
 @section('title', 'Thương hiệu')
 
 @section('content')
+    @include('admin.partials.page-header', [
+        'title' => 'Thương hiệu',
+        'subtitle' => 'Quản lý thương hiệu và thông tin nhận diện của sản phẩm.',
+        'actions' => '<a href="'.route('admin.brands.create').'" class="btn btn-primary"><i class="fa-solid fa-plus" aria-hidden="true"></i> Thêm thương hiệu</a>',
+    ])
+    <x-excel-tools resource="brands" />
+
     <x-admin-table :header="['Tên', 'Quốc gia', 'Sản phẩm', 'Trạng thái', 'Thao tác']">
         @forelse ($brands as $brand)
             <tr>
@@ -47,9 +54,4 @@
         {{ $brands->links() }}
     </div>
 
-    <div class="mt-6">
-        <a href="{{ route('admin.brands.create') }}" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
-            + Thêm thương hiệu
-        </a>
-    </div>
 @endsection

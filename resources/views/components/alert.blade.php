@@ -7,6 +7,7 @@
     ];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-md border px-4 py-3 text-sm '.$variants[$type]]) }}>
-    {{ $slot }}
+<div role="{{ $type === 'error' ? 'alert' : 'status' }}" {{ $attributes->merge(['class' => 'flex items-start gap-3 rounded-xl border px-4 py-3 text-sm '.($variants[$type] ?? $variants['success'])]) }}>
+    <x-icon :name="$type === 'error' ? 'info' : 'check'" class="mt-0.5 size-4 shrink-0" />
+    <div>{{ $slot }}</div>
 </div>

@@ -5,10 +5,13 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhà cung cấp',
+        'subtitle' => 'Tra cứu thông tin liên hệ và đối tác cung ứng của cửa hàng.',
         'actions' => '<a href="'.route('admin.suppliers.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm nhà cung cấp</a>',
     ])
 
-    <x-admin-table :header="['Tên', 'Điện thoại', 'Email', 'MST', 'Phiếu nhập', 'Trạng thái', 'Thao tác']">
+    <x-excel-tools resource="suppliers" />
+
+    <x-admin-table :header="['Tên nhà cung cấp', 'Điện thoại', 'Email', 'Mã số thuế', 'Phiếu nhập', 'Trạng thái', 'Thao tác']">
         @forelse ($suppliers as $supplier)
             <tr>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ $supplier->name }}</td>

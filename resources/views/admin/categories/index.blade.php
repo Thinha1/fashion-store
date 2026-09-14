@@ -5,10 +5,13 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Danh mục',
+        'subtitle' => 'Sắp xếp sản phẩm theo nhóm và danh mục con.',
         'actions' => '<a href="'.route('admin.categories.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm danh mục</a>',
     ])
 
-    <x-admin-table :header="['Tên', 'Cha mẹ', 'Thứ tự', 'SP', 'Con', 'Trạng thái', 'Thao tác']">
+    <x-excel-tools resource="categories" />
+
+    <x-admin-table :header="['Tên danh mục', 'Danh mục cha', 'Thứ tự', 'Sản phẩm', 'Danh mục con', 'Trạng thái', 'Thao tác']">
         @forelse ($categories as $category)
             <tr>
                 <td class="px-4 py-3">

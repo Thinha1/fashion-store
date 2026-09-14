@@ -3,7 +3,7 @@
 @php($variants = $variants ?? collect())
 @php($images = $images ?? collect())
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="space-y-6">
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6">
     @csrf
     @if ($method !== 'POST')
         @method($method)
