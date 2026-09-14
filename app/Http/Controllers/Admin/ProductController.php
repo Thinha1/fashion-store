@@ -163,18 +163,21 @@ class ProductController extends Controller
     }
 
     /**
-     * Sync the product's variants: update existing, create new.
-     * Variants with a `id` field are treated as existing (matched by id);
-     * rows without an id are created.
+     * Sync the product's variants: update existing, create new, and
+     * soft-delete any existing variant no longer present in $variantsData
+     * (the admin form's "×" button just omits that row's inputs on submit —
+     * the form represents the full desired set of variants).
+     *
+     * Variants with a numeric key matching a real existing id are treated as
+     * updates; everything else (including the "new-N" keys the "+ Thêm biến
+     * thể" button generates) is created.
      */
     private function syncProductVariants(Product $product, array $variantsData): void
     {
         $existing = $product->variants()->get()->keyBy(fn (ProductVariant $v) => (int) $v->id);
-        $seenVariantIds = [];
+        $keptVariantIds = [];
 
         foreach ($variantsData as $key => $variantData) {
-            // The array key is the variant's id for existing variants,
-            // or a sequential index for new variants.
             $variantId = is_numeric($key) ? (int) $key : null;
 
             $size = $variantData['size'];
@@ -195,8 +198,9 @@ class ProductController extends Controller
                     'low_stock_threshold' => $threshold,
                     'is_active' => $active,
                 ]);
+                $keptVariantIds[] = $variantId;
             } else {
-                ProductVariant::query()->create([
+                $created = ProductVariant::query()->create([
                     'product_id' => $product->id,
                     'size' => $size,
                     'color' => $color,
@@ -206,7 +210,12 @@ class ProductController extends Controller
                     'low_stock_threshold' => $threshold,
                     'is_active' => $active,
                 ]);
+                $keptVariantIds[] = $created->id;
             }
         }
+
+        $existing->keys()->diff($keptVariantIds)->each(
+            fn (int $removedId) => $existing[$removedId]->delete()
+        );
     }
 }

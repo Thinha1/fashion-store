@@ -102,7 +102,7 @@
         <div id="variants-list" class="space-y-3">
             @foreach ($variants as $variant)
                 @php($rowIndex = $variant->exists ? $variant->id : $variantIndex)
-                <div class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-6">
+                <div data-variant-row class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-7">
                     @if ($variant->exists)
                         <input type="hidden" name="variants[{{ $rowIndex }}][id]" value="{{ $variant->id }}">
                     @endif
@@ -136,6 +136,9 @@
                         <input type="number" name="variants[{{ $rowIndex }}][low_stock_threshold]" value="{{ old('variants.'.$variantIndex.'.low_stock_threshold', $variant->low_stock_threshold ?? 5) }}" min="0" required
                                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                     </div>
+                    <div class="flex items-end justify-center pb-2">
+                        <button type="button" class="remove-variant-row text-xl leading-none text-gray-400 hover:text-red-600" title="Xóa biến thể" aria-label="Xóa biến thể">&times;</button>
+                    </div>
                 </div>
                 @php($variantIndex++)
             @endforeach
@@ -147,7 +150,7 @@
              biến thể đã có — nếu trùng, controller sẽ hiểu nhầm là sửa biến
              thể cũ thay vì tạo mới. --}}
         <template id="variant-row-template">
-            <div class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-6">
+            <div data-variant-row class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-7">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Size</label>
                     <input type="text" name="variants[__INDEX__][size]" required
@@ -178,6 +181,9 @@
                     <input type="number" name="variants[__INDEX__][low_stock_threshold]" value="5" min="0" required
                            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                 </div>
+                <div class="flex items-end justify-center pb-2">
+                    <button type="button" class="remove-variant-row text-xl leading-none text-gray-400 hover:text-red-600" title="Xóa biến thể" aria-label="Xóa biến thể">&times;</button>
+                </div>
             </div>
         </template>
 
@@ -194,6 +200,15 @@
                     });
                     list.appendChild(row);
                     nextNewIndex++;
+                });
+
+                // Delegated so it works for both server-rendered rows and
+                // freshly cloned ones without re-binding listeners each time.
+                list.addEventListener('click', function (e) {
+                    var button = e.target.closest('.remove-variant-row');
+                    if (button) {
+                        button.closest('[data-variant-row]').remove();
+                    }
                 });
             })();
         </script>

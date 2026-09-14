@@ -192,6 +192,36 @@ class ProductCrudTest extends TestCase
         $response->assertRedirect(route('admin.products.show', $product));
     }
 
+    public function test_admin_can_remove_a_variant_by_omitting_it_from_the_update(): void
+    {
+        // Mirrors the "×" button: it just removes that row's inputs from the
+        // form before submit, so the variant it belonged to is missing from
+        // $request->variants entirely.
+        $product = Product::factory()->create();
+        $kept = ProductVariant::factory()->create(['product_id' => $product->id]);
+        $removed = ProductVariant::factory()->create(['product_id' => $product->id]);
+
+        $payload = $this->makePayload([
+            'name' => $product->name,
+            'variants' => [
+                $kept->id => [
+                    'size' => $kept->size,
+                    'color' => $kept->color,
+                    'sku' => $kept->sku,
+                    'stock_quantity' => $kept->stock_quantity,
+                    'low_stock_threshold' => $kept->low_stock_threshold,
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->admin())->put(route('admin.products.update', $product), $payload);
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame(1, $product->variants()->count());
+        $this->assertSoftDeleted('product_variants', ['id' => $removed->id]);
+        $this->assertDatabaseHas('product_variants', ['id' => $kept->id, 'deleted_at' => null]);
+    }
+
     public function test_admin_can_add_a_new_variant_row_alongside_an_existing_one(): void
     {
         // Mirrors what the "+ Thêm biến thể" button's JS actually submits:
