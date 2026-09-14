@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -23,19 +24,20 @@ class RoleFactory extends Factory
         return [
             'name' => ucfirst($code),
             'code' => $code,
-            'permissions' => [],
         ];
     }
 
     /**
-     * Role with the wildcard permission — behaves like the seeded "admin" role.
+     * Role with every permission in the catalog attached — behaves like the
+     * seeded "admin" role (see DatabaseSeeder).
      */
     public function admin(): static
     {
         return $this->state(fn (array $attributes): array => [
             'name' => 'Quản trị viên',
             'code' => 'admin-'.Str::random(6),
-            'permissions' => ['*'],
-        ]);
+        ])->afterCreating(function (Role $role): void {
+            $role->permissions()->sync(Permission::query()->pluck('id'));
+        });
     }
 }

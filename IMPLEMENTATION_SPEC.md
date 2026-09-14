@@ -50,9 +50,7 @@ Mục tiêu: auth, layout, phân quyền chạy được, chưa cần nghiệp v
   - Route + controller `Storefront/Auth`: đăng ký (`/dang-ky`), đăng nhập (`/dang-nhap`), đăng xuất (`/dang-xuat`), quên/đặt lại mật khẩu (`/quen-mat-khau`), xác minh email (dùng `MustVerifyEmail` — `User` đã implement sẵn), hồ sơ (`/tai-khoan`).
   - Form Request riêng cho từng action (`RegisterRequest`, `LoginRequest`...).
   - Rate limit đăng nhập (`throttle` middleware) theo plan §3.
-- **Phân quyền**:
-  - `app/Policies/*` đọc từ `roles.permissions` (JSON) qua `User->role->permissions`; viết 1 helper/trait `HasPermission` hoặc Gate::before dùng permission code (`products.view`, `inventory.adjust`, `orders.update_status`...) đã liệt kê ở plan §3 bảng `roles`.
-  - Middleware nhóm `admin` (prefix `admin`, middleware `auth`, `verified`, 1 middleware quyền tùy chỉnh) bọc mọi route `Admin/*`.
+- **Phân quyền** (đã hiện thực, xem plan §3 mục `roles`/`permissions`): mã quyền (`products.manage`, `inventory.manage`...) lưu ở bảng `permissions` + pivot `permission_role`, không còn JSON trên `roles`; `Role::hasPermission()`/`User::hasPermission()` kiểm tra qua quan hệ. Middleware `permission:<code>` (alias `EnsureUserHasPermission`) bọc route `Admin/*` (prefix `admin`, `auth`, `verified`); `Gate::before` trong `AppServiceProvider` cũng route mọi `can($code)`/`@can` qua cùng cơ chế.
 - **Test**: Feature test đăng ký/đăng nhập/đăng xuất, truy cập route `/admin/*` khi chưa đủ quyền → 403.
 
 ## Giai đoạn 2 — Catalog và kho
@@ -84,9 +82,11 @@ Entity: `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Suppl
 
 - **Tính tiền server-side hoàn toàn** (không tin dữ liệu từ client): subtotal từ cart, áp `Discount` (`scope=order`, tức coupon) kiểm tra thời gian/điều kiện/số lượt dùng, cộng `shipping_fee` cố định từ `config('store.shipping_fee')`.
 - `Storefront/CheckoutController` (`/thanh-toan`, sau `auth`): hiển thị review đơn + form nhận địa chỉ/thanh toán; `Actions/PlaceOrder` là action trung tâm — transaction bao gồm: `lockForUpdate()` từng `product_variants` liên quan, kiểm tra đủ tồn, trừ kho, snapshot toàn bộ dữ liệu vào `order_items` (giá gốc, giảm giá, tên/sku/size/color tại thời điểm mua), khóa bản ghi `discounts` để tăng `used_count`, sinh `order_number`.
-- Thanh toán: `payment_method` = `cod` | `bank_transfer`. Với chuyển khoản: form nhập `transaction_code` + upload ảnh chứng từ (`Storefront/PaymentProofController`, route `/chung-tu-thanh-toan`) — set `payment_status=pending_review`.
+- Thanh toán: `payment_method` = `cod` | `bank_transfer`.
+  - Chuyển khoản, đường chính (tự động): trang đặt hàng thành công/theo dõi đơn hiển thị mã QR VietQR (ngân hàng + `grand_total` + nội dung = `order_number`). `Webhooks/SepayWebhookController` (`POST /webhooks/sepay`, không qua `auth`/CSRF, tự xác thực bằng API key/secret riêng) nhận giao dịch từ SePay, khớp `order_number` trích từ nội dung CK + đúng số tiền → set `payment_status=paid`, `transaction_code` = mã giao dịch SePay, `payment_reviewed_by=null` (hệ thống, không phải người). Không khớp → chỉ ghi `audit_logs` (`sepay_unmatched`), không đụng đơn.
+  - Chuyển khoản, fallback thủ công: nếu quá thời gian chờ mà `payment_status` vẫn `unpaid`, khách tự nhập `transaction_code` + upload ảnh chứng từ (`Storefront/PaymentProofController`, route `/chung-tu-thanh-toan`) — set `payment_status=pending_review`, xử lý tiếp ở `Admin/PaymentReviewController` (Giai đoạn 5) như cũ.
 - Theo dõi/hủy đơn (`/don-hang/*`, sau `auth`): chỉ xem/thao tác được đơn của chính user đang đăng nhập (so khớp `orders.user_id` với `auth()->id()`, 404/403 nếu khác chủ). Hủy chỉ khi `status=pending`; hoàn tồn kho nếu đã trừ.
-- **Test**: đặt hàng COD/chuyển khoản, áp coupon hợp lệ/hết hạn/vượt lượt dùng, 2 đơn mua đồng thời cùng biến thể sắp hết hàng không được âm kho, hủy đơn hoàn đúng tồn kho, user A không xem/hủy được đơn của user B, khách chưa đăng nhập bị chặn khỏi `/thanh-toan`.
+- **Test**: đặt hàng COD/chuyển khoản, áp coupon hợp lệ/hết hạn/vượt lượt dùng, 2 đơn mua đồng thời cùng biến thể sắp hết hàng không được âm kho, hủy đơn hoàn đúng tồn kho, user A không xem/hủy được đơn của user B, khách chưa đăng nhập bị chặn khỏi `/thanh-toan`, webhook SePay sai API key/secret bị từ chối (401), webhook khớp đúng order_number+số tiền chuyển `paid`, webhook số tiền lệch hoặc không tìm thấy đơn không tự đổi trạng thái (chỉ ghi log).
 
 ## Giai đoạn 5 — Vận hành (admin)
 

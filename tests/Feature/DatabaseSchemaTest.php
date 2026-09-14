@@ -68,4 +68,14 @@ class DatabaseSchemaTest extends TestCase
             $this->assertTrue(Schema::hasColumn($table, 'updated_by'), "Missing updated_by on {$table}");
         }
     }
+
+    public function test_permissions_are_a_relational_catalog_instead_of_json(): void
+    {
+        // permissions/permission_role are auth infrastructure (like roles was
+        // before it grew its own migration) — not counted in the 20 domain
+        // tables above, same as sessions/cache/jobs.
+        $this->assertTrue(Schema::hasTable('permissions'));
+        $this->assertTrue(Schema::hasTable('permission_role'));
+        $this->assertFalse(Schema::hasColumn('roles', 'permissions'), 'roles.permissions JSON column should be dropped');
+    }
 }

@@ -17,10 +17,13 @@ flowchart TD
         A4 --> A5["Checkout: chọn địa chỉ + mã giảm giá + phương thức thanh toán"]
         A5 --> A6{"Phương thức thanh toán?"}
         A6 -->|COD| A7["Đặt hàng thành công (pending)"]
-        A6 -->|Chuyển khoản| A8["Gửi chứng từ thanh toán"]
-        A8 --> A9["Chờ Admin duyệt thanh toán"]
+        A6 -->|Chuyển khoản| A8["Quét QR VietQR, chuyển khoản"]
+        A8 --> A9["SePay tự đối soát → payment_status=paid\n(xem sơ đồ 6)"]
+        A9 --> A9b{"Quá thời gian chờ vẫn unpaid?"}
+        A9b -->|Có, webhook chưa khớp| A9c["Fallback: tự upload chứng từ,\nchờ Admin duyệt tay"]
         A7 --> A10["Theo dõi đơn hàng"]
         A9 --> A10
+        A9c --> A10
         A10 --> A12["Khách tự hủy được khi status = pending"]
         A10 --> A13["Chờ giao hàng"]
         A13 --> A14["Đơn delivered"]
@@ -30,7 +33,7 @@ flowchart TD
 
     subgraph AD["Admin / Nhân viên"]
         B1["Quản lý catalog, biến thể, tồn kho, giảm giá"]
-        B2["Duyệt / từ chối chứng từ chuyển khoản"]
+        B2["Duyệt / từ chối chứng từ chuyển khoản\n(chỉ khi webhook SePay chưa khớp)"]
         B3["Xử lý đơn: confirmed → preparing → shipping → delivered"]
         B4["Duyệt / từ chối yêu cầu đổi trả"]
         B5["Duyệt / ẩn đánh giá"]
@@ -38,7 +41,7 @@ flowchart TD
     end
 
     B1 -.-> A1
-    B2 --> A9
+    B2 --> A9c
     B3 --> A13
     B4 --> A16
     B5 --> A15
@@ -81,6 +84,8 @@ stateDiagram-v2
         payment_status là field độc lập
         (unpaid/pending_review/paid/rejected/refunded),
         không tự động đổi orders.status.
+        paid có thể đến từ webhook SePay tự động
+        hoặc Admin duyệt tay (xem sơ đồ 6).
     end note
 ```
 
@@ -196,3 +201,53 @@ flowchart TD
 **Chốt lại**:
 - `quantity yêu cầu <= đã mua - đã đổi/trả trước đó` nghĩa là phải cộng dồn các `return_requests` cũ của cùng `order_item` (kể cả những cái `rejected` không tính, chỉ trừ những cái đã `approved`/`completed`) trước khi cho tạo yêu cầu mới.
 - `approved` và `completed` là 2 bước tách biệt (duyệt về mặt quyết định, xong về mặt vận hành — vd. nhận lại hàng vật lý) — chỉ `completed` mới hoàn kho, không hoàn kho ngay lúc `approved`.
+
+## 6. Xác nhận thanh toán chuyển khoản qua SePay
+
+Đường chính (tự động) thay cho việc bắt Admin duyệt tay mọi giao dịch chuyển khoản; luồng thủ công cũ (upload chứng từ + `Admin/PaymentReviewController`) chỉ còn là **fallback** khi webhook chưa khớp.
+
+```mermaid
+sequenceDiagram
+    actor KH as Khách hàng
+    participant APP as App (Checkout/Order)
+    participant SEPAY as SePay
+    participant WH as Webhooks/SepayWebhookController
+    participant DB as MySQL
+
+    KH->>APP: Chọn chuyển khoản lúc checkout
+    APP->>DB: orders.payment_method=bank_transfer, payment_status=unpaid
+    APP-->>KH: Hiển thị mã QR VietQR (số tiền=grand_total, nội dung=order_number)
+
+    KH->>SEPAY: Chuyển khoản qua app ngân hàng (quét QR)
+    SEPAY->>WH: POST /webhooks/sepay (nội dung CK, số tiền, mã GD, API key/secret)
+    activate WH
+    WH->>WH: Xác thực request (API key/secret SePay)
+
+    alt Xác thực không hợp lệ
+        WH-->>SEPAY: 401
+    else Hợp lệ
+        WH->>DB: Tìm order theo order_number trích từ nội dung CK
+        alt Không tìm thấy order, hoặc số tiền khác grand_total
+            WH->>DB: Ghi audit_logs (action=sepay_unmatched, lưu raw payload)
+            WH-->>SEPAY: 200 (đã nhận, không tự xử lý tiếp)
+        else Khớp order và đúng số tiền
+            WH->>DB: UPDATE orders SET payment_status=paid,\ntransaction_code=mã GD SePay, payment_reviewed_at=now()
+            WH->>DB: Ghi audit_logs (action=sepay_matched)
+            WH-->>SEPAY: 200
+        end
+    end
+    deactivate WH
+
+    KH->>APP: Vào trang theo dõi đơn
+    alt payment_status vẫn unpaid sau X phút (webhook chưa khớp)
+        KH->>APP: Tự upload ảnh chứng từ + nhập mã GD (fallback thủ công)
+        APP->>DB: payment_status=pending_review, payment_proof_path, transaction_code
+        Note over APP,DB: Admin duyệt tay theo đúng luồng PaymentReviewController đã có
+    end
+```
+
+**Chốt lại**:
+- Route `/webhooks/sepay` không qua `auth`/CSRF (SePay không có session) — bắt buộc tự xác thực bằng API key/secret riêng cấu hình trong `.env`; request không xác thực được trả `401` và **không đụng tới dữ liệu đơn**.
+- Chỉ set `paid` khi khớp **cả hai**: đúng `order_number` trích từ nội dung chuyển khoản **và** đúng số tiền = `grand_total`. Lệch một trong hai → chỉ ghi `audit_logs`, không tự động cập nhật đơn.
+- `payment_reviewed_by` để `null` khi `paid` đến từ webhook (không phải người xác nhận) — phân biệt với luồng thủ công (`payment_reviewed_by` bắt buộc có giá trị).
+- Ngưỡng thời gian chờ trước khi cho phép fallback thủ công là quyết định của Người 2 khi hiện thực (vd. 15–30 phút), không chốt cứng ở tài liệu này.
