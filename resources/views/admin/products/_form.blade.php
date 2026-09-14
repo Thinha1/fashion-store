@@ -14,18 +14,15 @@
     <section class="space-y-4">
         <h2 class="text-base font-semibold text-gray-900">Thông tin sản phẩm</h2>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-                <x-label for="name">Tên sản phẩm</x-label>
-                <x-input id="name" name="name" value="{{ old('name', $product->name) }}" required class="mt-1" />
-                <x-input-error :messages="$errors->get('name')" />
-            </div>
-
-            <div>
-                <x-label for="slug">Slug</x-label>
-                <x-input id="slug" name="slug" value="{{ old('slug', $product->slug) }}" required class="mt-1" />
-                <x-input-error :messages="$errors->get('slug')" />
-            </div>
+        <div>
+            <x-label for="name">Tên sản phẩm</x-label>
+            <x-input id="name" name="name" value="{{ old('name', $product->name) }}" required class="mt-1" />
+            <x-input-error :messages="$errors->get('name')" />
+            @if ($product->exists)
+                <p class="mt-1 text-xs text-gray-500">Slug: <code>{{ $product->slug }}</code> (sinh tự động từ tên lúc tạo, không đổi sau đó).</p>
+            @else
+                <p class="mt-1 text-xs text-gray-500">Slug (định danh URL) sẽ được sinh tự động từ tên.</p>
+            @endif
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -163,7 +160,7 @@
             <div class="grid grid-cols-3 gap-4 sm:grid-cols-6">
                 @foreach ($images as $image)
                     <figure class="overflow-hidden rounded-md border border-gray-200">
-                        <img src="{{ asset('storage/'.$image->path) }}" alt="{{ $image->alt_text }}" class="aspect-square w-full object-cover">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $image->alt_text }}" class="aspect-square w-full object-cover">
                         <figcaption class="px-2 py-1 text-xs text-gray-500">
                             @if ($image->is_primary) <span class="text-green-600">Ảnh chính</span> @endif
                         </figcaption>
@@ -172,11 +169,28 @@
             </div>
         @endif
 
-        <div>
+        <div x-data="{ previews: [] }">
             <x-label for="images">Thêm ảnh</x-label>
             <input id="images" type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp"
-                   class="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-gray-700">
+                   class="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-gray-700"
+                   x-on:change="
+                       previews = [];
+                       Array.from($event.target.files).forEach((file) => {
+                           const reader = new FileReader();
+                           reader.onload = () => { previews.push(reader.result) };
+                           reader.readAsDataURL(file);
+                       });
+                   ">
             <x-input-error :messages="$errors->get('images')" />
+
+            <template x-if="previews.length">
+                <p class="mt-3 text-xs font-medium text-gray-500">Ảnh mới chọn (chưa lưu):</p>
+            </template>
+            <div class="mt-2 grid grid-cols-3 gap-4 sm:grid-cols-6" x-show="previews.length">
+                <template x-for="(src, index) in previews" :key="index">
+                    <img :src="src" class="aspect-square w-full rounded-md border border-gray-200 object-cover ring-2 ring-gray-900">
+                </template>
+            </div>
         </div>
     </section>
 

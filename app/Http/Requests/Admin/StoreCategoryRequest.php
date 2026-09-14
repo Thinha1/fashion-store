@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -13,13 +14,19 @@ class StoreCategoryRequest extends BaseAdminRequest
         return 'products.manage';
     }
 
+    /**
+     * Slug is always server-generated from the name, never taken from the
+     * client — on create it's derived (with a numeric suffix on collision);
+     * on update it stays whatever the category already has (immutable
+     * after creation).
+     */
     protected function prepareForValidation(): void
     {
         $category = $this->route('category');
 
-        if ($category && $this->input('slug') === null && $this->input('name') !== null) {
-            $this->merge(['slug' => Str::slug((string) $this->input('name'))]);
-        }
+        $this->merge([
+            'slug' => $category ? $category->slug : $this->generateUniqueSlug((string) $this->input('name')),
+        ]);
     }
 
     /**
@@ -39,7 +46,6 @@ class StoreCategoryRequest extends BaseAdminRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('categories', 'slug')->ignore($categoryId)],
             'description' => ['nullable', 'string', 'max:2000'],
-            'image_path' => ['nullable', 'string', 'max:2048'],
             'is_active' => ['boolean'],
             'sort_order' => ['integer', 'min:0', 'max:9999'],
         ];
@@ -53,5 +59,17 @@ class StoreCategoryRequest extends BaseAdminRequest
         return [
             'parent_id.not_in' => 'Danh mục con không thể chọn chính nó làm cha mẹ.',
         ];
+    }
+
+    private function generateUniqueSlug(string $name): string
+    {
+        $base = Str::slug($name) ?: 'danh-muc';
+        $slug = $base;
+
+        for ($suffix = 2; Category::query()->where('slug', $slug)->exists(); $suffix++) {
+            $slug = "{$base}-{$suffix}";
+        }
+
+        return $slug;
     }
 }
