@@ -1,7 +1,7 @@
 @php($route = $route ?? 'admin.brands.store')
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="max-w-2xl space-y-4">
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form max-w-2xl space-y-4">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -25,7 +25,7 @@
         <x-input-error :messages="$errors->get('description')" />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
             <x-label for="country">Quốc gia</x-label>
             <x-input id="country" name="country" value="{{ old('country', $brand->country) }}" class="mt-1" />

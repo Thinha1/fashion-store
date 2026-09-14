@@ -1,7 +1,7 @@
 @php($route = $route ?? route('admin.categories.store'))
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="max-w-2xl space-y-4">
+<form method="POST" action="{{ $route }}" class="admin-form max-w-2xl space-y-4">
     @csrf
     @if ($method !== 'POST')
         @method($method)

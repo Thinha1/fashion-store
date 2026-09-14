@@ -3,21 +3,23 @@
 @section('title', 'Đăng nhập')
 
 @section('content')
-    <div class="mx-auto max-w-sm">
-        <h1 class="mb-6 text-xl font-semibold">Đăng nhập</h1>
+    <div class="mx-auto w-full max-w-md">
+        <p class="eyebrow mb-3">Chào mừng bạn trở lại</p>
+        <h1 class="mb-2 text-2xl font-semibold">Đăng nhập</h1>
+        <p class="mb-7 text-sm leading-6 text-gray-500">Đăng nhập để tiếp tục với tài khoản của bạn.</p>
 
         <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
 
             <div>
                 <x-label for="email">Email</x-label>
-                <x-input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus class="mt-1" />
+                <x-input id="email" type="email" name="email" autocomplete="email" placeholder="ban@example.com" value="{{ old('email') }}" required autofocus class="mt-1" />
                 <x-input-error :messages="$errors->get('email')" />
             </div>
 
             <div>
                 <x-label for="password">Mật khẩu</x-label>
-                <x-input id="password" type="password" name="password" required class="mt-1" />
+                <x-password-input id="password" name="password" autocomplete="current-password" />
                 <x-input-error :messages="$errors->get('password')" />
             </div>
 

@@ -1,7 +1,7 @@
 @php($route = $route ?? route('admin.suppliers.store'))
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="max-w-2xl space-y-4">
+<form method="POST" action="{{ $route }}" class="admin-form max-w-2xl space-y-4">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -13,7 +13,7 @@
         <x-input-error :messages="$errors->get('name')" />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
             <x-label for="phone">Điện thoại</x-label>
             <x-input id="phone" name="phone" value="{{ old('phone', $supplier->phone) }}" required class="mt-1" />

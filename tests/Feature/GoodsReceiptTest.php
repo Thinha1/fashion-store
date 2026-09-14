@@ -73,6 +73,50 @@ class GoodsReceiptTest extends TestCase
         $this->assertDatabaseCount('goods_receipts', 0);
     }
 
+    public function test_removing_a_row_updates_the_receipt_with_sparse_item_indexes(): void
+    {
+        $payload = $this->makePayload();
+        $second = ProductVariant::factory()->create(['stock_quantity' => 7]);
+        $payload['items'][1] = ['product_variant_id' => $second->id, 'quantity' => 3, 'cost_price' => 25000];
+        $admin = $this->admin();
+        $this->actingAs($admin)->post(route('admin.goods-receipts.store'), $payload);
+        $receipt = GoodsReceipt::query()->first();
+        unset($payload['items'][0]);
+
+        $this->actingAs($admin)->put(route('admin.goods-receipts.update', $receipt), $payload)->assertSessionHasNoErrors();
+
+        $this->assertSame(1, $receipt->items()->count());
+        $this->assertSame($second->id, $receipt->items()->first()->product_variant_id);
+        $this->assertSame(75000, (int) $receipt->fresh()->total_cost);
+        $this->assertSame(7, $second->fresh()->stock_quantity);
+    }
+
+    public function test_removing_all_rows_cannot_save_an_empty_receipt(): void
+    {
+        $payload = $this->makePayload();
+        $admin = $this->admin();
+        $this->actingAs($admin)->post(route('admin.goods-receipts.store'), $payload);
+        $receipt = GoodsReceipt::query()->first();
+        unset($payload['items']);
+
+        $this->actingAs($admin)->put(route('admin.goods-receipts.update', $receipt), $payload)->assertSessionHasErrors('items');
+
+        $this->assertSame(1, $receipt->items()->count());
+        $this->assertSame(1500000, (int) $receipt->fresh()->total_cost);
+    }
+
+    public function test_invalid_receipt_keeps_remaining_rows_and_errors_after_removal(): void
+    {
+        $payload = $this->makePayload();
+        $payload['items'] = [3 => $payload['items'][0]];
+        $payload['items'][3]['quantity'] = 0;
+        $admin = $this->admin();
+        $this->actingAs($admin)->from(route('admin.goods-receipts.create'))->post(route('admin.goods-receipts.store'), $payload)->assertSessionHasErrors('items.3.quantity');
+
+        $this->get(route('admin.goods-receipts.create'))->assertOk()->assertSee('name="items[3][quantity]"', false)->assertSee('Xóa dòng hàng');
+        $this->assertDatabaseCount('goods_receipts', 0);
+    }
+
     public function test_confirming_receipt_increments_stock(): void
     {
         $variant = ProductVariant::factory()->create(['stock_quantity' => 5]);

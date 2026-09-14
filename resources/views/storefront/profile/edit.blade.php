@@ -3,8 +3,10 @@
 @section('title', 'Tài khoản')
 
 @section('content')
-    <div class="mx-auto max-w-sm">
-        <h1 class="mb-6 text-xl font-semibold">Hồ sơ của tôi</h1>
+    <div class="mx-auto w-full max-w-md">
+        <p class="eyebrow mb-3">Thông tin cá nhân</p>
+        <h1 class="mb-2 text-2xl font-semibold">Hồ sơ của tôi</h1>
+        <p class="mb-7 text-sm leading-6 text-gray-500">Cập nhật thông tin để cửa hàng có thể liên hệ với bạn.</p>
 
         <form method="POST" action="{{ route('profile.update') }}" class="space-y-4">
             @csrf
@@ -24,7 +26,7 @@
 
             <div>
                 <x-label for="phone">Số điện thoại</x-label>
-                <x-input id="phone" name="phone" value="{{ old('phone', $user->phone) }}" class="mt-1" />
+                <x-input id="phone" name="phone" type="tel" autocomplete="tel" value="{{ old('phone', $user->phone) }}" class="mt-1" />
                 <x-input-error :messages="$errors->get('phone')" />
             </div>
 

@@ -5,10 +5,13 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Sản phẩm',
+        'subtitle' => 'Quản lý thông tin, biến thể và trạng thái hiển thị của sản phẩm.',
         'actions' => '<a href="'.route('admin.products.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm sản phẩm</a>',
     ])
 
-    <x-admin-table :header="['Tên', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Cấp đặc biệt', 'Thao tác']">
+    <x-excel-tools resource="products" />
+
+    <x-admin-table :header="['Tên sản phẩm', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Nổi bật', 'Thao tác']">
         @forelse ($products as $product)
             <tr>
                 <td class="px-4 py-3">
@@ -36,7 +39,7 @@
                         {{ $statusLabels[$status] ?? $status }}
                     </span>
                 </td>
-                <td class="px-4 py-3">{{ $product->is_featured ? '★' : '' }}</td>
+                <td class="px-4 py-3">@if ($product->is_featured)<i class="fa-solid fa-star text-amber-500" aria-label="Sản phẩm nổi bật" role="img"></i>@else <span class="text-gray-300">—</span> @endif</td>
                 <td class="px-4 py-3 text-right">
                     <a href="{{ route('admin.products.edit', $product) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
                     <form method="POST" action="{{ route('admin.products.destroy', $product) }}" class="inline"

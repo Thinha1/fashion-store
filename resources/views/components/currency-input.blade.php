@@ -16,7 +16,7 @@
            x-model="display"
            x-mask:dynamic="$money($input, ',', 0)"
            @if ($required) required @endif
-           {{ $attributes->merge(['class' => 'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500']) }}
+           {{ $attributes->merge(['class' => 'field']) }}
     >
     <input type="hidden" name="{{ $name }}" value="{{ $rawValue }}" :value="display.toString().replaceAll(',', '')">
 </div>
