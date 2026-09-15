@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Pint + PHPUnit + SonarQube (PHP ${{ matrix.php }})
+    name: Pint + PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
 
     strategy:
