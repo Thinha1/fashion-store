@@ -66,6 +66,15 @@
     .admin-shell .excel-tools + .admin-table-card { border-top-left-radius: 0; border-top-right-radius: 0; }
     .admin-shell .excel-tools > .btn { min-height: 36px; font-size: 12px; }
     .admin-shell .table-sort { cursor: pointer; }
+    .image-select { position: relative; min-width: 0; }
+    .image-select-trigger { @apply mt-1.5 flex min-h-11 w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900; }
+    .image-select-trigger[aria-invalid='true'] { @apply border-red-500; }
+    .image-select-logo { @apply relative flex h-7 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-gray-50; }
+    .image-select-logo img { @apply absolute inset-0 size-full bg-white object-contain; }
+    .image-select-options { @apply absolute top-full right-0 left-0 z-30 mt-1 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-lg; }
+    .image-select-options.is-upward { top: auto; bottom: 100%; margin-bottom: 4px; }
+    .image-select-options li { @apply flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm; }
+    .image-select-options li.is-highlighted { @apply bg-brand-soft; }
 }
 @layer components {
     .admin-dialog { @apply m-auto w-full max-w-md rounded-2xl border-0 bg-white p-0 text-gray-900 shadow-2xl; max-width: min(28rem, calc(100% - 2rem)); }

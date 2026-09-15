@@ -119,6 +119,34 @@ class ProductCrudTest extends TestCase
         }
     }
 
+    public function test_editing_product_without_featured_field_preserves_the_star_setting(): void
+    {
+        $this->actingAs($this->admin());
+        foreach ([true, false] as $featured) {
+            $product = Product::factory()->create(['is_featured' => $featured]);
+            $this->get(route('admin.products.edit', $product))->assertOk()->assertDontSee('name="is_featured"', false);
+            $payload = $this->makePayload(['variants' => []]);
+            unset($payload['is_featured']);
+
+            $this->put(route('admin.products.update', $product), $payload)->assertSessionHasNoErrors();
+            $this->assertSame($featured, $product->fresh()->is_featured);
+        }
+        $this->get(route('admin.products.create'))->assertOk()->assertDontSee('name="is_featured"', false);
+    }
+
+    public function test_brand_selector_includes_logo_and_keeps_the_current_selection(): void
+    {
+        $brand = Brand::factory()->create(['logo_path' => 'brands/example-logo.png']);
+        $product = Product::factory()->create(['brand_id' => $brand->id]);
+        $response = $this->actingAs($this->admin())->get(route('admin.products.edit', $product))->assertOk();
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="UTF-8">'.$response->getContent());
+        $option = (new \DOMXPath($dom))->query('//select[@name="brand_id"]/option[@selected]')->item(0);
+        $this->assertSame((string) $brand->id, $option->getAttribute('value'));
+        $this->assertSame(Storage::disk('s3')->url($brand->logo_path), $option->getAttribute('data-image'));
+        $response->assertSee('role="combobox"', false)->assertSee('role="listbox"', false);
+    }
+
     public function test_slug_gets_a_numeric_suffix_when_the_base_slug_is_taken(): void
     {
         // Different names (so no other rule blocks this) that slugify to

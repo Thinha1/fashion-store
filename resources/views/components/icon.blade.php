@@ -12,7 +12,7 @@
         'star' => 'fa-star',
         'edit' => 'fa-pen-to-square', 'delete' => 'fa-trash-can', 'save' => 'fa-check',
         'search' => 'fa-magnifying-glass', 'image' => 'fa-image', 'back' => 'fa-arrow-left',
-        'chevron-left' => 'fa-chevron-left', 'chevron-right' => 'fa-chevron-right',
+        'chevron-left' => 'fa-chevron-left', 'chevron-right' => 'fa-chevron-right', 'chevron-down' => 'fa-chevron-down',
     ];
 @endphp
 <i {{ $attributes->merge(['class' => 'ui-icon fa-solid '.($icons[$name] ?? $icons['arrow'])]) }} aria-hidden="true"></i>

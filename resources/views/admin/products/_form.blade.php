@@ -38,16 +38,9 @@
             </div>
 
             <div>
-                <x-label for="brand_id">Thương hiệu</x-label>
-                <select id="brand_id" name="brand_id" required
-                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                    <option value="">— Chọn thương hiệu —</option>
-                    @foreach ($brands as $brand)
-                        <option value="{{ $brand->id }}" @selected((int) old('brand_id', $product->brand_id) === $brand->id)>
-                            {{ $brand->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <x-image-select id="brand_id" name="brand_id" label="Thương hiệu" placeholder="— Chọn thương hiệu —" required
+                    :value="old('brand_id', $product->brand_id)"
+                    :options="$brands->map(fn ($brand) => ['value' => $brand->id, 'label' => $brand->name, 'image' => $brand->logo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) : null])->all()" />
                 <x-input-error :messages="$errors->get('brand_id')" />
             </div>
         </div>
@@ -59,7 +52,7 @@
             <x-input-error :messages="$errors->get('description')" />
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
                 <x-label for="base_price">Giá cơ bản (VNĐ)</x-label>
                 <x-currency-input id="base_price" name="base_price" :value="old('base_price', $product->base_price)" required class="mt-1" />
@@ -77,14 +70,6 @@
                 <x-input-error :messages="$errors->get('status')" />
             </div>
 
-            <div class="flex items-end">
-                <label class="flex min-h-11 items-center gap-2 text-sm text-gray-700">
-                    <input type="checkbox" name="is_featured" value="1"
-                           @checked(old('is_featured', $product->is_featured ?? false))
-                           class="rounded border-gray-300 text-gray-900 focus:ring-gray-500">
-                    Sản phẩm nổi bật
-                </label>
-            </div>
         </div>
     </section>
 

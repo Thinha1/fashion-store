@@ -122,7 +122,7 @@ class ProductController extends Controller
                 'description' => $data['description'] ?? null,
                 'base_price' => $data['base_price'],
                 'status' => $data['status'],
-                'is_featured' => (bool) ($data['is_featured'] ?? false),
+                'is_featured' => (bool) ($data['is_featured'] ?? $product->is_featured),
             ]);
 
             $this->syncProductVariants($product, $variantsData);
