@@ -29,6 +29,11 @@ class StoreProductRequest extends BaseAdminRequest
         $this->merge([
             'slug' => $product ? $product->slug : $this->generateUniqueSlug((string) $this->input('name')),
         ]);
+
+        // Previously exported draft products remain outside the storefront.
+        if ($this->input('status') === 'draft') {
+            $this->merge(['status' => 'archived']);
+        }
     }
 
     /**
@@ -46,7 +51,7 @@ class StoreProductRequest extends BaseAdminRequest
             'brand_id' => ['required', 'integer', Rule::exists('brands', 'id')],
             'description' => ['nullable', 'string', 'max:5000'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:9999999999999'],
-            'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
+            'status' => ['required', Rule::in(array_keys(Product::STATUS_LABELS))],
             'is_featured' => ['boolean'],
 
             'variants' => ['array'],
@@ -57,9 +62,13 @@ class StoreProductRequest extends BaseAdminRequest
             'variants.*.stock_quantity' => ['required', 'integer', 'min:0', 'max:999999'],
             'variants.*.low_stock_threshold' => ['required', 'integer', 'min:0', 'max:999999'],
             'variants.*.is_active' => ['boolean'],
+            'variants.*.images' => ['array'],
+            'variants.*.images.*' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp'],
 
             'images' => ['array'],
             'images.*' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp'],
+            'removed_images' => ['array'],
+            'removed_images.*' => ['integer', 'distinct', Rule::exists('product_images', 'id')->where('product_id', $productId)],
         ];
     }
 
@@ -71,6 +80,9 @@ class StoreProductRequest extends BaseAdminRequest
         return [
             'images.*.mimes' => 'Ảnh phải là JPG, JPEG, PNG hoặc WebP.',
             'images.*.max' => 'Ảnh không được vượt quá 4MB.',
+            'variants.*.images.*.mimes' => 'Ảnh biến thể phải là JPG, JPEG, PNG hoặc WebP.',
+            'variants.*.images.*.max' => 'Ảnh biến thể không được vượt quá 4MB.',
+            'removed_images.*.exists' => 'Ảnh cần xóa không thuộc sản phẩm này.',
         ];
     }
 
@@ -84,7 +96,6 @@ class StoreProductRequest extends BaseAdminRequest
     {
         $product = $this->route('product');
         $productId = $product?->id;
-        $existingVariantIds = $product ? $product->variants()->pluck('id')->all() : [];
 
         $validator->after(function (Validator $validator) use ($productId) {
             $variants = $this->input('variants', []);

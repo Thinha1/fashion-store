@@ -30,7 +30,7 @@
                 <td class="px-4 py-3 text-gray-600">{{ $product->brand?->name ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $product->variants_count }}</td>
                 <td class="px-4 py-3">
-                    <x-admin.status :value="$product->status" />
+                    <x-admin.product-status :value="$product->status" />
                 </td>
                 <td class="px-4 py-3"><x-featured-toggle :product="$product" /></td>
                 <td class="px-4 py-3 text-right"><div class="admin-row-actions">

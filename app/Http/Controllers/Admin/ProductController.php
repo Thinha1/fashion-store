@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -39,7 +40,7 @@ class ProductController extends Controller
     public function create(): View
     {
         return view('admin.products.create', [
-            'product' => new Product(['status' => 'draft', 'base_price' => 0, 'is_featured' => false]),
+            'product' => new Product(['status' => 'archived', 'base_price' => 0, 'is_featured' => false]),
             'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
             'variants' => collect(),
@@ -65,8 +66,9 @@ class ProductController extends Controller
                 'is_featured' => (bool) ($data['is_featured'] ?? false),
             ]);
 
-            foreach ($variantsData as $variantData) {
-                ProductVariant::query()->create([
+            $variantIds = [];
+            foreach ($variantsData as $key => $variantData) {
+                $variant = ProductVariant::query()->create([
                     'product_id' => $product->id,
                     'size' => $variantData['size'],
                     'color' => $variantData['color'],
@@ -76,9 +78,10 @@ class ProductController extends Controller
                     'low_stock_threshold' => (int) $variantData['low_stock_threshold'],
                     'is_active' => (bool) ($variantData['is_active'] ?? true),
                 ]);
+                $variantIds[$key] = $variant->id;
             }
 
-            $this->storeProductImages($product, $images);
+            $this->syncProductImages($product, $images, $variantsData, $variantIds);
 
             return $product;
         });
@@ -113,7 +116,7 @@ class ProductController extends Controller
         $variantsData = $data['variants'] ?? [];
         $images = $request->file('images') ?? [];
 
-        DB::transaction(function () use ($product, $data, $variantsData, $images) {
+        $removedPaths = DB::transaction(function () use ($product, $data, $variantsData, $images) {
             $product->update([
                 'category_id' => $data['category_id'],
                 'brand_id' => $data['brand_id'],
@@ -122,12 +125,21 @@ class ProductController extends Controller
                 'description' => $data['description'] ?? null,
                 'base_price' => $data['base_price'],
                 'status' => $data['status'],
-                'is_featured' => (bool) ($data['is_featured'] ?? false),
+                'is_featured' => (bool) ($data['is_featured'] ?? $product->is_featured),
             ]);
 
-            $this->syncProductVariants($product, $variantsData);
-            $this->storeProductImages($product, $images);
+            $variantIds = $this->syncProductVariants($product, $variantsData);
+            $removedPaths = $this->removeProductImages($product, $data['removed_images'] ?? []);
+            $this->syncProductImages($product, $images, $variantsData, $variantIds);
+
+            return $removedPaths;
         });
+
+        // Some demo photos are shared by multiple products; keep files still in use.
+        $unusedPaths = array_diff($removedPaths, ProductImage::query()->whereIn('path', $removedPaths)->pluck('path')->all());
+        if ($unusedPaths) {
+            Storage::disk('s3')->delete(array_values($unusedPaths));
+        }
 
         return redirect()->route('admin.products.show', $product)
             ->with('status', "Sản phẩm \"{$product->name}\" đã được cập nhật.");
@@ -159,7 +171,7 @@ class ProductController extends Controller
     /**
      * Persist uploaded image files for a product and link them to the product.
      */
-    private function storeProductImages(Product $product, array $images): void
+    private function storeProductImages(Product $product, array $images, ?int $variantId = null): void
     {
         if (empty($images)) {
             return;
@@ -178,7 +190,7 @@ class ProductController extends Controller
 
             ProductImage::query()->create([
                 'product_id' => $product->id,
-                'product_variant_id' => null,
+                'product_variant_id' => $variantId,
                 'path' => $path,
                 'alt_text' => $product->name,
                 'sort_order' => $sortOrder++,
@@ -187,6 +199,28 @@ class ProductController extends Controller
 
             $hasPrimary = true;
         }
+    }
+
+    private function syncProductImages(Product $product, array $images, array $variants, array $variantIds): void
+    {
+        // Removing a variant preserves its images as shared product images.
+        $product->images()->whereNotNull('product_variant_id')->whereNotIn('product_variant_id', $variantIds)
+            ->update(['product_variant_id' => null]);
+        $this->storeProductImages($product, $images);
+        foreach ($variants as $key => $variant) {
+            $this->storeProductImages($product, $variant['images'] ?? [], $variantIds[$key]);
+        }
+    }
+
+    private function removeProductImages(Product $product, array $imageIds): array
+    {
+        $images = $product->images()->whereIn('id', $imageIds)->get();
+        $product->images()->whereIn('id', $images->modelKeys())->delete();
+        if (! $product->images()->where('is_primary', true)->exists()) {
+            $product->images()->orderBy('sort_order')->orderBy('id')->first()?->update(['is_primary' => true]);
+        }
+
+        return $images->pluck('path')->all();
     }
 
     /**
@@ -199,7 +233,7 @@ class ProductController extends Controller
      * updates; everything else (including the "new-N" keys the "+ Thêm biến
      * thể" button generates) is created.
      */
-    private function syncProductVariants(Product $product, array $variantsData): void
+    private function syncProductVariants(Product $product, array $variantsData): array
     {
         $existing = $product->variants()->get()->keyBy(fn (ProductVariant $v) => (int) $v->id);
         $keptVariantIds = [];
@@ -225,7 +259,7 @@ class ProductController extends Controller
                     'low_stock_threshold' => $threshold,
                     'is_active' => $active,
                 ]);
-                $keptVariantIds[] = $variantId;
+                $keptVariantIds[$key] = $variantId;
             } else {
                 $created = ProductVariant::query()->create([
                     'product_id' => $product->id,
@@ -237,12 +271,14 @@ class ProductController extends Controller
                     'low_stock_threshold' => $threshold,
                     'is_active' => $active,
                 ]);
-                $keptVariantIds[] = $created->id;
+                $keptVariantIds[$key] = $created->id;
             }
         }
 
         $existing->keys()->diff($keptVariantIds)->each(
             fn (int $removedId) => $existing[$removedId]->delete()
         );
+
+        return $keptVariantIds;
     }
 }

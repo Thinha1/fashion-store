@@ -1,11 +1,12 @@
-@php($route = $route ?? route('admin.products.store'))
-@php($method = $method ?? 'POST')
-@php($variants = $variants ?? collect())
-@php($images = $images ?? collect())
-
+@php
+    $route = $route ?? route('admin.products.store');
+    $method = $method ?? 'POST';
+    $images = $images ?? collect();
+    $variantRows = session()->hasOldInput() ? collect(old('variants', [])) : ($variants ?? collect())->keyBy('id');
+@endphp
 <x-admin.form-errors :messages="$errors->all()" />
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6">
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6" x-data="productForm({{ Js::from(old('removed_images', [])) }})">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -38,16 +39,9 @@
             </div>
 
             <div>
-                <x-label for="brand_id">Thương hiệu</x-label>
-                <select id="brand_id" name="brand_id" required
-                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                    <option value="">— Chọn thương hiệu —</option>
-                    @foreach ($brands as $brand)
-                        <option value="{{ $brand->id }}" @selected((int) old('brand_id', $product->brand_id) === $brand->id)>
-                            {{ $brand->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <x-image-select id="brand_id" name="brand_id" label="Thương hiệu" placeholder="— Chọn thương hiệu —" required
+                    :value="old('brand_id', $product->brand_id)"
+                    :options="$brands->map(fn ($brand) => ['value' => $brand->id, 'label' => $brand->name, 'image' => $brand->logo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) : null])->all()" />
                 <x-input-error :messages="$errors->get('brand_id')" />
             </div>
         </div>
@@ -59,32 +53,24 @@
             <x-input-error :messages="$errors->get('description')" />
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
                 <x-label for="base_price">Giá cơ bản (VNĐ)</x-label>
                 <x-currency-input id="base_price" name="base_price" :value="old('base_price', $product->base_price)" required class="mt-1" />
                 <x-input-error :messages="$errors->get('base_price')" />
             </div>
 
-            <div>
-                <x-label for="status">Trạng thái</x-label>
-                <select id="status" name="status" required
-                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                    <option value="draft" @selected(old('status', $product->status) === 'draft')>Bản nháp</option>
-                    <option value="active" @selected(old('status', $product->status) === 'active')>Hoạt động</option>
-                    <option value="archived" @selected(old('status', $product->status) === 'archived')>Lưu trữ</option>
-                </select>
+            <div class="flex flex-col justify-end">
+                <input type="hidden" name="status" value="archived">
+                <label class="flex min-h-11 items-center gap-2 text-sm text-gray-700" for="status">
+                    <input id="status" type="checkbox" name="status" value="active"
+                           @checked(old('status', $product->status) === 'active')
+                           class="rounded border-gray-300 text-brand focus:ring-brand">
+                    Đang kinh doanh
+                </label>
                 <x-input-error :messages="$errors->get('status')" />
             </div>
 
-            <div class="flex items-end pb-2">
-                <label class="flex items-center gap-2 text-sm text-gray-700">
-                    <input type="checkbox" name="is_featured" value="1"
-                           @checked(old('is_featured', $product->is_featured ?? false))
-                           class="rounded border-gray-300 text-gray-900 focus:ring-gray-500">
-                    Sản phẩm nổi bật
-                </label>
-            </div>
         </div>
     </section>
 
@@ -92,170 +78,36 @@
     <section class="space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Biến thể</h2>
-            <x-button type="button" id="add-variant-row" variant="secondary"><x-icon name="plus" class="size-4" /> Thêm biến thể</x-button>
+            <x-button type="button" id="add-variant-row" x-on:click="addVariant()" variant="secondary"><x-icon name="plus" class="size-4" /> Thêm biến thể</x-button>
         </div>
         <p class="text-xs text-gray-500">Mỗi lựa chọn size và màu là một biến thể, có mã SKU riêng. Để trống giá để dùng giá cơ bản.</p>
 
-        @php($variantIndex = 0)
         <div id="variants-list" class="space-y-3">
-            @foreach ($variants as $variant)
-                @php($rowIndex = $variant->exists ? $variant->id : $variantIndex)
-                <div data-variant-row class="admin-variant-row">
-                    @if ($variant->exists)
-                        <input type="hidden" name="variants[{{ $rowIndex }}][id]" value="{{ $variant->id }}">
-                    @endif
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Size</label>
-                        <input type="text" name="variants[{{ $rowIndex }}][size]" value="{{ old('variants.'.$variantIndex.'.size', $variant->size ?? '') }}" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Màu</label>
-                        <input type="text" name="variants[{{ $rowIndex }}][color]" value="{{ old('variants.'.$variantIndex.'.color', $variant->color ?? '') }}" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">SKU</label>
-                        <input type="text" name="variants[{{ $rowIndex }}][sku]" value="{{ old('variants.'.$variantIndex.'.sku', $variant->sku ?? '') }}" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Giá (VNĐ)</label>
-                        <input type="number" name="variants[{{ $rowIndex }}][price]" value="{{ old('variants.'.$variantIndex.'.price', $variant->price ?? '') }}" min="0" step="0.01"
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tồn kho</label>
-                        <input type="number" name="variants[{{ $rowIndex }}][stock_quantity]" value="{{ old('variants.'.$variantIndex.'.stock_quantity', $variant->stock_quantity ?? 0) }}" min="0" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Cảnh báo tồn</label>
-                        <input type="number" name="variants[{{ $rowIndex }}][low_stock_threshold]" value="{{ old('variants.'.$variantIndex.'.low_stock_threshold', $variant->low_stock_threshold ?? 5) }}" min="0" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                    </div>
-                    <div class="absolute right-2 top-2">
-                        <button type="button" class="remove-variant-row flex size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-700" title="Xóa biến thể" aria-label="Xóa biến thể"><x-icon name="close" class="size-4" /></button>
-                    </div>
-                </div>
-                @php($variantIndex++)
+            @foreach ($variantRows as $rowKey => $variant)
+                <x-admin.product-variant-row :row-key="$rowKey" :variant="$variant" :images="$images->where('product_variant_id', $rowKey)" />
             @endforeach
         </div>
-
-        {{-- Template cho 1 dòng biến thể mới — clone qua JS thay vì dựng chuỗi
-             HTML (tránh lỗi escape như đã gặp ở phiếu nhập). Index dùng tiền
-             tố "new-" (không phải số) để không bao giờ trùng với id thật của
-             biến thể đã có — nếu trùng, controller sẽ hiểu nhầm là sửa biến
-             thể cũ thay vì tạo mới. --}}
         <template id="variant-row-template">
-            <div data-variant-row class="admin-variant-row">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Size</label>
-                    <input type="text" name="variants[__INDEX__][size]" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Màu</label>
-                    <input type="text" name="variants[__INDEX__][color]" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">SKU</label>
-                    <input type="text" name="variants[__INDEX__][sku]" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Giá (VNĐ)</label>
-                    <input type="number" name="variants[__INDEX__][price]" min="0" step="0.01"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Tồn kho</label>
-                    <input type="number" name="variants[__INDEX__][stock_quantity]" value="0" min="0" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Cảnh báo tồn</label>
-                    <input type="number" name="variants[__INDEX__][low_stock_threshold]" value="5" min="0" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                </div>
-                <div class="absolute right-2 top-2">
-                    <button type="button" class="remove-variant-row flex size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-700" title="Xóa biến thể" aria-label="Xóa biến thể"><x-icon name="close" class="size-4" /></button>
-                </div>
-            </div>
+            <x-admin.product-variant-row row-key="__INDEX__" />
         </template>
-
-        <script>
-            (function () {
-                var nextNewIndex = 0;
-                var template = document.getElementById('variant-row-template');
-                var list = document.getElementById('variants-list');
-
-                document.getElementById('add-variant-row').addEventListener('click', function () {
-                    var row = template.content.cloneNode(true);
-                    row.querySelectorAll('[name]').forEach(function (el) {
-                        el.name = el.name.replace('__INDEX__', 'new-' + nextNewIndex);
-                    });
-                    list.appendChild(row);
-                    nextNewIndex++;
-                });
-
-                // Delegated so it works for both server-rendered rows and
-                // freshly cloned ones without re-binding listeners each time.
-                list.addEventListener('click', function (e) {
-                    var button = e.target.closest('.remove-variant-row');
-                    if (button) {
-                        button.closest('[data-variant-row]').remove();
-                    }
-                });
-            })();
-        </script>
-
         <x-input-error :messages="$errors->get('variants')" />
     </section>
 
     {{-- Images --}}
     <section class="space-y-4">
-        <h2 class="text-base font-semibold text-gray-900">Ảnh sản phẩm</h2>
+        <h2 class="text-base font-semibold text-gray-900">Ảnh chung</h2>
         <p class="text-xs text-gray-500">Chọn nhiều ảnh cùng lúc bằng Ctrl/Shift. JPG, PNG hoặc WebP, tối đa 4 MB mỗi ảnh.</p>
 
-        @if ($images->count())
-            <div class="grid grid-cols-3 gap-4 sm:grid-cols-6">
-                @foreach ($images as $image)
-                    <figure class="overflow-hidden rounded-md border border-gray-200">
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $image->alt_text }}" class="aspect-square w-full object-cover">
-                        <figcaption class="px-2 py-1 text-xs text-gray-500">
-                            @if ($image->is_primary) <span class="text-green-600">Ảnh chính</span> @endif
-                        </figcaption>
-                    </figure>
-                @endforeach
-            </div>
-        @endif
-
-        <div x-data="{ previews: [] }">
-            <x-label for="images">Thêm ảnh</x-label>
-            <input id="images" type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp"
-                   class="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-gray-700"
-                   x-on:change="
-                       previews = [];
-                       Array.from($event.target.files).forEach((file) => {
-                           const reader = new FileReader();
-                           reader.onload = () => { previews.push(reader.result) };
-                           reader.readAsDataURL(file);
-                       });
-                   ">
-            <x-input-error :messages="$errors->get('images')" />
-
-            <template x-if="previews.length">
-                <p class="mt-3 text-xs font-medium text-gray-500">Ảnh mới chọn (chưa lưu):</p>
-            </template>
-            <div class="mt-2 grid grid-cols-3 gap-4 sm:grid-cols-6" x-show="previews.length">
-                <template x-for="(src, index) in previews" :key="index">
-                    <img :src="src" alt="Ảnh sản phẩm mới chọn" class="aspect-square w-full rounded-md border border-gray-200 object-cover ring-2 ring-gray-900">
-                </template>
-            </div>
-        </div>
+        <x-admin.product-image-preview :images="$images->whereNull('product_variant_id')" />
+        <x-admin.image-upload id="images" name="images[]" label="Thêm ảnh chung" error-key="images" />
+        <p class="text-xs text-gray-500">Biến thể chưa có ảnh riêng sẽ hiển thị ảnh chung.</p>
     </section>
-
+    <template x-for="id in removedImages" :key="id">
+        <input type="hidden" name="removed_images[]" :value="id">
+    </template>
+    <div x-show="removedImages.length" x-cloak class="flex flex-wrap items-center gap-3 text-sm text-gray-600" role="status">
+        <span x-text="removedImages.length + ' ảnh sẽ được xóa khi lưu.'"></span>
+        <button type="button" x-on:click="removedImages = []" class="font-semibold text-brand underline underline-offset-4">Hoàn tác xóa ảnh</button>
+    </div>
     <x-admin.form-actions :cancel="route('admin.products.index')" label="Lưu sản phẩm" />
 </form>

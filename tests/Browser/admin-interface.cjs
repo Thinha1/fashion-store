@@ -104,6 +104,35 @@ function luminance(css) {
         }
 
         await visit('/admin/san-pham/tao-moi');
+        assert.equal(await page.$('[name=is_featured]'), null);
+        assert.equal(await page.$eval('[name=brand_id]', node => node.checkValidity()), false);
+        await page.waitForFunction(() => document.activeElement.id === 'brand_id');
+        await page.click('#brand_id');
+        await page.waitForSelector('#brand_id-options', { visible: true });
+        // Exercise logo rendering even when the local demo brands have no uploaded logo.
+        await page.evaluate(() => {
+            const picker = window.Alpine.$data(document.querySelector('.image-select'));
+            picker.options[1].image = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="28"><rect width="40" height="28" fill="#175b60"/></svg>');
+        });
+        await page.waitForFunction(() => document.querySelector('#brand_id-option-1 img')?.naturalWidth > 0);
+        assert.ok(await page.$eval('#brand_id-option-1', option => option.querySelector('.image-select-logo').getBoundingClientRect().left >= option.firstElementChild.getBoundingClientRect().right));
+        await screenshot('brand-dropdown');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+        const brandValue = await page.$eval('[name=brand_id]', node => node.value);
+        assert.ok(brandValue);
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).get('brand_id')), brandValue);
+        await page.waitForFunction(() => document.querySelector('#brand_id img')?.naturalWidth > 0);
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Escape');
+        assert.equal(await page.$eval('[name=brand_id]', node => node.value), brandValue);
+        assert.equal(await page.$eval('#brand_id', node => node.getAttribute('aria-expanded')), 'false');
+        assert.equal(await page.$eval('#status', node => node.type), 'checkbox');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'archived');
+        await page.click('#status');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'active');
+        await page.click('#status');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'archived');
         await page.click('#add-variant-row');
         await page.click('#add-variant-row');
         assert.equal((await page.$$('[data-variant-row]')).length, 2);

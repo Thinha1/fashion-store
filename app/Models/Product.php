@@ -17,6 +17,11 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const STATUS_LABELS = [
+        'active' => 'Đang kinh doanh',
+        'archived' => 'Không kinh doanh',
+    ];
+
     protected function casts(): array
     {
         return [

@@ -31,7 +31,8 @@ class DashboardTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $product = Product::factory()->create();
-        ProductVariant::factory()->count(3)->create(['product_id' => $product->id]);
+        ProductVariant::factory()->count(3)->sequence(['size' => 'S'], ['size' => 'M'], ['size' => 'L'])
+            ->create(['product_id' => $product->id]);
         Product::factory()->draft()->create();
         Product::factory()->create()->delete();
 
