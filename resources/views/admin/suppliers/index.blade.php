@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="suppliers" />
 
-    <x-admin-table :header="['Tên nhà cung cấp', 'Điện thoại', 'Email', 'Mã số thuế', 'Phiếu nhập', 'Trạng thái', 'Thao tác']">
+    <x-admin-table :paginator="$suppliers" :sorting="$sorting"
+        :sortable="['Tên nhà cung cấp' => 'name', 'Điện thoại' => 'phone', 'Email' => 'email', 'Mã số thuế' => 'tax_code', 'Phiếu nhập' => 'goods_receipts_count', 'Trạng thái' => 'is_active']"
+        :header="['Tên nhà cung cấp', 'Điện thoại', 'Email', 'Mã số thuế', 'Phiếu nhập', 'Trạng thái', 'Thao tác']">
         @forelse ($suppliers as $supplier)
             <tr>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ $supplier->name }}</td>
@@ -42,6 +44,4 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">{{ $suppliers->links() }}</div>
 @endsection

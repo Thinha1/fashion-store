@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="categories" />
 
-    <x-admin-table :header="['Tên danh mục', 'Danh mục cha', 'Thứ tự', 'Sản phẩm', 'Danh mục con', 'Trạng thái', 'Thao tác']">
+    <x-admin-table :paginator="$categories" :sorting="$sorting"
+        :sortable="['Tên danh mục' => 'name', 'Danh mục cha' => 'parent', 'Thứ tự' => 'sort_order', 'Sản phẩm' => 'products_count', 'Danh mục con' => 'children_count', 'Trạng thái' => 'is_active']"
+        :header="['Tên danh mục', 'Danh mục cha', 'Thứ tự', 'Sản phẩm', 'Danh mục con', 'Trạng thái', 'Thao tác']">
         @forelse ($categories as $category)
             <tr>
                 <td class="px-4 py-3">
@@ -45,6 +47,4 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">{{ $categories->links() }}</div>
 @endsection

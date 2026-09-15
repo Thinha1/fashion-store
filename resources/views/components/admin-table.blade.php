@@ -1,4 +1,4 @@
-@props(['header' => []])
+@props(['header' => [], 'paginator' => null, 'sortable' => [], 'sorting' => null])
 
 <div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs']) }}>
     <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 sm:px-5">
@@ -15,7 +15,13 @@
             <thead>
                 <tr>
                     @foreach ($header as $label)
-                        <th scope="col">{{ $label }}</th>
+                        @php
+                            $column = $sortable[$label] ?? null;
+                            $direction = $column ? $sorting?->directionFor($column) : null;
+                        @endphp
+                        <th scope="col" @if ($column && $sorting) aria-sort="{{ match ($direction) { 'asc' => 'ascending', 'desc' => 'descending', default => 'none' } }}" @endif>
+                            <x-table-sort :label="$label" :column="$column" :sorting="$sorting" />
+                        </th>
                     @endforeach
                 </tr>
             </thead>
@@ -29,4 +35,7 @@
         <p class="text-sm font-medium text-gray-600">Không tìm thấy kết quả trong trang này.</p>
         <button type="button" x-on:click="query = ''" class="mt-3 text-sm font-semibold text-brand underline underline-offset-4">Xóa từ khóa</button>
     </div>
+    @if ($paginator)
+        <x-pagination :paginator="$paginator" />
+    @endif
 </div>

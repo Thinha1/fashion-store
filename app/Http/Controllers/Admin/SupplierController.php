@@ -5,16 +5,24 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSupplierRequest;
 use App\Models\Supplier;
+use App\Support\AdminPagination;
+use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SupplierController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $suppliers = Supplier::query()->withCount('goodsReceipts')->orderBy('name')->paginate(20);
+        $sorting = new AdminSorting($request, [
+            'name' => 'name', 'phone' => 'phone', 'email' => 'email', 'tax_code' => 'tax_code',
+            'goods_receipts_count' => 'goods_receipts_count', 'is_active' => 'is_active',
+        ]);
+        $suppliers = $sorting->apply(Supplier::query()->withCount('goodsReceipts')->orderBy('name')->orderBy('id'))
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.suppliers.index', ['suppliers' => $suppliers]);
+        return view('admin.suppliers.index', ['suppliers' => $suppliers, 'sorting' => $sorting]);
     }
 
     public function create(): View

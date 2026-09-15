@@ -38,11 +38,15 @@ Nút thêm vào giỏ hàng hiện hiển thị trạng thái sắp ra mắt.
 ### Quản trị
 
 - Kiểm soát truy cập theo vai trò và permission.
+- Dashboard tổng hợp doanh thu, tổng đơn hàng và tổng sản phẩm theo toàn thời gian. Doanh thu tính tổng tiền (gồm phí vận chuyển) của đơn đã giao và đã thanh toán; tổng sản phẩm không tính bản ghi đã xoá và biến thể.
 - Quản lý thương hiệu, danh mục, sản phẩm, biến thể và hình ảnh.
+- Bật/tắt sản phẩm nổi bật ngay trong danh sách bằng nút ngôi sao.
 - Quản lý nhà cung cấp và giảm giá theo biến thể.
 - Lập phiếu nhập ở trạng thái nháp, sau đó xác nhận để cập nhật tồn kho.
 - Ghi nhật ký thao tác quản trị.
 - Sidebar quản trị thích ứng theo quyền của tài khoản.
+- Phân trang dùng chung cho sáu danh sách quản trị, có chọn 10/20/50 bản ghi mỗi trang, số trang và điều hướng Trước/Sau.
+- Bấm tiêu đề cột để sắp xếp tăng dần, giảm dần hoặc về mặc định; mũi tên Font Awesome thể hiện chiều đang chọn. Sắp xếp áp dụng trên toàn bộ dữ liệu và giữ nguyên khi chuyển trang.
 
 ### Nhập và xuất Excel
 

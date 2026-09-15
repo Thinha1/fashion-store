@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="products" />
 
-    <x-admin-table :header="['Tên sản phẩm', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Nổi bật', 'Thao tác']">
+    <x-admin-table :paginator="$products" :sorting="$sorting"
+        :sortable="['Tên sản phẩm' => 'name', 'Danh mục' => 'category', 'Thương hiệu' => 'brand', 'Biến thể' => 'variants_count', 'Trạng thái' => 'status', 'Nổi bật' => 'is_featured']"
+        :header="['Tên sản phẩm', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Nổi bật', 'Thao tác']">
         @forelse ($products as $product)
             <tr>
                 <td class="px-4 py-3">
@@ -39,7 +41,7 @@
                         {{ $statusLabels[$status] ?? $status }}
                     </span>
                 </td>
-                <td class="px-4 py-3">@if ($product->is_featured)<i class="fa-solid fa-star text-amber-500" aria-label="Sản phẩm nổi bật" role="img"></i>@else <span class="text-gray-300">—</span> @endif</td>
+                <td class="px-4 py-3"><x-featured-toggle :product="$product" /></td>
                 <td class="px-4 py-3 text-right">
                     <a href="{{ route('admin.products.edit', $product) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
                     <form method="POST" action="{{ route('admin.products.destroy', $product) }}" class="inline"
@@ -56,6 +58,4 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">{{ $products->links() }}</div>
 @endsection

@@ -87,6 +87,8 @@ Route::prefix('admin')
         Route::middleware('permission:products.manage')
             ->put('san-pham/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::middleware('permission:products.manage')
+            ->patch('san-pham/{product}/noi-bat', [ProductController::class, 'updateFeatured'])->name('products.featured');
+        Route::middleware('permission:products.manage')
             ->delete('san-pham/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
         // Goods receipt

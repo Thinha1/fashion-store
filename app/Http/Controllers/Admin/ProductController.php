@@ -9,21 +9,31 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Support\AdminPagination;
+use App\Support\AdminSorting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::query()
+        $sorting = new AdminSorting($request, [
+            'name' => 'name', 'variants_count' => 'variants_count', 'status' => 'status', 'is_featured' => 'is_featured',
+            'category' => Category::query()->select('name')->whereColumn('categories.id', 'products.category_id'),
+            'brand' => Brand::query()->select('name')->whereColumn('brands.id', 'products.brand_id'),
+        ]);
+        $products = $sorting->apply(Product::query()
             ->with(['category:id,name', 'brand:id,name'])
             ->withCount('variants')
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->orderByDesc('id'))
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.products.index', ['products' => $products]);
+        return view('admin.products.index', ['products' => $products, 'sorting' => $sorting]);
     }
 
     public function create(): View
@@ -121,6 +131,20 @@ class ProductController extends Controller
 
         return redirect()->route('admin.products.show', $product)
             ->with('status', "Sản phẩm \"{$product->name}\" đã được cập nhật.");
+    }
+
+    public function updateFeatured(Request $request, Product $product): JsonResponse|RedirectResponse
+    {
+        $data = $request->validate(['is_featured' => ['required', 'boolean']]);
+        $product->update($data + ['updated_by' => $request->user()->id]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['is_featured' => $product->is_featured]);
+        }
+
+        return back()->with('status', $product->is_featured
+            ? 'Đã đánh dấu sản phẩm nổi bật.'
+            : 'Đã bỏ đánh dấu sản phẩm nổi bật.');
     }
 
     public function destroy(Product $product): RedirectResponse
