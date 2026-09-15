@@ -130,6 +130,16 @@ Nạp seed:
 docker compose exec app php artisan db:seed
 ```
 
+Trong môi trường local, lệnh trên tạo thêm catalog demo gồm 4 thương hiệu giả lập, 18 danh mục, 8 sản phẩm nổi bật, 48 biến thể và ảnh CC0. Ảnh được đóng gói cùng repository rồi sao chép lên MinIO khi seed, vì vậy các lần chạy sau không cần kết nối Internet.
+
+Để chỉ tạo hoặc cập nhật catalog demo:
+
+```powershell
+docker compose exec app php artisan db:seed --class=CatalogDemoSeeder
+```
+
+Seeder có thể chạy lại an toàn: các bản ghi demo được nhận diện bằng slug hoặc SKU và được cập nhật thay vì tạo trùng. Xem [nguồn và giấy phép ảnh](database/seeders/assets/catalog/SOURCES.md).
+
 Tài khoản phát triển:
 
 | Trường | Giá trị |
