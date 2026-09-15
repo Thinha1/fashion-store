@@ -87,6 +87,9 @@ jobs:
       - name: Build front-end assets
         run: npm run build
 
+      - name: JavaScript tests
+        run: node --test tests/JavaScript/*.test.js
+
       - name: Run migrations
         run: php artisan migrate --force
 

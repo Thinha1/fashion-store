@@ -62,9 +62,13 @@ class StoreProductRequest extends BaseAdminRequest
             'variants.*.stock_quantity' => ['required', 'integer', 'min:0', 'max:999999'],
             'variants.*.low_stock_threshold' => ['required', 'integer', 'min:0', 'max:999999'],
             'variants.*.is_active' => ['boolean'],
+            'variants.*.images' => ['array'],
+            'variants.*.images.*' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp'],
 
             'images' => ['array'],
             'images.*' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp'],
+            'removed_images' => ['array'],
+            'removed_images.*' => ['integer', 'distinct', Rule::exists('product_images', 'id')->where('product_id', $productId)],
         ];
     }
 
@@ -76,6 +80,9 @@ class StoreProductRequest extends BaseAdminRequest
         return [
             'images.*.mimes' => 'Ảnh phải là JPG, JPEG, PNG hoặc WebP.',
             'images.*.max' => 'Ảnh không được vượt quá 4MB.',
+            'variants.*.images.*.mimes' => 'Ảnh biến thể phải là JPG, JPEG, PNG hoặc WebP.',
+            'variants.*.images.*.max' => 'Ảnh biến thể không được vượt quá 4MB.',
+            'removed_images.*.exists' => 'Ảnh cần xóa không thuộc sản phẩm này.',
         ];
     }
 
@@ -89,7 +96,6 @@ class StoreProductRequest extends BaseAdminRequest
     {
         $product = $this->route('product');
         $productId = $product?->id;
-        $existingVariantIds = $product ? $product->variants()->pluck('id')->all() : [];
 
         $validator->after(function (Validator $validator) use ($productId) {
             $variants = $this->input('variants', []);

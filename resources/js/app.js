@@ -3,6 +3,9 @@ import mask from '@alpinejs/mask';
 import featuredProduct from './featured-product';
 import adminConfirm, { openDialog, closeDialog } from './dialog';
 import imageSelect from './image-select';
+import imageUpload from './image-upload';
+import productForm from './product-form';
+import productDetail from './product-detail';
 
 window.Alpine = Alpine;
 
@@ -10,6 +13,9 @@ Alpine.plugin(mask);
 Alpine.data('featuredProduct', featuredProduct);
 Alpine.data('adminConfirm', adminConfirm);
 Alpine.data('imageSelect', imageSelect);
+Alpine.data('imageUpload', imageUpload);
+Alpine.data('productForm', productForm);
+Alpine.data('productDetail', productDetail);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,

@@ -51,6 +51,8 @@
                         <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $image->alt_text ?: $product->name }}" class="aspect-[4/5] w-full object-cover">
                         <figcaption class="px-2 py-1 text-xs text-gray-500">
                             @if ($image->is_primary) <span class="text-green-600">Ảnh chính</span> @endif
+                            @php($imageVariant = $product->variants->firstWhere('id', $image->product_variant_id))
+                            <span class="block">{{ $imageVariant ? $imageVariant->size.' · '.$imageVariant->color : 'Ảnh chung' }}</span>
                         </figcaption>
                     </figure>
                 @endforeach

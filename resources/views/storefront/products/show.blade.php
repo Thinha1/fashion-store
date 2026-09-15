@@ -9,7 +9,12 @@
             'price' => (float) ($v->price ?? $product->base_price),
             'stock' => (int) $v->stock_quantity,
         ]);
-        $firstInStock = $variantsForJs->firstWhere('stock', '>', 0) ?? $variantsForJs->first();
+        $imagesForJs = $product->images->map(fn ($image) => [
+            'id' => $image->id,
+            'url' => \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path),
+            'alt' => $image->alt_text ?: $product->name,
+            'variantId' => $image->product_variant_id,
+        ])->values();
         $colorSwatches = ['Đen' => '#17343a', 'Trắng' => '#ffffff'];
         $sizes = $product->variants->pluck('size')->unique()->values();
         $colors = $product->variants->pluck('color')->unique()->values();
@@ -24,53 +29,22 @@
     </nav>
 
     <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"
-         x-data="{
-            images: {{ $product->images->pluck('path')->values()->toJson() }},
-            activeImage: 0,
-            variants: {{ $variantsForJs->values()->toJson() }},
-            selectedSize: {{ Js::from($firstInStock['size'] ?? null) }},
-            selectedColor: {{ Js::from($firstInStock['color'] ?? null) }},
-            qty: 1,
-            get variant() { return this.variants.find(v => v.size === this.selectedSize && v.color === this.selectedColor) ?? null; },
-            get inStock() { return this.variant ? this.variant.stock > 0 : false; },
-            get maxQty() { return this.variant ? this.variant.stock : 0; },
-            hasVariant(size, color) { return this.variants.some(v => v.size === size && v.color === color); },
-            pickSize(size) {
-                this.selectedSize = size;
-                if (!this.hasVariant(size, this.selectedColor)) {
-                    const match = this.variants.find(v => v.size === size);
-                    if (match) this.selectedColor = match.color;
-                }
-                this.qty = 1;
-            },
-            pickColor(color) {
-                this.selectedColor = color;
-                if (!this.hasVariant(this.selectedSize, color)) {
-                    const match = this.variants.find(v => v.color === color);
-                    if (match) this.selectedSize = match.size;
-                }
-                this.qty = 1;
-            },
-            prevImage() { this.activeImage = (this.activeImage - 1 + images.length) % images.length; },
-            nextImage() { this.activeImage = (this.activeImage + 1) % images.length; },
-            inc() { if (this.qty < this.maxQty) this.qty++; },
-            dec() { if (this.qty > 1) this.qty--; },
-         }">
+         x-data="productDetail({ variants: {{ Js::from($variantsForJs->values()) }}, images: {{ Js::from($imagesForJs) }} })">
         {{-- Gallery --}}
         <div class="flex gap-3">
             <div class="hidden shrink-0 flex-col gap-3 sm:flex" x-show="images.length > 1">
-                <template x-for="(path, index) in images" :key="index">
+                <template x-for="(image, index) in images" :key="image.id">
                     <button type="button" class="gallery-thumb w-16" :aria-current="activeImage === index"
                             x-on:click="activeImage = index" aria-label="Xem ảnh">
-                        <img :src="'{{ rtrim(config('filesystems.disks.s3.url'), '/') }}/' + path" alt="">
+                        <img :src="image.url" alt="">
                     </button>
                 </template>
             </div>
 
             <div class="product-card-media relative min-w-0 flex-1 rounded-2xl" style="aspect-ratio: 4 / 5;">
                 <template x-if="images.length">
-                    <img :src="'{{ rtrim(config('filesystems.disks.s3.url'), '/') }}/' + images[activeImage]"
-                         :alt="{{ Js::from($product->name) }}" class="size-full object-cover"
+                    <img :src="images[activeImage]?.url"
+                         :alt="images[activeImage]?.alt" class="size-full object-cover"
                          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
                          x-transition:enter-end="opacity-100" :key="activeImage">
                 </template>
@@ -119,8 +93,8 @@
                     <div class="mt-2.5 flex flex-wrap gap-2.5">
                         @foreach ($colors as $color)
                             <button type="button" class="color-swatch" style="--swatch-color: {{ $colorSwatches[$color] ?? '#e5e7eb' }}"
-                                    x-on:click="pickColor('{{ $color }}')"
-                                    :aria-pressed="selectedColor === '{{ $color }}'"
+                                    x-on:click="pickColor({{ Js::from($color) }})"
+                                    :aria-pressed="selectedColor === {{ Js::from($color) }}"
                                     aria-label="Màu {{ $color }}"></button>
                         @endforeach
                     </div>
@@ -136,9 +110,9 @@
                     <div class="mt-2.5 flex flex-wrap gap-2">
                         @foreach ($sizes as $size)
                             <button type="button" class="variant-option"
-                                    x-on:click="pickSize('{{ $size }}')"
-                                    :aria-pressed="selectedSize === '{{ $size }}'"
-                                    :disabled="!hasVariant('{{ $size }}', selectedColor)">
+                                    x-on:click="pickSize({{ Js::from($size) }})"
+                                    :aria-pressed="selectedSize === {{ Js::from($size) }}"
+                                    :disabled="!hasVariant({{ Js::from($size) }}, selectedColor)">
                                 {{ $size }}
                             </button>
                         @endforeach
