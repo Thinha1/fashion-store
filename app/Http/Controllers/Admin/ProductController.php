@@ -27,7 +27,7 @@ class ProductController extends Controller
             'brand' => Brand::query()->select('name')->whereColumn('brands.id', 'products.brand_id'),
         ]);
         $products = $sorting->apply(Product::query()
-            ->with(['category:id,name', 'brand:id,name'])
+            ->with(['category:id,name', 'brand:id,name', 'images'])
             ->withCount('variants')
             ->orderByDesc('created_at')
             ->orderByDesc('id'))

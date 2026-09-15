@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Giảm giá biến thể',
         'subtitle' => 'Thiết lập mức giảm và thời gian áp dụng cho từng biến thể sản phẩm.',
-        'actions' => '<a href="'.route('admin.discounts.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm giảm giá</a>',
+        'actionUrl' => route('admin.discounts.create'),
+        'actionLabel' => 'Thêm giảm giá',
     ])
 
     <x-excel-tools resource="discounts" />
@@ -33,21 +34,17 @@
                 <td class="px-4 py-3 text-gray-600">{{ $discount->starts_at?->format('d/m/Y') }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $discount->ends_at?->format('d/m/Y') }}</td>
                 <td class="px-4 py-3">
-                    @if ($discount->is_active)
-                        <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Hoạt động</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Tạm dừng</span>
-                    @endif
+                    <x-admin.status :value="$discount->is_active" />
                 </td>
-                <td class="px-4 py-3 text-right">
-                    <a href="{{ route('admin.discounts.edit', $discount) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
+                    <a href="{{ route('admin.discounts.edit', $discount) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                     <form method="POST" action="{{ route('admin.discounts.destroy', $discount) }}" class="inline"
-                          onsubmit="return confirm('Xóa giảm giá này?')">
+                          x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xóa giảm giá này?' })">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ml-3 text-sm text-red-600 hover:underline">Xóa</button>
+                        <button type="submit" class="admin-row-action"><x-icon name="delete" class="size-3.5" /> Xóa</button>
                     </form>
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>

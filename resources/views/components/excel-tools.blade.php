@@ -1,10 +1,10 @@
 @props(['resource'])
 
-<div class="mb-4 flex flex-wrap gap-2" x-data="excelImport(@js($errors->has('file')))">
+<div class="excel-tools flex flex-wrap gap-2" x-data="excelImport(@js($errors->has('file')))">
     <x-button type="button" variant="secondary" x-on:click="openDialog()" aria-haspopup="dialog" aria-controls="excel-import-{{ $resource }}"><i class="fa-solid fa-file-import" aria-hidden="true"></i> Nhập từ Excel</x-button>
     <a href="{{ route('admin.excel.export', $resource) }}" class="btn btn-secondary"><i class="fa-solid fa-file-export" aria-hidden="true"></i> Xuất Excel</a>
 
-    <dialog id="excel-import-{{ $resource }}" x-ref="importDialog" class="excel-dialog" aria-labelledby="excel-import-title-{{ $resource }}" aria-describedby="excel-import-help-{{ $resource }}" x-on:click="if ($event.target === $refs.importDialog) closeDialog()" x-on:cancel="if (busy) $event.preventDefault()" x-on:keydown.tab="trapFocus($event)">
+    <dialog id="excel-import-{{ $resource }}" x-ref="importDialog" class="excel-dialog" aria-labelledby="excel-import-title-{{ $resource }}" aria-describedby="excel-import-help-{{ $resource }}" x-on:click="if ($event.target === $refs.importDialog) closeDialog()" x-on:cancel.prevent="closeDialog()" x-on:keydown.tab="trapFocus($event)">
         <div class="p-5 sm:p-7">
             <div class="flex items-start justify-between gap-4">
                 <div>

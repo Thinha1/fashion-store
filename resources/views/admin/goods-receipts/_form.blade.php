@@ -4,6 +4,8 @@
 @php($items = session()->hasOldInput() ? collect(old('items', []))->map(fn ($row) => new \App\Models\GoodsReceiptItem($row)) : $items->values())
 @php($variants = \App\Models\ProductVariant::query()->where('is_active', true)->with('product:id,name')->get())
 
+<x-admin.form-errors :messages="$errors->all()" />
+
 <form method="POST" action="{{ $route }}" class="admin-form space-y-6">
     @csrf
     @if ($method !== 'POST')
@@ -39,7 +41,7 @@
         @php($itemIndex = 0)
         <div id="items-list" class="space-y-3">
             @foreach ($items as $rowIndex => $item)
-                <div data-item-row class="relative grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 pr-16 sm:grid-cols-4">
+                <div data-item-row class="admin-receipt-row">
                     <x-button type="button" variant="secondary" data-remove-item class="absolute top-3 right-3 min-h-9 px-2.5 hover:border-red-200 hover:bg-red-50 hover:text-red-600" aria-label="Xóa dòng hàng" title="Xóa dòng hàng"><x-icon name="close" class="size-4" /></x-button>
                     @if ($item->exists)
                         <input type="hidden" name="items[{{ $rowIndex }}][id]" value="{{ $item->id }}">
@@ -83,7 +85,7 @@
         {{-- Template cho 1 dòng hàng mới — trình duyệt tự parse thành DOM thật,
              không cần dựng chuỗi HTML bằng JS (tránh lỗi escape lồng nhau). --}}
         <template id="item-row-template">
-            <div data-item-row class="relative grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 pr-16 sm:grid-cols-4">
+            <div data-item-row class="admin-receipt-row">
                 <x-button type="button" variant="secondary" data-remove-item class="absolute top-3 right-3 min-h-9 px-2.5 hover:border-red-200 hover:bg-red-50 hover:text-red-600" aria-label="Xóa dòng hàng" title="Xóa dòng hàng"><x-icon name="close" class="size-4" /></x-button>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Biến thể</label>
@@ -140,8 +142,5 @@
         </script>
     </section>
 
-    <div class="flex items-center gap-2 border-t border-gray-200 pt-4">
-        <x-button type="submit">Lưu phiếu nhập</x-button>
-        <a href="{{ route('admin.goods-receipts.index') }}" class="text-sm text-gray-600 hover:underline">Hủy</a>
-    </div>
+    <x-admin.form-actions :cancel="route('admin.goods-receipts.index')" label="Lưu phiếu nhập" />
 </form>

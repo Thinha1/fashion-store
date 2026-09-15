@@ -1,21 +1,20 @@
 @php($route = $route ?? 'admin.brands.store')
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form max-w-2xl space-y-4">
+<x-admin.form-errors :messages="$errors->all()" />
+
+<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form admin-form-simple space-y-5">
     @csrf
     @if ($method !== 'POST')
         @method($method)
     @endif
 
+    <div class="admin-form-heading"><x-icon name="tag" /><div><h2>Thông tin thương hiệu</h2><p>Điền thông tin và chọn trạng thái hiển thị.</p></div></div>
+
     <div>
         <x-label for="name">Tên thương hiệu</x-label>
         <x-input id="name" name="name" value="{{ old('name', $brand->name) }}" required class="mt-1" />
         <x-input-error :messages="$errors->get('name')" />
-        @if ($brand->exists)
-            <p class="mt-1 text-xs text-gray-500">Slug: <code>{{ $brand->slug }}</code> (sinh tự động từ tên lúc tạo, không đổi sau đó).</p>
-        @else
-            <p class="mt-1 text-xs text-gray-500">Slug (định danh URL) sẽ được sinh tự động từ tên.</p>
-        @endif
     </div>
 
     <div>
@@ -65,8 +64,5 @@
         <x-input-error :messages="$errors->get('is_active')" />
     </div>
 
-    <div class="flex items-center gap-2">
-        <x-button type="submit">Lưu</x-button>
-        <a href="{{ route('admin.brands.index') }}" class="text-sm text-gray-600 hover:underline">Hủy</a>
-    </div>
+    <x-admin.form-actions :cancel="route('admin.brands.index')" label="Lưu thương hiệu" />
 </form>

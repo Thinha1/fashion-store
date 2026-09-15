@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Nhập hàng',
         'subtitle' => 'Theo dõi phiếu nhập. Chỉ phiếu đã xác nhận mới làm tăng tồn kho.',
-        'actions' => '<a href="'.route('admin.goods-receipts.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm phiếu nhập</a>',
+        'actionUrl' => route('admin.goods-receipts.create'),
+        'actionLabel' => 'Thêm phiếu nhập',
     ])
 
     <x-excel-tools resource="goods-receipts" />
@@ -23,13 +24,7 @@
                 <td class="px-4 py-3 text-gray-600">{{ $receipt->items_count }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ number_format((float) $receipt->total_cost, 0) }} ₫</td>
                 <td class="px-4 py-3">
-                    @if ($receipt->status === 'draft')
-                        <span class="inline-flex rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-700">Bản nháp</span>
-                    @elseif ($receipt->status === 'confirmed')
-                        <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Đã xác nhận</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ $receipt->status }}</span>
-                    @endif
+                    <x-admin.status :value="$receipt->status" />
                 </td>
                 <td class="px-4 py-3 text-gray-600">
                     {{ $receipt->confirmedBy?->name ?? '—' }}
@@ -37,16 +32,16 @@
                         <span class="text-xs text-gray-400">({{ $receipt->confirmed_at->format('d/m/Y H:i') }})</span>
                     @endif
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
                     @if ($receipt->status === 'draft')
-                        <a href="{{ route('admin.goods-receipts.edit', $receipt) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                        <a href="{{ route('admin.goods-receipts.edit', $receipt) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                         <form method="POST" action="{{ route('admin.goods-receipts.confirm', $receipt) }}" class="inline"
-                              onsubmit="return confirm('Xác nhận phiếu nhập này? Tồn kho sẽ được cập nhật.')">
+                              x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xác nhận phiếu nhập này? Tồn kho sẽ được cập nhật.' })">
                             @csrf
-                            <button type="submit" class="ml-2 text-sm text-green-600 hover:underline">Xác nhận</button>
+                            <button type="submit" class="admin-row-action admin-row-confirm"><x-icon name="check" class="size-3.5" /> Xác nhận</button>
                         </form>
                     @endif
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>

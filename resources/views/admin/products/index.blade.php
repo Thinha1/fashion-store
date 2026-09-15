@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Sản phẩm',
         'subtitle' => 'Quản lý thông tin, biến thể và trạng thái hiển thị của sản phẩm.',
-        'actions' => '<a href="'.route('admin.products.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm sản phẩm</a>',
+        'actionUrl' => route('admin.products.create'),
+        'actionLabel' => 'Thêm sản phẩm',
     ])
 
     <x-excel-tools resource="products" />
@@ -17,40 +18,30 @@
         @forelse ($products as $product)
             <tr>
                 <td class="px-4 py-3">
-                    <a href="{{ route('admin.products.show', $product) }}" class="font-medium text-gray-900 hover:underline">{{ $product->name }}</a>
-                    <span class="ml-2 text-xs text-gray-400">/{{ $product->slug }}</span>
+                    @php($thumbnail = $product->images->firstWhere('is_primary', true) ?? $product->images->first())
+                    <a href="{{ route('admin.products.show', $product) }}" class="flex min-w-56 items-center gap-3 font-medium text-gray-900">
+                        <span class="flex h-12 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 text-gray-400">
+                            @if ($thumbnail)<img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($thumbnail->path) }}" alt="" class="size-full object-cover" loading="lazy">@else<x-icon name="image" />@endif
+                        </span>
+                        <span class="max-w-64"><span class="block leading-5">{{ $product->name }}</span><span class="mt-1 block text-xs font-normal tabular-nums text-gray-500">{{ number_format((float) $product->base_price, 0, ',', '.') }} ₫</span></span>
+                    </a>
                 </td>
                 <td class="px-4 py-3 text-gray-600">{{ $product->category?->name ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $product->brand?->name ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $product->variants_count }}</td>
                 <td class="px-4 py-3">
-                    @php
-                        $statusStyles = [
-                            'draft' => 'bg-yellow-50 text-yellow-700',
-                            'active' => 'bg-green-50 text-green-700',
-                            'archived' => 'bg-gray-100 text-gray-500',
-                        ];
-                        $statusLabels = [
-                            'draft' => 'Bản nháp',
-                            'active' => 'Hoạt động',
-                            'archived' => 'Lưu trữ',
-                        ];
-                        $status = $product->status;
-                    @endphp
-                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $statusStyles[$status] ?? 'bg-gray-100 text-gray-500' }}">
-                        {{ $statusLabels[$status] ?? $status }}
-                    </span>
+                    <x-admin.status :value="$product->status" />
                 </td>
                 <td class="px-4 py-3"><x-featured-toggle :product="$product" /></td>
-                <td class="px-4 py-3 text-right">
-                    <a href="{{ route('admin.products.edit', $product) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
+                    <a href="{{ route('admin.products.edit', $product) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                     <form method="POST" action="{{ route('admin.products.destroy', $product) }}" class="inline"
-                          onsubmit="return confirm('Xóa sản phẩm này?')">
+                          x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xóa sản phẩm này?' })">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ml-3 text-sm text-red-600 hover:underline">Xóa</button>
+                        <button type="submit" class="admin-row-action"><x-icon name="delete" class="size-3.5" /> Xóa</button>
                     </form>
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>
