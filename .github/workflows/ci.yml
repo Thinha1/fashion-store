@@ -49,13 +49,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: bcmath, exif, gd, intl, mbstring, pcntl, pdo_mysql, zip
-          coverage: none
+          coverage: pcov
           tools: composer:v2
 
       - name: Cache Composer packages
@@ -91,5 +93,27 @@ jobs:
       - name: Pint (code style)
         run: vendor/bin/pint --test
 
-      - name: PHPUnit
-        run: php artisan test --compact
+      - name: PHPUnit with coverage
+        run: |
+          mkdir -p build/coverage build/test-results
+          php artisan test --compact \
+            --coverage-clover=build/coverage/clover.xml \
+            --log-junit=build/test-results/phpunit.xml
+
+      - name: Check SonarQube token
+        id: sonar-token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SONAR_TOKEN is not configured; SonarQube analysis was skipped."
+          fi
+
+      - name: SonarQube Scan
+        if: steps.sonar-token.outputs.available == 'true'
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
