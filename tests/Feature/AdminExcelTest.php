@@ -34,6 +34,47 @@ class AdminExcelTest extends TestCase
         ));
     }
 
+    public static function productBusinessStatuses(): array
+    {
+        return [
+            ['active', 'Không kinh doanh', 'archived'],
+            ['archived', 'Đang kinh doanh', 'active'],
+            ['draft', 'draft', 'archived'],
+            ['active', 'active', 'active'],
+            ['active', 'archived', 'archived'],
+            ['active', null, 'active'],
+            ['archived', null, 'archived'],
+            ['draft', null, 'archived'],
+        ];
+    }
+
+    #[DataProvider('productBusinessStatuses')]
+    public function test_product_excel_uses_business_labels_and_accepts_legacy_values(string $status, ?string $input, string $expected): void
+    {
+        $product = Product::factory()->create(['status' => $status]);
+        $this->actingAs(User::factory()->admin()->create());
+        $book = $this->readBytes($this->get(route('admin.excel.export', 'products'))->streamedContent());
+        $sheet = $book->getSheetByName('Dữ liệu');
+        $this->assertSame($status === 'active' ? 'Đang kinh doanh' : 'Không kinh doanh', $sheet->getCell('H2')->getValue());
+        $sheet->setCellValue('H2', $input);
+
+        $this->post(route('admin.excel.import', 'products'), ['file' => $this->upload($book)])
+            ->assertSessionHasNoErrors()->assertRedirect(route('admin.products.index'));
+        $this->assertSame($expected, $product->fresh()->status);
+    }
+
+    public function test_product_excel_rejects_unknown_business_status(): void
+    {
+        $product = Product::factory()->create();
+        $this->actingAs(User::factory()->admin()->create());
+        $book = $this->readBytes($this->get(route('admin.excel.export', 'products'))->streamedContent());
+        $book->getActiveSheet()->setCellValue('H2', 'Đang chờ');
+
+        $this->post(route('admin.excel.import', 'products'), ['file' => $this->upload($book)])
+            ->assertSessionHasErrors('file');
+        $this->assertSame('active', $product->fresh()->status);
+    }
+
     #[DataProvider('resources')]
     public function test_exports_real_excel_with_headers_and_related_rows(string $resource): void
     {

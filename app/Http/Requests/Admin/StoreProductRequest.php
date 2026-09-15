@@ -29,6 +29,11 @@ class StoreProductRequest extends BaseAdminRequest
         $this->merge([
             'slug' => $product ? $product->slug : $this->generateUniqueSlug((string) $this->input('name')),
         ]);
+
+        // Previously exported draft products remain outside the storefront.
+        if ($this->input('status') === 'draft') {
+            $this->merge(['status' => 'archived']);
+        }
     }
 
     /**
@@ -46,7 +51,7 @@ class StoreProductRequest extends BaseAdminRequest
             'brand_id' => ['required', 'integer', Rule::exists('brands', 'id')],
             'description' => ['nullable', 'string', 'max:5000'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:9999999999999'],
-            'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
+            'status' => ['required', Rule::in(array_keys(Product::STATUS_LABELS))],
             'is_featured' => ['boolean'],
 
             'variants' => ['array'],

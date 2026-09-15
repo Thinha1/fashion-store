@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ProductCrudTest extends TestCase
@@ -76,6 +77,46 @@ class ProductCrudTest extends TestCase
             'sku' => 'ATCB-M-TRANG',
             'stock_quantity' => 20,
         ]);
+    }
+
+    public static function businessStatuses(): array
+    {
+        return [['active', true], ['archived', false], ['draft', false]];
+    }
+
+    #[DataProvider('businessStatuses')]
+    public function test_product_business_status_controls_checkbox_label_and_storefront_visibility(string $status, bool $selling): void
+    {
+        $admin = $this->admin();
+        $product = Product::factory()->create(['status' => $status]);
+        $edit = $this->actingAs($admin)->get(route('admin.products.edit', $product))->assertOk();
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="UTF-8">'.$edit->getContent());
+        $checkbox = $dom->getElementById('status');
+        $this->assertSame('checkbox', $checkbox->getAttribute('type'));
+        $this->assertSame($selling, $checkbox->hasAttribute('checked'));
+        $this->get(route('admin.products.show', $product))->assertOk()
+            ->assertSee($selling ? 'Đang kinh doanh' : 'Không kinh doanh');
+
+        $this->post(route('admin.products.store'), $this->makePayload(['status' => $status, 'variants' => []]))
+            ->assertSessionHasNoErrors();
+        $created = Product::query()->where('slug', 'ao-thun-co-ban')->firstOrFail();
+        $this->assertSame($selling ? 'active' : 'archived', $created->status);
+        $this->get(route('products.show', $created))->assertStatus($selling ? 200 : 404);
+    }
+
+    public function test_product_can_stop_and_resume_trading(): void
+    {
+        $product = Product::factory()->create();
+        $payload = $this->makePayload(['variants' => []]);
+        $this->actingAs($this->admin());
+
+        foreach (['archived', 'active'] as $status) {
+            $this->put(route('admin.products.update', $product), array_replace($payload, ['status' => $status]))
+                ->assertSessionHasNoErrors()->assertRedirect(route('admin.products.show', $product));
+            $this->assertSame($status, $product->fresh()->status);
+            $this->get(route('products.show', $product))->assertStatus($status === 'active' ? 200 : 404);
+        }
     }
 
     public function test_slug_gets_a_numeric_suffix_when_the_base_slug_is_taken(): void

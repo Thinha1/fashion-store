@@ -104,6 +104,12 @@ function luminance(css) {
         }
 
         await visit('/admin/san-pham/tao-moi');
+        assert.equal(await page.$eval('#status', node => node.type), 'checkbox');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'archived');
+        await page.click('#status');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'active');
+        await page.click('#status');
+        assert.equal(await page.$eval('.admin-form', form => new FormData(form).getAll('status').at(-1)), 'archived');
         await page.click('#add-variant-row');
         await page.click('#add-variant-row');
         assert.equal((await page.$$('[data-variant-row]')).length, 2);

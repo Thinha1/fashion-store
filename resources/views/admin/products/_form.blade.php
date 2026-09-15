@@ -66,19 +66,19 @@
                 <x-input-error :messages="$errors->get('base_price')" />
             </div>
 
-            <div>
-                <x-label for="status">Trạng thái</x-label>
-                <select id="status" name="status" required
-                        class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                    <option value="draft" @selected(old('status', $product->status) === 'draft')>Bản nháp</option>
-                    <option value="active" @selected(old('status', $product->status) === 'active')>Hoạt động</option>
-                    <option value="archived" @selected(old('status', $product->status) === 'archived')>Lưu trữ</option>
-                </select>
+            <div class="flex flex-col justify-end">
+                <input type="hidden" name="status" value="archived">
+                <label class="flex min-h-11 items-center gap-2 text-sm text-gray-700" for="status">
+                    <input id="status" type="checkbox" name="status" value="active"
+                           @checked(old('status', $product->status) === 'active')
+                           class="rounded border-gray-300 text-brand focus:ring-brand">
+                    Đang kinh doanh
+                </label>
                 <x-input-error :messages="$errors->get('status')" />
             </div>
 
-            <div class="flex items-end pb-2">
-                <label class="flex items-center gap-2 text-sm text-gray-700">
+            <div class="flex items-end">
+                <label class="flex min-h-11 items-center gap-2 text-sm text-gray-700">
                     <input type="checkbox" name="is_featured" value="1"
                            @checked(old('is_featured', $product->is_featured ?? false))
                            class="rounded border-gray-300 text-gray-900 focus:ring-gray-500">

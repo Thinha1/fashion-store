@@ -28,7 +28,7 @@
         </div>
         <div>
             <dt class="text-xs text-gray-500">Trạng thái</dt>
-            <dd class="mt-1 text-sm text-gray-900"><x-admin.status :value="$product->status" /></dd>
+            <dd class="mt-1 text-sm text-gray-900"><x-admin.product-status :value="$product->status" /></dd>
         </div>
         <div>
             <dt class="text-xs text-gray-500">Sản phẩm nổi bật</dt>

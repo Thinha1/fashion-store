@@ -117,6 +117,7 @@ class AdminExcel
                 if ($resource === 'products') {
                     $values['_category_name'] = $model->category?->name;
                     $values['_brand_name'] = $model->brand?->name;
+                    $values['status'] = Product::STATUS_LABELS[$model->status] ?? Product::STATUS_LABELS['archived'];
                 } elseif ($resource === 'discounts') {
                     $values['_sku'] = $model->productVariant?->sku;
                     $values['starts_at'] = $model->starts_at?->format('Y-m-d H:i:s');
@@ -147,7 +148,7 @@ class AdminExcel
                 ? 'Nhập Tên danh mục và Tên thương hiệu có sẵn trong sheet Tham chiếu, không nhập ID. Không phân biệt chữ hoa/thường; giữ đúng dấu tiếng Việt. Nếu tên chưa có, thêm ở mục quản trị tương ứng trước khi nhập sản phẩm.'
                 : 'ID liên quan và SKU có thể tra trong sheet Tham chiếu. Tiền và số lượng nhập bằng số, không kèm ký hiệu tiền.',
             'Mã liên kết: một mã tự đặt duy nhất cho mỗi dòng trong Dữ liệu; dùng cùng mã tại sheet con.',
-            'Sản phẩm: nhập biến thể tại sheet Biến thể; không xóa biến thể bị thiếu. Tồn kho chỉ để xem, biến thể mới có tồn kho 0. Tiền và số lượng nhập bằng số, không kèm ký hiệu tiền.',
+            'Sản phẩm: trạng thái là Đang kinh doanh hoặc Không kinh doanh. Nhập biến thể tại sheet Biến thể; không xóa biến thể bị thiếu. Tồn kho chỉ để xem, biến thể mới có tồn kho 0. Tiền và số lượng nhập bằng số, không kèm ký hiệu tiền.',
             'Phiếu nhập: nhập từng SKU tại sheet Dòng hàng. Phiếu mới luôn là nháp; không cập nhật phiếu đã xác nhận.',
             'Phiếu nháp cập nhật: sheet Dòng hàng là toàn bộ các dòng muốn giữ lại trong phiếu.',
             'Giảm giá: loại percent hoặc fixed; ngày giờ theo YYYY-MM-DD HH:MM:SS. Chỉ giảm giá biến thể được nhập/xuất.',
@@ -198,7 +199,7 @@ class AdminExcel
                         if ($resource === 'discounts' && $model && $model->scope !== 'variant') {
                             throw ValidationException::withMessages(['id' => 'ID này không phải giảm giá theo biến thể.']);
                         }
-                        foreach (['is_active' => 1, 'is_featured' => 0, 'sort_order' => 0, 'status' => 'draft'] as $field => $default) {
+                        foreach (['is_active' => 1, 'is_featured' => 0, 'sort_order' => 0, 'status' => 'archived'] as $field => $default) {
                             if (array_key_exists($field, $data) && $data[$field] === null) {
                                 $data[$field] = $model?->getAttribute($field) ?? $default;
                             }
@@ -207,6 +208,7 @@ class AdminExcel
                             $data['product_variant_id'] = $this->variantId($data['_sku']);
                             $data['scope'] = 'variant';
                         } elseif ($resource === 'products') {
+                            $data['status'] = array_search($data['status'], Product::STATUS_LABELS, true) ?: $data['status'];
                             $data['category_id'] = $this->resolveName($categoryNames, $data['_category_name'], 'Tên danh mục', 'Danh mục');
                             $data['brand_id'] = $this->resolveName($brandNames, $data['_brand_name'], 'Tên thương hiệu', 'Thương hiệu');
                             $data['variants'] = $this->productVariants($model, $data['_key'], $children);
