@@ -10,6 +10,7 @@ use App\Models\GoodsReceiptItem;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Support\AdminPagination;
+use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,14 +21,19 @@ class GoodsReceiptController extends Controller
 {
     public function index(Request $request): View
     {
-        $receipts = GoodsReceipt::query()
-            ->with('supplier:id,name')
+        $sorting = new AdminSorting($request, [
+            'receipt_number' => 'receipt_number', 'items_count' => 'items_count', 'total_cost' => 'total_cost', 'status' => 'status',
+            'supplier' => Supplier::query()->select('name')->whereColumn('suppliers.id', 'goods_receipts.supplier_id'),
+            'confirmed_by' => User::query()->select('name')->whereColumn('users.id', 'goods_receipts.confirmed_by'),
+        ]);
+        $receipts = $sorting->apply(GoodsReceipt::query()
+            ->with(['supplier:id,name', 'confirmedBy:id,name'])
             ->withCount('items')
             ->orderByDesc('created_at')
-            ->orderByDesc('id')
+            ->orderByDesc('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.goods-receipts.index', ['receipts' => $receipts]);
+        return view('admin.goods-receipts.index', ['receipts' => $receipts, 'sorting' => $sorting]);
     }
 
     public function create(): View

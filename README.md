@@ -46,6 +46,7 @@ Nút thêm vào giỏ hàng hiện hiển thị trạng thái sắp ra mắt.
 - Ghi nhật ký thao tác quản trị.
 - Sidebar quản trị thích ứng theo quyền của tài khoản.
 - Phân trang dùng chung cho sáu danh sách quản trị, có chọn 10/20/50 bản ghi mỗi trang, số trang và điều hướng Trước/Sau.
+- Bấm tiêu đề cột để sắp xếp tăng dần, giảm dần hoặc về mặc định; mũi tên Font Awesome thể hiện chiều đang chọn. Sắp xếp áp dụng trên toàn bộ dữ liệu và giữ nguyên khi chuyển trang.
 
 ### Nhập và xuất Excel
 

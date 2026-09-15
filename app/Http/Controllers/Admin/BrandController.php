@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBrandRequest;
 use App\Models\Brand;
 use App\Support\AdminPagination;
+use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,10 +16,14 @@ class BrandController extends Controller
 {
     public function index(Request $request): View
     {
-        $brands = Brand::query()->withCount('products')->orderBy('name')->orderBy('id')
+        $sorting = new AdminSorting($request, [
+            'name' => 'name', 'country' => 'country',
+            'products_count' => 'products_count', 'is_active' => 'is_active',
+        ]);
+        $brands = $sorting->apply(Brand::query()->withCount('products')->orderBy('name')->orderBy('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.brands.index', ['brands' => $brands]);
+        return view('admin.brands.index', ['brands' => $brands, 'sorting' => $sorting]);
     }
 
     public function create(): View

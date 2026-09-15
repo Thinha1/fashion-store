@@ -1,4 +1,4 @@
-@props(['header' => [], 'paginator' => null])
+@props(['header' => [], 'paginator' => null, 'sortable' => [], 'sorting' => null])
 
 <div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs']) }}>
     <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 sm:px-5">
@@ -15,7 +15,7 @@
             <thead>
                 <tr>
                     @foreach ($header as $label)
-                        <th scope="col">{{ $label }}</th>
+                        <x-sortable-heading :label="$label" :column="$sortable[$label] ?? null" :sorting="$sorting" />
                     @endforeach
                 </tr>
             </thead>

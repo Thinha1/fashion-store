@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="discounts" />
 
-    <x-admin-table :paginator="$discounts" :header="['Biến thể', 'Loại', 'Giá trị', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Thao tác']">
+    <x-admin-table :paginator="$discounts" :sorting="$sorting"
+        :sortable="['Biến thể' => 'variant', 'Loại' => 'discount_type', 'Giá trị' => 'discount_value', 'Bắt đầu' => 'starts_at', 'Kết thúc' => 'ends_at', 'Trạng thái' => 'is_active']"
+        :header="['Biến thể', 'Loại', 'Giá trị', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Thao tác']">
         @forelse ($discounts as $discount)
             <tr>
                 <td class="px-4 py-3">

@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreDiscountRequest;
 use App\Models\Discount;
 use App\Models\ProductVariant;
 use App\Support\AdminPagination;
+use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,14 +16,24 @@ class DiscountController extends Controller
 {
     public function index(Request $request): View
     {
-        $discounts = Discount::query()
+        $variant = ProductVariant::query()->whereColumn('product_variants.id', 'discounts.product_variant_id');
+        $sorting = new AdminSorting($request, [
+            'variant' => [
+                (clone $variant)->select('products.name')->join('products', 'products.id', '=', 'product_variants.product_id')->whereNull('products.deleted_at'),
+                (clone $variant)->select('size'),
+                (clone $variant)->select('color'),
+            ],
+            'discount_type' => 'discount_type', 'discount_value' => 'discount_value',
+            'starts_at' => 'starts_at', 'ends_at' => 'ends_at', 'is_active' => 'is_active',
+        ]);
+        $discounts = $sorting->apply(Discount::query()
             ->where('scope', 'variant')
             ->with('productVariant.product:id,name')
             ->orderByDesc('created_at')
-            ->orderByDesc('id')
+            ->orderByDesc('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.discounts.index', ['discounts' => $discounts]);
+        return view('admin.discounts.index', ['discounts' => $discounts, 'sorting' => $sorting]);
     }
 
     public function create(): View

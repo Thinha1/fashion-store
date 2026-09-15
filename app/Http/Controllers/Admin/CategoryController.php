@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Models\Category;
 use App\Support\AdminPagination;
+use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -14,11 +15,16 @@ class CategoryController extends Controller
 {
     public function index(Request $request): View
     {
-        $categories = Category::query()->with('parent')->withCount('products', 'children')
-            ->orderBy('sort_order')->orderBy('name')->orderBy('id')
+        $sorting = new AdminSorting($request, [
+            'name' => 'name', 'sort_order' => 'sort_order',
+            'parent' => Category::query()->from('categories as parents')->select('parents.name')->whereColumn('parents.id', 'categories.parent_id'),
+            'products_count' => 'products_count', 'children_count' => 'children_count', 'is_active' => 'is_active',
+        ]);
+        $categories = $sorting->apply(Category::query()->with('parent')->withCount('products', 'children')
+            ->orderBy('sort_order')->orderBy('name')->orderBy('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.categories.index', ['categories' => $categories]);
+        return view('admin.categories.index', ['categories' => $categories, 'sorting' => $sorting]);
     }
 
     public function create(?int $parentId = null): View

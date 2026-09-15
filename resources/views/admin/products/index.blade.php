@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="products" />
 
-    <x-admin-table :paginator="$products" :header="['Tên sản phẩm', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Nổi bật', 'Thao tác']">
+    <x-admin-table :paginator="$products" :sorting="$sorting"
+        :sortable="['Tên sản phẩm' => 'name', 'Danh mục' => 'category', 'Thương hiệu' => 'brand', 'Biến thể' => 'variants_count', 'Trạng thái' => 'status', 'Nổi bật' => 'is_featured']"
+        :header="['Tên sản phẩm', 'Danh mục', 'Thương hiệu', 'Biến thể', 'Trạng thái', 'Nổi bật', 'Thao tác']">
         @forelse ($products as $product)
             <tr>
                 <td class="px-4 py-3">

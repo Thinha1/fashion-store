@@ -11,7 +11,9 @@
 
     <x-excel-tools resource="goods-receipts" />
 
-    <x-admin-table :paginator="$receipts" :header="['Số phiếu', 'Nhà cung cấp', 'Dòng hàng', 'Tổng chi phí', 'Trạng thái', 'Xác nhận bởi', 'Thao tác']">
+    <x-admin-table :paginator="$receipts" :sorting="$sorting"
+        :sortable="['Số phiếu' => 'receipt_number', 'Nhà cung cấp' => 'supplier', 'Dòng hàng' => 'items_count', 'Tổng chi phí' => 'total_cost', 'Trạng thái' => 'status', 'Xác nhận bởi' => 'confirmed_by']"
+        :header="['Số phiếu', 'Nhà cung cấp', 'Dòng hàng', 'Tổng chi phí', 'Trạng thái', 'Xác nhận bởi', 'Thao tác']">
         @forelse ($receipts as $receipt)
             <tr>
                 <td class="px-4 py-3 font-medium text-gray-900">
