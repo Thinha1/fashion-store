@@ -18,9 +18,10 @@
             || $c->children->contains('slug', $activeCategory));
     @endphp
 
-    <section aria-labelledby="products-title" x-data="{ density: localStorage.getItem('catalogDensity') || '3' }"
-             x-init="$watch('density', v => localStorage.setItem('catalogDensity', v))">
-        <div class="mb-6">
+    <section aria-labelledby="products-title"
+             x-data="{ density: ['3', '4', '5'].includes(localStorage.getItem('catalogDensityCompact')) ? localStorage.getItem('catalogDensityCompact') : '5' }"
+             x-init="$watch('density', value => localStorage.setItem('catalogDensityCompact', value))">
+        <div class="mb-5">
             <p class="eyebrow">Toàn bộ bộ sưu tập</p>
             <h1 id="products-title" class="display-title mt-3 text-3xl sm:text-4xl">Sản phẩm</h1>
         </div>
@@ -44,10 +45,11 @@
                             <option value="gia-giam" @selected($sort === 'gia-giam')>Giá giảm dần</option>
                         </select>
                     </form>
-                    <div class="flex items-center gap-1" role="group" aria-label="Số cột hiển thị">
-                        <button type="button" class="density-btn" :aria-pressed="density === '2'" x-on:click="density = '2'" aria-label="Lưới 2 cột">2</button>
-                        <button type="button" class="density-btn" :aria-pressed="density === '3'" x-on:click="density = '3'" aria-label="Lưới 3 cột">3</button>
-                        <button type="button" class="density-btn" :aria-pressed="density === '4'" x-on:click="density = '4'" aria-label="Lưới 4 cột">4</button>
+                    <div class="hidden items-center gap-1 lg:flex" role="group" aria-label="Kích thước thẻ sản phẩm">
+                        <span class="mr-1 text-[11px] text-gray-400">Kích thước</span>
+                        <button type="button" class="density-btn" :aria-pressed="density === '3'" x-on:click="density = '3'" aria-label="Thẻ lớn, 3 cột" title="Thẻ lớn">3</button>
+                        <button type="button" class="density-btn" :aria-pressed="density === '4'" x-on:click="density = '4'" aria-label="Thẻ vừa, 4 cột" title="Thẻ vừa">4</button>
+                        <button type="button" class="density-btn" :aria-pressed="density === '5'" x-on:click="density = '5'" aria-label="Thẻ nhỏ, 5 cột" title="Thẻ nhỏ">5</button>
                     </div>
                 </div>
             </div>
@@ -103,9 +105,9 @@
             </div>
         @else
             <div :class="{
-                    'grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-2': density === '2',
-                    'grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3': density === '3',
-                    'grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3 lg:grid-cols-4': density === '4',
+                    'grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3': density === '3',
+                    'grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-4': density === '4',
+                    'grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5': density === '5',
                  }">
                 @foreach ($products as $product)
                     @php($image = $product->images->first())
@@ -128,10 +130,8 @@
                             @endif
                         </div>
                         <div class="pg-body">
-                            <div class="min-w-0">
-                                <p class="pg-brand">{{ $product->brand?->name ?? 'Fashion Store' }}</p>
-                                <h3>{{ $product->name }}</h3>
-                            </div>
+                            <p class="pg-brand">{{ $product->brand?->name ?? 'Fashion Store' }}</p>
+                            <h3>{{ $product->name }}</h3>
                             <span class="pg-price">{{ number_format((float) $product->base_price, 0) }} ₫</span>
                         </div>
                     </a>

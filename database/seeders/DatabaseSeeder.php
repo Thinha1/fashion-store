@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,10 +35,15 @@ class DatabaseSeeder extends Seeder
         // Nhân viên chưa có quyền nào theo mặc định; Admin gán theo nhóm
         // qua Admin/StaffController (chưa hiện thực, xem TEAM_SPLIT.md).
 
-        User::factory()->create([
+        User::query()->updateOrCreate(['email' => 'admin@example.com'], [
             'role_id' => $roles['admin']->id,
             'name' => 'Admin Fashion Store',
-            'email' => 'admin@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
         ]);
+
+        if (app()->environment(['local', 'testing'])) {
+            $this->call(CatalogDemoSeeder::class);
+        }
     }
 }
