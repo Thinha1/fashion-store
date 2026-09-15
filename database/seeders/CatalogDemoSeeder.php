@@ -19,6 +19,8 @@ class CatalogDemoSeeder extends Seeder
 
     private const STORAGE_DIRECTORY = 'demo/catalog';
 
+    private const PRODUCT_DATA_FILE = 'seeders/data/catalog-products.json';
+
     public function run(): void
     {
         $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
@@ -140,98 +142,7 @@ class CatalogDemoSeeder extends Seeder
      */
     private function seedProducts(User $admin, array $brands, array $categories, array $imagePaths): void
     {
-        $definitions = [
-            [
-                'slug' => 'ao-thun-essential-trang',
-                'name' => 'Áo thun Essential trắng',
-                'category' => 'ao-thun-unisex',
-                'brand' => 'lang-studio',
-                'description' => 'Áo thun cổ tròn phom regular, bề mặt cotton mềm và dễ phối lớp. Một lựa chọn cơ bản cho tủ đồ hằng ngày.',
-                'price' => 329000,
-                'image' => 'ao-thun.jpg',
-                'sku' => 'LST-TEE-ESS',
-                'colors' => ['Trắng' => 'WHT', 'Đen' => 'BLK'],
-            ],
-            [
-                'slug' => 'ao-len-texture',
-                'name' => 'Áo len Texture',
-                'category' => 'ao-len-unisex',
-                'brand' => 'northline',
-                'description' => 'Áo len dệt nổi với độ dày vừa phải, giữ ấm mà vẫn thoáng khi phối nhiều lớp. Bảng màu trung tính phù hợp cả nam và nữ.',
-                'price' => 649000,
-                'image' => 'ao-len.jpg',
-                'sku' => 'NOR-KNT-TEX',
-                'colors' => ['Xám' => 'GRY', 'Xanh navy' => 'NVY'],
-            ],
-            [
-                'slug' => 'ao-so-mi-color-pop',
-                'name' => 'Áo sơ mi Color Pop',
-                'category' => 'ao-so-mi-nam',
-                'brand' => 'moc-daily',
-                'description' => 'Sơ mi casual phom suông với màu sắc hiện đại. Chất liệu nhẹ giúp mặc thoải mái trong ngày dài.',
-                'price' => 519000,
-                'image' => 'ao-so-mi.jpg',
-                'sku' => 'MOC-SHI-POP',
-                'colors' => ['Xanh lá' => 'GRN', 'Đen' => 'BLK'],
-            ],
-            [
-                'slug' => 'cardigan-warm-sand',
-                'name' => 'Cardigan Warm Sand',
-                'category' => 'ao-len-nu',
-                'brand' => 'dai-nang',
-                'description' => 'Cardigan mỏng màu cát với phom mềm và túi trước tiện dụng. Có thể khoác ngoài áo thun hoặc sơ mi.',
-                'price' => 699000,
-                'image' => 'bo-suu-tap-03.jpg',
-                'sku' => 'DAN-CAR-SND',
-                'colors' => ['Be' => 'BEI', 'Nâu nhạt' => 'TAN'],
-            ],
-            [
-                'slug' => 'ao-so-mi-flannel-weekend',
-                'name' => 'Áo sơ mi Flannel Weekend',
-                'category' => 'ao-so-mi-nam',
-                'brand' => 'northline',
-                'description' => 'Sơ mi flannel caro có bề mặt mềm, phù hợp mặc riêng hoặc dùng như lớp áo khoác nhẹ.',
-                'price' => 579000,
-                'image' => 'bo-suu-tap-02.jpg',
-                'sku' => 'NOR-FLA-WKD',
-                'colors' => ['Tím than' => 'PLM', 'Xanh rêu' => 'OLV'],
-            ],
-            [
-                'slug' => 'ao-khoac-knit-soft',
-                'name' => 'Áo khoác Knit Soft',
-                'category' => 'ao-len-nu',
-                'brand' => 'dai-nang',
-                'description' => 'Áo khoác dệt kim dáng gọn với tông nâu ấm. Chất vải co giãn nhẹ tạo cảm giác thoải mái khi di chuyển.',
-                'price' => 729000,
-                'image' => 'bo-suu-tap-01.jpg',
-                'sku' => 'DAN-KNT-SFT',
-                'colors' => ['Nâu' => 'BRN', 'Kem' => 'CRM'],
-            ],
-            [
-                'slug' => 'ao-so-mi-linen-trang',
-                'name' => 'Áo sơ mi Linen trắng',
-                'category' => 'ao-so-mi-nu',
-                'brand' => 'moc-daily',
-                'description' => 'Sơ mi linen trắng tối giản, thoáng nhẹ và dễ kết hợp cùng denim. Phom relaxed tạo vẻ tự nhiên.',
-                'price' => 619000,
-                'image' => 'bo-suu-tap-04.jpg',
-                'sku' => 'MOC-LIN-WHT',
-                'colors' => ['Trắng' => 'WHT', 'Kem' => 'CRM'],
-            ],
-            [
-                'slug' => 'ao-so-mi-pattern-office',
-                'name' => 'Áo sơ mi Pattern Office',
-                'category' => 'ao-so-mi-nam',
-                'brand' => 'lang-studio',
-                'description' => 'Sơ mi họa tiết nhỏ với cổ đứng gọn và phom smart casual. Phù hợp cho ngày làm việc hoặc buổi gặp gỡ cuối tuần.',
-                'price' => 679000,
-                'image' => 'bo-suu-tap-05.jpg',
-                'sku' => 'LST-SHI-PAT',
-                'colors' => ['Trắng họa tiết' => 'PRT', 'Xanh navy' => 'NVY'],
-            ],
-        ];
-
-        foreach ($definitions as $definition) {
+        foreach ($this->productDefinitions() as $definition) {
             $product = Product::withTrashed()->firstOrNew(['slug' => $definition['slug']]);
             $product->fill([
                 'category_id' => $categories[$definition['category']]->id,
@@ -265,6 +176,26 @@ class CatalogDemoSeeder extends Seeder
                 ],
             );
         }
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function productDefinitions(): array
+    {
+        $contents = file_get_contents(database_path(self::PRODUCT_DATA_FILE));
+
+        if ($contents === false) {
+            throw new RuntimeException('Không thể đọc dữ liệu sản phẩm demo.');
+        }
+
+        $definitions = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+
+        if (! is_array($definitions)) {
+            throw new RuntimeException('Dữ liệu sản phẩm demo không hợp lệ.');
+        }
+
+        return $definitions;
     }
 
     /**
