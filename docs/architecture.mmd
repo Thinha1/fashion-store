@@ -1,0 +1,51 @@
+flowchart TB
+    Browser["Trình duyệt"]
+
+    subgraph Runtime["Docker Compose"]
+        direction TB
+        Nginx["Nginx<br/>cổng 8080"]
+        App["Laravel 13 · PHP-FPM<br/>Blade SSR · Routes · Controllers"]
+        Domain["Form Requests · Actions<br/>Eloquent Models"]
+        Vite["Vite 8 · Tailwind CSS 4<br/>Alpine.js · Font Awesome"]
+
+        subgraph Jobs["Tác vụ nền"]
+            direction LR
+            Worker["Queue worker"]
+            Scheduler["Scheduler"]
+            Bootstrap["Setup + migrate<br/>one-shot"]
+        end
+
+        subgraph Services["Dữ liệu và dịch vụ"]
+            direction LR
+            MySQL[("MySQL 8.4")]
+            MinIO[("MinIO / S3")]
+            Mailpit["Mailpit<br/>SMTP phát triển"]
+        end
+    end
+
+    Browser -->|HTTP| Nginx
+    Nginx --> App
+    App --> Domain
+    Domain --> MySQL
+    Domain --> MinIO
+    Domain --> Mailpit
+    Worker --> Domain
+    Scheduler --> Domain
+    Bootstrap -.-> App
+    Bootstrap --> MySQL
+    Vite -. "Assets / HMR" .-> Browser
+
+    GitHub["GitHub"] --> CI["GitHub Actions<br/>Vite · Pint · PHPUnit"]
+    CI --> Sonar["SonarQube Cloud"]
+
+    classDef client fill:#ffffff,stroke:#175b60,color:#17343a,stroke-width:2px;
+    classDef app fill:#e6f1ef,stroke:#175b60,color:#17343a;
+    classDef data fill:#fff7ed,stroke:#e49c89,color:#17343a;
+    classDef delivery fill:#f4f7f8,stroke:#627880,color:#17343a;
+    class Browser client;
+    class Nginx,App,Domain,Worker,Scheduler,Bootstrap,Vite app;
+    class MySQL,MinIO,Mailpit data;
+    class GitHub,CI,Sonar delivery;
+    style Runtime fill:#fbfcf8,stroke:#c9d6ce,stroke-width:1px;
+    style Jobs fill:#ffffff,stroke:#c9d6ce,stroke-width:1px;
+    style Services fill:#ffffff,stroke:#c9d6ce,stroke-width:1px;
