@@ -1,11 +1,13 @@
 import Alpine from 'alpinejs';
 import mask from '@alpinejs/mask';
 import featuredProduct from './featured-product';
+import adminConfirm, { openDialog, closeDialog } from './dialog';
 
 window.Alpine = Alpine;
 
 Alpine.plugin(mask);
 Alpine.data('featuredProduct', featuredProduct);
+Alpine.data('adminConfirm', adminConfirm);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,
@@ -13,10 +15,10 @@ Alpine.data('excelImport', (reopen = false) => ({
         if (reopen) this.$nextTick(() => this.openDialog());
     },
     openDialog() {
-        this.$refs.importDialog.showModal();
+        openDialog(this.$refs.importDialog);
     },
     closeDialog() {
-        if (!this.busy) this.$refs.importDialog.close();
+        if (!this.busy) closeDialog(this.$refs.importDialog);
     },
     trapFocus(event) {
         const controls = [...this.$refs.importDialog.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled)')];

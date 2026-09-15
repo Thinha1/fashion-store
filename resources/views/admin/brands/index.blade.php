@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Thương hiệu',
         'subtitle' => 'Quản lý thương hiệu và thông tin nhận diện của sản phẩm.',
-        'actions' => '<a href="'.route('admin.brands.create').'" class="btn btn-primary"><i class="fa-solid fa-plus" aria-hidden="true"></i> Thêm thương hiệu</a>',
+        'actionUrl' => route('admin.brands.create'),
+        'actionLabel' => 'Thêm thương hiệu',
     ])
     <x-excel-tools resource="brands" />
 
@@ -22,28 +23,23 @@
                         @endif
                         <div>
                             <a href="{{ route('admin.brands.show', $brand) }}" class="text-gray-900 hover:underline">{{ $brand->name }}</a>
-                            <span class="ml-2 text-xs text-gray-400">/{{ $brand->slug }}</span>
                         </div>
                     </div>
                 </td>
                 <td class="px-4 py-3 text-gray-600">{{ $brand->country ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $brand->products_count }}</td>
                 <td class="px-4 py-3">
-                    @if ($brand->is_active)
-                        <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Đang hoạt động</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Ngừng hoạt động</span>
-                    @endif
+                    <x-admin.status :value="$brand->is_active" />
                 </td>
-                <td class="px-4 py-3 text-right">
-                    <a href="{{ route('admin.brands.edit', $brand) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
+                    <a href="{{ route('admin.brands.edit', $brand) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                     <form method="POST" action="{{ route('admin.brands.destroy', $brand) }}" class="inline"
-                          onsubmit="return confirm('Xóa thương hiệu này?')">
+                          x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xóa thương hiệu này?' })">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ml-3 text-sm text-red-600 hover:underline">Xóa</button>
+                        <button type="submit" class="admin-row-action"><x-icon name="delete" class="size-3.5" /> Xóa</button>
                     </form>
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>

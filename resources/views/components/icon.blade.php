@@ -10,6 +10,8 @@
         'plus' => 'fa-plus', 'home' => 'fa-house', 'arrow' => 'fa-arrow-right',
         'revenue' => 'fa-wallet', 'orders' => 'fa-receipt', 'calendar' => 'fa-calendar-days',
         'star' => 'fa-star',
+        'edit' => 'fa-pen-to-square', 'delete' => 'fa-trash-can', 'save' => 'fa-check',
+        'search' => 'fa-magnifying-glass', 'image' => 'fa-image', 'back' => 'fa-arrow-left',
         'chevron-left' => 'fa-chevron-left', 'chevron-right' => 'fa-chevron-right',
     ];
 @endphp

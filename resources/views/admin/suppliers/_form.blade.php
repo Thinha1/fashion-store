@@ -1,11 +1,15 @@
 @php($route = $route ?? route('admin.suppliers.store'))
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="admin-form max-w-2xl space-y-4">
+<x-admin.form-errors :messages="$errors->all()" />
+
+<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5">
     @csrf
     @if ($method !== 'POST')
         @method($method)
     @endif
+
+    <div class="admin-form-heading"><x-icon name="truck" /><div><h2>Thông tin nhà cung cấp</h2><p>Điền thông tin và chọn trạng thái hiển thị.</p></div></div>
 
     <div>
         <x-label for="name">Tên nhà cung cấp</x-label>
@@ -48,8 +52,5 @@
         </label>
     </div>
 
-    <div class="flex items-center gap-2">
-        <x-button type="submit">Lưu</x-button>
-        <a href="{{ route('admin.suppliers.index') }}" class="text-sm text-gray-600 hover:underline">Hủy</a>
-    </div>
+    <x-admin.form-actions :cancel="route('admin.suppliers.index')" label="Lưu nhà cung cấp" />
 </form>

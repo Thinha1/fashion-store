@@ -1,7 +1,7 @@
 @props(['header' => [], 'paginator' => null, 'sortable' => [], 'sorting' => null])
 
-<div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs']) }}>
-    <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 sm:px-5">
+<div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'admin-table-card overflow-hidden border border-gray-200 bg-white']) }}>
+    <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4">
         <label class="relative w-full sm:max-w-xs">
             <span class="sr-only">Tìm trong trang này</span>
             <i class="fa-solid fa-magnifying-glass absolute top-3.5 left-3.5 text-sm text-gray-400" aria-hidden="true"></i>
@@ -19,7 +19,7 @@
                             $column = $sortable[$label] ?? null;
                             $direction = $column ? $sorting?->directionFor($column) : null;
                         @endphp
-                        <th scope="col" @if ($column && $sorting) aria-sort="{{ match ($direction) { 'asc' => 'ascending', 'desc' => 'descending', default => 'none' } }}" @endif>
+                        <th scope="col" @class(['text-right' => $label === 'Thao tác']) @if ($column && $sorting) aria-sort="{{ match ($direction) { 'asc' => 'ascending', 'desc' => 'descending', default => 'none' } }}" @endif>
                             <x-table-sort :label="$label" :column="$column" :sorting="$sorting" />
                         </th>
                     @endforeach

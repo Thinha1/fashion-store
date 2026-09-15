@@ -3,6 +3,8 @@
 @php($variants = $variants ?? collect())
 @php($images = $images ?? collect())
 
+<x-admin.form-errors :messages="$errors->all()" />
+
 <form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6">
     @csrf
     @if ($method !== 'POST')
@@ -17,11 +19,7 @@
             <x-label for="name">Tên sản phẩm</x-label>
             <x-input id="name" name="name" value="{{ old('name', $product->name) }}" required class="mt-1" />
             <x-input-error :messages="$errors->get('name')" />
-            @if ($product->exists)
-                <p class="mt-1 text-xs text-gray-500">Slug: <code>{{ $product->slug }}</code> (sinh tự động từ tên lúc tạo, không đổi sau đó).</p>
-            @else
-                <p class="mt-1 text-xs text-gray-500">Slug (định danh URL) sẽ được sinh tự động từ tên.</p>
-            @endif
+
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -94,15 +92,15 @@
     <section class="space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Biến thể</h2>
-            <x-button type="button" id="add-variant-row" variant="secondary">+ Thêm biến thể</x-button>
+            <x-button type="button" id="add-variant-row" variant="secondary"><x-icon name="plus" class="size-4" /> Thêm biến thể</x-button>
         </div>
-        <p class="text-xs text-gray-500">Size/màu được chuẩn hóa hoa-thường trước khi lưu. Mỗi SKU phải duy nhất.</p>
+        <p class="text-xs text-gray-500">Mỗi lựa chọn size và màu là một biến thể, có mã SKU riêng. Để trống giá để dùng giá cơ bản.</p>
 
         @php($variantIndex = 0)
         <div id="variants-list" class="space-y-3">
             @foreach ($variants as $variant)
                 @php($rowIndex = $variant->exists ? $variant->id : $variantIndex)
-                <div data-variant-row class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-7">
+                <div data-variant-row class="admin-variant-row">
                     @if ($variant->exists)
                         <input type="hidden" name="variants[{{ $rowIndex }}][id]" value="{{ $variant->id }}">
                     @endif
@@ -136,8 +134,8 @@
                         <input type="number" name="variants[{{ $rowIndex }}][low_stock_threshold]" value="{{ old('variants.'.$variantIndex.'.low_stock_threshold', $variant->low_stock_threshold ?? 5) }}" min="0" required
                                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                     </div>
-                    <div class="flex items-end justify-center pb-2">
-                        <button type="button" class="remove-variant-row text-xl leading-none text-gray-400 hover:text-red-600" title="Xóa biến thể" aria-label="Xóa biến thể">&times;</button>
+                    <div class="absolute right-2 top-2">
+                        <button type="button" class="remove-variant-row flex size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-700" title="Xóa biến thể" aria-label="Xóa biến thể"><x-icon name="close" class="size-4" /></button>
                     </div>
                 </div>
                 @php($variantIndex++)
@@ -150,7 +148,7 @@
              biến thể đã có — nếu trùng, controller sẽ hiểu nhầm là sửa biến
              thể cũ thay vì tạo mới. --}}
         <template id="variant-row-template">
-            <div data-variant-row class="grid grid-cols-1 gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-7">
+            <div data-variant-row class="admin-variant-row">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Size</label>
                     <input type="text" name="variants[__INDEX__][size]" required
@@ -181,8 +179,8 @@
                     <input type="number" name="variants[__INDEX__][low_stock_threshold]" value="5" min="0" required
                            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                 </div>
-                <div class="flex items-end justify-center pb-2">
-                    <button type="button" class="remove-variant-row text-xl leading-none text-gray-400 hover:text-red-600" title="Xóa biến thể" aria-label="Xóa biến thể">&times;</button>
+                <div class="absolute right-2 top-2">
+                    <button type="button" class="remove-variant-row flex size-8 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-700" title="Xóa biến thể" aria-label="Xóa biến thể"><x-icon name="close" class="size-4" /></button>
                 </div>
             </div>
         </template>
@@ -219,7 +217,7 @@
     {{-- Images --}}
     <section class="space-y-4">
         <h2 class="text-base font-semibold text-gray-900">Ảnh sản phẩm</h2>
-        <p class="text-xs text-gray-500">JPG, JPEG, PNG hoặc WebP, tối đa 4MB mỗi ảnh.</p>
+        <p class="text-xs text-gray-500">Chọn nhiều ảnh cùng lúc bằng Ctrl/Shift. JPG, PNG hoặc WebP, tối đa 4 MB mỗi ảnh.</p>
 
         @if ($images->count())
             <div class="grid grid-cols-3 gap-4 sm:grid-cols-6">
@@ -253,14 +251,11 @@
             </template>
             <div class="mt-2 grid grid-cols-3 gap-4 sm:grid-cols-6" x-show="previews.length">
                 <template x-for="(src, index) in previews" :key="index">
-                    <img :src="src" class="aspect-square w-full rounded-md border border-gray-200 object-cover ring-2 ring-gray-900">
+                    <img :src="src" alt="Ảnh sản phẩm mới chọn" class="aspect-square w-full rounded-md border border-gray-200 object-cover ring-2 ring-gray-900">
                 </template>
             </div>
         </div>
     </section>
 
-    <div class="flex items-center gap-2 border-t border-gray-200 pt-4">
-        <x-button type="submit">Lưu sản phẩm</x-button>
-        <a href="{{ route('admin.products.index') }}" class="text-sm text-gray-600 hover:underline">Hủy</a>
-    </div>
+    <x-admin.form-actions :cancel="route('admin.products.index')" label="Lưu sản phẩm" />
 </form>

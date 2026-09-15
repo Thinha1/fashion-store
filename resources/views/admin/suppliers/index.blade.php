@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Nhà cung cấp',
         'subtitle' => 'Tra cứu thông tin liên hệ và đối tác cung ứng của cửa hàng.',
-        'actions' => '<a href="'.route('admin.suppliers.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm nhà cung cấp</a>',
+        'actionUrl' => route('admin.suppliers.create'),
+        'actionLabel' => 'Thêm nhà cung cấp',
     ])
 
     <x-excel-tools resource="suppliers" />
@@ -22,21 +23,17 @@
                 <td class="px-4 py-3 text-gray-600">{{ $supplier->tax_code ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $supplier->goods_receipts_count }}</td>
                 <td class="px-4 py-3">
-                    @if ($supplier->is_active)
-                        <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Hoạt động</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Tạm dừng</span>
-                    @endif
+                    <x-admin.status :value="$supplier->is_active" />
                 </td>
-                <td class="px-4 py-3 text-right">
-                    <a href="{{ route('admin.suppliers.edit', $supplier) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
+                    <a href="{{ route('admin.suppliers.edit', $supplier) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                     <form method="POST" action="{{ route('admin.suppliers.destroy', $supplier) }}" class="inline"
-                          onsubmit="return confirm('Xóa nhà cung cấp này?')">
+                          x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xóa nhà cung cấp này?' })">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ml-3 text-sm text-red-600 hover:underline">Xóa</button>
+                        <button type="submit" class="admin-row-action"><x-icon name="delete" class="size-3.5" /> Xóa</button>
                     </form>
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>

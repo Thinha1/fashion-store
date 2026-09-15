@@ -6,7 +6,8 @@
     @include('admin.partials.page-header', [
         'title' => 'Danh mục',
         'subtitle' => 'Sắp xếp sản phẩm theo nhóm và danh mục con.',
-        'actions' => '<a href="'.route('admin.categories.create').'" class="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">+ Thêm danh mục</a>',
+        'actionUrl' => route('admin.categories.create'),
+        'actionLabel' => 'Thêm danh mục',
     ])
 
     <x-excel-tools resource="categories" />
@@ -18,28 +19,23 @@
             <tr>
                 <td class="px-4 py-3">
                     <span class="font-medium text-gray-900">{{ $category->name }}</span>
-                    <span class="ml-2 text-xs text-gray-400">/{{ $category->slug }}</span>
                 </td>
                 <td class="px-4 py-3 text-gray-600">{{ $category->parent?->name ?? '—' }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $category->sort_order }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $category->products_count }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $category->children_count }}</td>
                 <td class="px-4 py-3">
-                    @if ($category->is_active)
-                        <span class="inline-flex rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Hoạt động</span>
-                    @else
-                        <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Tạm dừng</span>
-                    @endif
+                    <x-admin.status :value="$category->is_active" />
                 </td>
-                <td class="px-4 py-3 text-right">
-                    <a href="{{ route('admin.categories.edit', $category) }}" class="text-sm text-gray-700 hover:underline">Sửa</a>
+                <td class="px-4 py-3 text-right"><div class="admin-row-actions">
+                    <a href="{{ route('admin.categories.edit', $category) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
                     <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" class="inline"
-                          onsubmit="return confirm('Xóa danh mục này?')">
+                          x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xóa danh mục này?' })">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="ml-3 text-sm text-red-600 hover:underline">Xóa</button>
+                        <button type="submit" class="admin-row-action"><x-icon name="delete" class="size-3.5" /> Xóa</button>
                     </form>
-                </td>
+                </div></td>
             </tr>
         @empty
             <tr>

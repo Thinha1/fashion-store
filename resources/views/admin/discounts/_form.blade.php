@@ -1,11 +1,15 @@
 @php($route = $route ?? route('admin.discounts.store'))
 @php($method = $method ?? 'POST')
 
-<form method="POST" action="{{ $route }}" class="admin-form max-w-2xl space-y-4">
+<x-admin.form-errors :messages="$errors->all()" />
+
+<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5">
     @csrf
     @if ($method !== 'POST')
         @method($method)
     @endif
+
+    <div class="admin-form-heading"><x-icon name="percent" /><div><h2>Thông tin giảm giá</h2><p>Điền thông tin và chọn trạng thái hiển thị.</p></div></div>
 
     <div>
         <x-label for="product_variant_id">Biến thể sản phẩm</x-label>
@@ -45,7 +49,7 @@
         <x-input-error :messages="$errors->get('max_discount_amount')" />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
             <x-label for="starts_at">Bắt đầu</x-label>
             <x-input id="starts_at" type="datetime-local" name="starts_at" value="{{ old('starts_at', optional($discount->starts_at)->format('Y-m-d\TH:i')) }}" required class="mt-1" />
@@ -67,8 +71,5 @@
         </label>
     </div>
 
-    <div class="flex items-center gap-2 border-t border-gray-200 pt-4">
-        <x-button type="submit">Lưu</x-button>
-        <a href="{{ route('admin.discounts.index') }}" class="text-sm text-gray-600 hover:underline">Hủy</a>
-    </div>
+    <x-admin.form-actions :cancel="route('admin.discounts.index')" label="Lưu giảm giá" />
 </form>
