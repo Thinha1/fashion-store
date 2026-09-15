@@ -6,18 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDiscountRequest;
 use App\Models\Discount;
 use App\Models\ProductVariant;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DiscountController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $discounts = Discount::query()
             ->where('scope', 'variant')
             ->with('productVariant.product:id,name')
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->orderByDesc('id')
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
         return view('admin.discounts.index', ['discounts' => $discounts]);
     }

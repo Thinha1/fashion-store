@@ -8,6 +8,9 @@
         'menu' => 'fa-bars', 'close' => 'fa-xmark', 'check' => 'fa-check',
         'info' => 'fa-circle-info', 'eye' => 'fa-eye', 'eye-slash' => 'fa-eye-slash',
         'plus' => 'fa-plus', 'home' => 'fa-house', 'arrow' => 'fa-arrow-right',
+        'revenue' => 'fa-wallet', 'orders' => 'fa-receipt', 'calendar' => 'fa-calendar-days',
+        'star' => 'fa-star',
+        'chevron-left' => 'fa-chevron-left', 'chevron-right' => 'fa-chevron-right',
     ];
 @endphp
 <i {{ $attributes->merge(['class' => 'ui-icon fa-solid '.($icons[$name] ?? $icons['arrow'])]) }} aria-hidden="true"></i>

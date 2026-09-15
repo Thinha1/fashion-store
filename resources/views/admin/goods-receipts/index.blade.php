@@ -11,7 +11,7 @@
 
     <x-excel-tools resource="goods-receipts" />
 
-    <x-admin-table :header="['Số phiếu', 'Nhà cung cấp', 'Dòng hàng', 'Tổng chi phí', 'Trạng thái', 'Xác nhận bởi', 'Thao tác']">
+    <x-admin-table :paginator="$receipts" :header="['Số phiếu', 'Nhà cung cấp', 'Dòng hàng', 'Tổng chi phí', 'Trạng thái', 'Xác nhận bởi', 'Thao tác']">
         @forelse ($receipts as $receipt)
             <tr>
                 <td class="px-4 py-3 font-medium text-gray-900">
@@ -52,6 +52,4 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">{{ $receipts->links() }}</div>
 @endsection

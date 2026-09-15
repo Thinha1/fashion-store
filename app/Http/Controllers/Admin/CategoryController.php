@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Models\Category;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $categories = Category::query()->with('parent')->withCount('products', 'children')
-            ->orderBy('sort_order')->orderBy('name')->paginate(20);
+            ->orderBy('sort_order')->orderBy('name')->orderBy('id')
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
         return view('admin.categories.index', ['categories' => $categories]);
     }

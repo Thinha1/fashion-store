@@ -1,4 +1,4 @@
-@props(['header' => []])
+@props(['header' => [], 'paginator' => null])
 
 <div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs']) }}>
     <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 sm:px-5">
@@ -29,4 +29,7 @@
         <p class="text-sm font-medium text-gray-600">Không tìm thấy kết quả trong trang này.</p>
         <button type="button" x-on:click="query = ''" class="mt-3 text-sm font-semibold text-brand underline underline-offset-4">Xóa từ khóa</button>
     </div>
+    @if ($paginator)
+        <x-pagination :paginator="$paginator" />
+    @endif
 </div>

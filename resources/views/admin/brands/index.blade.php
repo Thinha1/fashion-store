@@ -10,7 +10,7 @@
     ])
     <x-excel-tools resource="brands" />
 
-    <x-admin-table :header="['Tên', 'Quốc gia', 'Sản phẩm', 'Trạng thái', 'Thao tác']">
+    <x-admin-table :paginator="$brands" :header="['Tên', 'Quốc gia', 'Sản phẩm', 'Trạng thái', 'Thao tác']">
         @forelse ($brands as $brand)
             <tr>
                 <td class="px-4 py-3 font-medium">
@@ -49,9 +49,5 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">
-        {{ $brands->links() }}
-    </div>
 
 @endsection

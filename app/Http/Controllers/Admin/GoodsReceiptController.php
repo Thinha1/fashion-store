@@ -9,20 +9,23 @@ use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class GoodsReceiptController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $receipts = GoodsReceipt::query()
             ->with('supplier:id,name')
             ->withCount('items')
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->orderByDesc('id')
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
         return view('admin.goods-receipts.index', ['receipts' => $receipts]);
     }

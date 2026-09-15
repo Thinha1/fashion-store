@@ -1,9 +1,11 @@
 import Alpine from 'alpinejs';
 import mask from '@alpinejs/mask';
+import featuredProduct from './featured-product';
 
 window.Alpine = Alpine;
 
 Alpine.plugin(mask);
+Alpine.data('featuredProduct', featuredProduct);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,

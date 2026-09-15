@@ -11,7 +11,7 @@
 
     <x-excel-tools resource="discounts" />
 
-    <x-admin-table :header="['Biến thể', 'Loại', 'Giá trị', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Thao tác']">
+    <x-admin-table :paginator="$discounts" :header="['Biến thể', 'Loại', 'Giá trị', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Thao tác']">
         @forelse ($discounts as $discount)
             <tr>
                 <td class="px-4 py-3">
@@ -53,6 +53,4 @@
             </tr>
         @endforelse
     </x-admin-table>
-
-    <div class="mt-4">{{ $discounts->links() }}</div>
 @endsection

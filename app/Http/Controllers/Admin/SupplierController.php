@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSupplierRequest;
 use App\Models\Supplier;
+use App\Support\AdminPagination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SupplierController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $suppliers = Supplier::query()->withCount('goodsReceipts')->orderBy('name')->paginate(20);
+        $suppliers = Supplier::query()->withCount('goodsReceipts')->orderBy('name')->orderBy('id')
+            ->paginate(AdminPagination::perPage($request))->withQueryString();
 
         return view('admin.suppliers.index', ['suppliers' => $suppliers]);
     }
