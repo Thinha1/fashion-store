@@ -15,7 +15,13 @@
             <thead>
                 <tr>
                     @foreach ($header as $label)
-                        <x-sortable-heading :label="$label" :column="$sortable[$label] ?? null" :sorting="$sorting" />
+                        @php
+                            $column = $sortable[$label] ?? null;
+                            $direction = $column ? $sorting?->directionFor($column) : null;
+                        @endphp
+                        <th scope="col" @if ($column && $sorting) aria-sort="{{ match ($direction) { 'asc' => 'ascending', 'desc' => 'descending', default => 'none' } }}" @endif>
+                            <x-table-sort :label="$label" :column="$column" :sorting="$sorting" />
+                        </th>
                     @endforeach
                 </tr>
             </thead>
