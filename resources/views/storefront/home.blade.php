@@ -17,6 +17,41 @@
             <span class="absolute top-7 left-6 rounded-full bg-white/65 px-4 py-2 text-xs font-medium text-brand">Everyday essentials</span>
         </div>
     </section>
+    @if ($featured->isNotEmpty())
+        <section class="py-14 sm:py-16" aria-labelledby="featured-title">
+            <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <p class="eyebrow">Được yêu thích nhất</p>
+                    <h2 id="featured-title" class="display-title mt-3 text-3xl sm:text-4xl">Sản phẩm nổi bật</h2>
+                </div>
+                <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">Xem tất cả sản phẩm <x-icon name="arrow" class="size-3.5" /></a>
+            </div>
+            <div class="grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3 lg:grid-cols-4">
+                @foreach ($featured as $product)
+                    @php($image = $product->images->first())
+                    <a href="{{ route('products.show', $product) }}" class="pg-card group">
+                        <div class="pg-media">
+                            <div class="pg-tags"><span class="product-card-badge">Nổi bật</span></div>
+                            @if ($image)
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}"
+                                     alt="{{ $image->alt_text ?? $product->name }}" loading="lazy">
+                            @else
+                                <x-icon name="shirt" class="size-12" />
+                            @endif
+                        </div>
+                        <div class="pg-body">
+                            <div class="min-w-0">
+                                <p class="pg-brand">{{ $product->brand?->name ?? 'Fashion Store' }}</p>
+                                <h3>{{ $product->name }}</h3>
+                            </div>
+                            <span class="pg-price">{{ number_format((float) $product->base_price, 0) }} ₫</span>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <section id="phong-cach" class="scroll-mt-8 py-14 sm:py-16" aria-labelledby="style-title">
         <div class="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow">Chọn theo nhịp sống</p><h2 id="style-title" class="display-title mt-3 text-3xl sm:text-4xl">Hôm nay, bạn muốn mặc gì?</h2></div><p class="max-w-xs text-sm leading-6 text-gray-500">Ba gợi ý phối đồ, để mỗi ngày đều có một chút mới mẻ.</p></div>
         <div class="grid gap-5 sm:grid-cols-3">

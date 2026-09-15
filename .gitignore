@@ -26,3 +26,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Archify skill (local tooling)
+/.claude/skills/archify/
+/skills-lock.json
+/fashion-store-architecture.html

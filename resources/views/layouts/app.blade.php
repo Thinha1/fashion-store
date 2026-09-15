@@ -13,13 +13,54 @@
     <a href="#main-content" class="skip-link">Đến nội dung chính</a>
     <div class="bg-brand px-4 py-2 text-center text-xs tracking-wide text-white">Một chút cảm hứng. Một phong cách của
         riêng bạn.</div>
-    <header class="border-b border-gray-200 bg-white" x-data="{ menuOpen: false }"
-        x-on:keydown.escape.window="menuOpen = false">
+    <header class="relative border-b border-gray-200 bg-white" x-data="{ menuOpen: false, megaOpen: null }"
+        x-on:keydown.escape.window="menuOpen = false; megaOpen = null" x-on:click.outside="megaOpen = null">
         <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
             <x-brand />
-            <nav aria-label="Điều hướng chính" class="hidden items-center gap-2 md:flex">
+            <nav aria-label="Điều hướng chính" class="hidden items-center gap-1 md:flex">
                 <a href="{{ route('home') }}" class="nav-link"
                     @if (request()->routeIs('home')) aria-current="page" @endif>Trang chủ</a>
+                <a href="{{ route('products.index') }}" class="nav-link"
+                    @if (request()->routeIs('products.*') && ! request('category')) aria-current="page" @endif>Sản phẩm</a>
+
+                @foreach ($megaMenu as $topCategory)
+                    <div>
+                        <button type="button" class="mega-trigger"
+                                x-on:click="megaOpen = megaOpen === '{{ $topCategory->slug }}' ? null : '{{ $topCategory->slug }}'"
+                                :aria-expanded="megaOpen === '{{ $topCategory->slug }}'">
+                            {{ $topCategory->name }}
+                            <svg class="size-3 transition-transform" :class="megaOpen === '{{ $topCategory->slug }}' && 'rotate-180'" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        </button>
+                        <div class="mega-panel" x-show="megaOpen === '{{ $topCategory->slug }}'" x-cloak
+                             x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0">
+                            <div class="mega-panel-inner" style="grid-template-columns: repeat({{ max($topCategory->children->count(), 1) }}, minmax(0, 1fr));">
+                                @foreach ($topCategory->children as $childCategory)
+                                    <div class="mega-col">
+                                        <h3><x-icon name="shirt" class="size-4 text-brand" /> {{ \Illuminate\Support\Str::upper($childCategory->name) }}</h3>
+                                        <ul>
+                                            @if ($childCategory->children->isNotEmpty())
+                                                @foreach ($childCategory->children as $styleCategory)
+                                                    <li><a href="{{ route('products.index', ['category' => $styleCategory->slug]) }}" x-on:click="megaOpen = null">{{ $styleCategory->name }}</a></li>
+                                                @endforeach
+                                            @else
+                                                @forelse ($childCategory->products as $product)
+                                                    <li><a href="{{ route('products.show', $product) }}" x-on:click="megaOpen = null">{{ $product->name }}</a></li>
+                                                @empty
+                                                    <li class="text-sm text-gray-300">Đang cập nhật</li>
+                                                @endforelse
+                                            @endif
+                                        </ul>
+                                        <a href="{{ route('products.index', ['category' => $childCategory->slug]) }}" class="mega-see-all" x-on:click="megaOpen = null">Xem tất cả &rarr;</a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+
+                <a href="{{ route('collections.index') }}" class="nav-link"
+                    @if (request()->routeIs('collections.*')) aria-current="page" @endif>Bộ sưu tập</a>
                 <a href="{{ route('home') }}#phong-cach" class="nav-link">Gợi ý phong cách</a>
                 @auth
                     @if (auth()->user()->hasPermission('admin.access'))
@@ -41,6 +82,24 @@
         <nav id="mobile-nav" aria-label="Điều hướng trên điện thoại" x-cloak x-show="menuOpen"
             class="flex flex-col gap-2 border-t border-gray-100 p-5 md:hidden">
             <a href="{{ route('home') }}" class="nav-link">Trang chủ</a>
+            <a href="{{ route('products.index') }}" class="nav-link">Sản phẩm</a>
+
+            @foreach ($megaMenu as $topCategory)
+                <div class="mt-1 border-t border-gray-100 pt-2">
+                    <a href="{{ route('products.index', ['category' => $topCategory->slug]) }}" x-on:click="menuOpen = false"
+                       class="nav-link block text-xs font-semibold tracking-[0.1em] text-gray-400 uppercase">{{ $topCategory->name }}</a>
+                    @foreach ($topCategory->children as $childCategory)
+                        <a href="{{ route('products.index', ['category' => $childCategory->slug]) }}" x-on:click="menuOpen = false"
+                           class="nav-link pl-6">{{ $childCategory->name }}</a>
+                        @foreach ($childCategory->children as $styleCategory)
+                            <a href="{{ route('products.index', ['category' => $styleCategory->slug]) }}" x-on:click="menuOpen = false"
+                               class="nav-link pl-10 text-xs text-gray-400">{{ $styleCategory->name }}</a>
+                        @endforeach
+                    @endforeach
+                </div>
+            @endforeach
+
+            <a href="{{ route('collections.index') }}" x-on:click="menuOpen = false" class="nav-link mt-1 border-t border-gray-100 pt-3">Bộ sưu tập</a>
             <a href="{{ route('home') }}#phong-cach" x-on:click="menuOpen = false" class="nav-link">Gợi ý phong cách</a>
             @auth
                 @if (auth()->user()->hasPermission('admin.access'))
@@ -57,7 +116,7 @@
     </header>
     <main id="main-content" class="store-main" tabindex="-1">
         <x-flash-messages />
-        @if (!request()->routeIs('home'))
+        @if (request()->routeIs('login', 'register', 'password.*', 'verification.notice', 'profile.edit'))
             <div class="auth-shell">
                 <aside class="auth-story">
                     <div>

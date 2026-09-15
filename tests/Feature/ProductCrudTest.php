@@ -198,8 +198,8 @@ class ProductCrudTest extends TestCase
         // form before submit, so the variant it belonged to is missing from
         // $request->variants entirely.
         $product = Product::factory()->create();
-        $kept = ProductVariant::factory()->create(['product_id' => $product->id]);
-        $removed = ProductVariant::factory()->create(['product_id' => $product->id]);
+        $kept = ProductVariant::factory()->create(['product_id' => $product->id, 'size' => 'S', 'color' => 'Đen']);
+        $removed = ProductVariant::factory()->create(['product_id' => $product->id, 'size' => 'M', 'color' => 'Trắng']);
 
         $payload = $this->makePayload([
             'name' => $product->name,
