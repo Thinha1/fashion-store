@@ -22,6 +22,8 @@ Fashion Store là ứng dụng Laravel monolith phục vụ hai nhóm người d
 
 Các model cho giỏ hàng, đơn hàng, đánh giá, yêu thích và trả hàng đã có trong nền tảng dữ liệu. Luồng mua hàng hoàn chỉnh và giao diện cho các phần này chưa được triển khai.
 
+> _PR test: thay đổi nhỏ để kiểm tra quy trình tạo pull request._
+
 ## Chức năng hiện có
 
 ### Cửa hàng
