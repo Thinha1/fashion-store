@@ -19,7 +19,7 @@
                 <td class="px-4 py-3 font-medium">
                     <div class="flex items-center gap-2">
                         @if ($brand->logo_path)
-                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="" class="h-8 w-8 rounded object-cover">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($brand->logo_path) }}" alt="" class="h-8 w-8 rounded object-cover">
                         @endif
                         <div>
                             <a href="{{ route('admin.brands.show', $brand) }}" class="text-gray-900 hover:underline">{{ $brand->name }}</a>

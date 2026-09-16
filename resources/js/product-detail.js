@@ -11,7 +11,7 @@ export default ({ variants = [], images = [] } = {}) => {
             return this.variants.find((variant) => variant.size === this.selectedSize && variant.color === this.selectedColor) ?? null;
         },
         get images() {
-            const specific = this.variant ? this.allImages.filter((image) => image.variantId === this.variant.id) : [];
+            const specific = this.selectedColor ? this.allImages.filter((image) => image.color === this.selectedColor) : [];
             return specific.length ? specific : this.allImages.filter((image) => image.variantId === null);
         },
         get inStock() { return this.maxQty > 0; },

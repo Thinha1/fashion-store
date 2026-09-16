@@ -33,7 +33,7 @@
                         <div class="pg-media">
                             <div class="pg-tags"><span class="product-card-badge">Nổi bật</span></div>
                             @if ($image)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}"
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}"
                                      alt="{{ $image->alt_text ?? $product->name }}" loading="lazy">
                             @else
                                 <x-icon name="shirt" class="size-12" />

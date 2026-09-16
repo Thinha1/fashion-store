@@ -143,7 +143,7 @@ class ProductCrudTest extends TestCase
         @$dom->loadHTML('<?xml encoding="UTF-8">'.$response->getContent());
         $option = (new \DOMXPath($dom))->query('//select[@name="brand_id"]/option[@selected]')->item(0);
         $this->assertSame((string) $brand->id, $option->getAttribute('value'));
-        $this->assertSame(Storage::disk('s3')->url($brand->logo_path), $option->getAttribute('data-image'));
+        $this->assertSame(Storage::disk(config('filesystems.image_disk'))->url($brand->logo_path), $option->getAttribute('data-image'));
         $response->assertSee('role="combobox"', false)->assertSee('role="listbox"', false);
     }
 
@@ -191,7 +191,7 @@ class ProductCrudTest extends TestCase
 
     public function test_product_can_upload_images(): void
     {
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
 
         $payload = $this->makePayload();
         $payload['images'] = [
@@ -205,8 +205,8 @@ class ProductCrudTest extends TestCase
         $this->assertSame(2, $product->images()->count());
 
         $images = $product->images()->get();
-        Storage::disk('s3')->assertExists($images[0]->path);
-        Storage::disk('s3')->assertExists($images[1]->path);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($images[0]->path);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($images[1]->path);
     }
 
     public function test_product_image_rejects_non_image_file(): void

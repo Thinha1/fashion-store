@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -96,7 +97,8 @@ class ProductController extends Controller
             'category',
             'brand',
             'images' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('sort_order'),
-            'variants' => fn ($query) => $query->where('is_active', true)->orderBy('size')->orderBy('color'),
+            'images.variant',
+            'variants' => fn ($query) => $query->where('is_active', true)->orderByRaw(ProductVariant::sizeOrderRaw())->orderBy('id'),
         ]);
 
         $related = Product::query()

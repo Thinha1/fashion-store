@@ -19,7 +19,7 @@ class ProductVariantFactory extends Factory
      */
     public function definition(): array
     {
-        $size = fake()->randomElement(['XS', 'S', 'M', 'L', 'XL']);
+        $size = fake()->randomElement(ProductVariant::SIZES);
         $color = fake()->randomElement(['Đen', 'Trắng', 'Xanh', 'Đỏ', 'Be']);
 
         return [

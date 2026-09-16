@@ -38,7 +38,7 @@
                 <img :src="preview" alt="Xem trước logo mới" class="mt-1 mb-2 h-16 w-16 rounded object-cover ring-2 ring-gray-900">
             </template>
             @if ($brand->logo_path)
-                <img x-show="!preview" src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="Logo hiện tại" class="mt-1 mb-2 h-16 w-16 rounded object-cover">
+                <img x-show="!preview" src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($brand->logo_path) }}" alt="Logo hiện tại" class="mt-1 mb-2 h-16 w-16 rounded object-cover">
             @endif
 
             <input id="logo" name="logo" type="file" accept="image/*" class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-gray-700"

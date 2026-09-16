@@ -60,7 +60,7 @@ class BrandController extends Controller
 
         if ($newLogoPath = $this->storeLogo($request)) {
             if ($brand->logo_path) {
-                Storage::disk('s3')->delete($brand->logo_path);
+                Storage::disk(config('filesystems.image_disk'))->delete($brand->logo_path);
             }
 
             $data['logo_path'] = $newLogoPath;
@@ -81,7 +81,7 @@ class BrandController extends Controller
         }
 
         if ($brand->logo_path) {
-            Storage::disk('s3')->delete($brand->logo_path);
+            Storage::disk(config('filesystems.image_disk'))->delete($brand->logo_path);
         }
 
         $brand->delete();
@@ -101,6 +101,6 @@ class BrandController extends Controller
             return null;
         }
 
-        return $logo->store('brands', 's3');
+        return $logo->store('brands', config('filesystems.image_disk'));
     }
 }

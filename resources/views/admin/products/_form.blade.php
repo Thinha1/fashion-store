@@ -41,7 +41,7 @@
             <div>
                 <x-image-select id="brand_id" name="brand_id" label="Thương hiệu" placeholder="— Chọn thương hiệu —" required
                     :value="old('brand_id', $product->brand_id)"
-                    :options="$brands->map(fn ($brand) => ['value' => $brand->id, 'label' => $brand->name, 'image' => $brand->logo_path ? \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) : null])->all()" />
+                    :options="$brands->map(fn ($brand) => ['value' => $brand->id, 'label' => $brand->name, 'image' => $brand->logo_path ? \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($brand->logo_path) : null])->all()" />
                 <x-input-error :messages="$errors->get('brand_id')" />
             </div>
         </div>

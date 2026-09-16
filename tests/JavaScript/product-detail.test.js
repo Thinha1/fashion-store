@@ -8,10 +8,10 @@ const variants = [
     { id: 3, size: 'L', color: 'Đen', stock: 0, price: 110 },
 ];
 const images = [
-    { id: 10, variantId: null, url: '/shared.jpg' },
-    { id: 11, variantId: 1, url: '/black-front.jpg' },
-    { id: 12, variantId: 1, url: '/black-back.jpg' },
-    { id: 13, variantId: 2, url: '/white.jpg' },
+    { id: 10, variantId: null, color: null, url: '/shared.jpg' },
+    { id: 11, variantId: 1, color: 'Đen', url: '/black-front.jpg' },
+    { id: 12, variantId: 1, color: 'Đen', url: '/black-back.jpg' },
+    { id: 13, variantId: 2, color: 'Trắng', url: '/white.jpg' },
 ];
 
 test('color changes the gallery, price, stock and resets the selected thumbnail and quantity', () => {
@@ -29,10 +29,10 @@ test('color changes the gallery, price, stock and resets the selected thumbnail 
     assert.equal(detail.qty, 1);
 });
 
-test('a size without its own photos uses shared images and reports sold out', () => {
+test('picking a size keeps browsing the same color\'s gallery, and stock updates for that size', () => {
     const detail = productDetail({ variants, images });
     detail.pickSize('L');
-    assert.deepEqual(detail.images.map((image) => image.url), ['/shared.jpg']);
+    assert.deepEqual(detail.images.map((image) => image.url), ['/black-front.jpg', '/black-back.jpg']);
     assert.equal(detail.inStock, false);
     detail.pickColor('Trắng');
     assert.equal(detail.selectedSize, 'M');
@@ -41,7 +41,7 @@ test('a size without its own photos uses shared images and reports sold out', ()
     assert.equal(detail.selectedColor, 'Đen');
 });
 
-test('gallery navigation wraps within the current variant and quantities stay within bounds', () => {
+test('gallery navigation wraps within the current color and quantities stay within bounds', () => {
     const detail = productDetail({ variants, images });
     detail.prevImage();
     assert.equal(detail.activeImage, 1);
@@ -53,9 +53,11 @@ test('gallery navigation wraps within the current variant and quantities stay wi
     assert.equal(detail.qty, 1);
 });
 
-test('empty galleries stay safe and never show another variant photo as a fallback', () => {
-    const detail = productDetail({ variants, images: images.filter((image) => image.variantId !== null) });
-    detail.pickSize('L');
+test('a color with no tagged photos and no shared fallback yields an empty gallery', () => {
+    const noGeneralImages = images.filter((image) => image.variantId !== null);
+    const extraVariants = [...variants, { id: 4, size: 'L', color: 'Xanh', stock: 2, price: 90 }];
+    const detail = productDetail({ variants: extraVariants, images: noGeneralImages });
+    detail.pickColor('Xanh');
     assert.deepEqual(detail.images, []);
     detail.nextImage();
     detail.prevImage();

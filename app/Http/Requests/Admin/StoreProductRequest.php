@@ -55,7 +55,7 @@ class StoreProductRequest extends BaseAdminRequest
             'is_featured' => ['boolean'],
 
             'variants' => ['array'],
-            'variants.*.size' => ['required', 'string', 'max:50'],
+            'variants.*.size' => ['required', Rule::in(ProductVariant::SIZES)],
             'variants.*.color' => ['required', 'string', 'max:100'],
             'variants.*.sku' => ['required', 'string', 'max:100'],
             'variants.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999999999'],

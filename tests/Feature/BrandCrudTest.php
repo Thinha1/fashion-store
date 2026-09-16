@@ -119,7 +119,7 @@ class BrandCrudTest extends TestCase
 
     public function test_admin_can_upload_a_brand_logo(): void
     {
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
 
         $logo = UploadedFile::fake()->image('logo.png');
 
@@ -132,15 +132,15 @@ class BrandCrudTest extends TestCase
         $brand = Brand::query()->where('name', 'Acme Fashion')->firstOrFail();
 
         $this->assertNotNull($brand->logo_path);
-        Storage::disk('s3')->assertExists($brand->logo_path);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($brand->logo_path);
     }
 
     public function test_updating_a_brand_without_a_new_logo_keeps_the_existing_one(): void
     {
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
 
         $brand = Brand::factory()->create(['logo_path' => 'brands/existing.png']);
-        Storage::disk('s3')->put('brands/existing.png', 'fake-content');
+        Storage::disk(config('filesystems.image_disk'))->put('brands/existing.png', 'fake-content');
 
         $this->actingAs($this->admin())->put(route('admin.brands.update', $brand), [
             'name' => $brand->name,
@@ -148,15 +148,15 @@ class BrandCrudTest extends TestCase
         ]);
 
         $this->assertSame('brands/existing.png', $brand->fresh()->logo_path);
-        Storage::disk('s3')->assertExists('brands/existing.png');
+        Storage::disk(config('filesystems.image_disk'))->assertExists('brands/existing.png');
     }
 
     public function test_uploading_a_new_logo_replaces_and_deletes_the_old_one(): void
     {
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
 
         $brand = Brand::factory()->create(['logo_path' => 'brands/old.png']);
-        Storage::disk('s3')->put('brands/old.png', 'fake-content');
+        Storage::disk(config('filesystems.image_disk'))->put('brands/old.png', 'fake-content');
 
         $this->actingAs($this->admin())->put(route('admin.brands.update', $brand), [
             'name' => $brand->name,
@@ -167,8 +167,8 @@ class BrandCrudTest extends TestCase
         $brand->refresh();
 
         $this->assertNotSame('brands/old.png', $brand->logo_path);
-        Storage::disk('s3')->assertMissing('brands/old.png');
-        Storage::disk('s3')->assertExists($brand->logo_path);
+        Storage::disk(config('filesystems.image_disk'))->assertMissing('brands/old.png');
+        Storage::disk(config('filesystems.image_disk'))->assertExists($brand->logo_path);
     }
 
     public function test_admin_cannot_delete_brand_with_products(): void

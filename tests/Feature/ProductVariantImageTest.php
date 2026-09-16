@@ -19,7 +19,7 @@ class ProductVariantImageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
         $this->actingAs(User::factory()->admin()->create());
     }
 
@@ -36,7 +36,7 @@ class ProductVariantImageTest extends TestCase
     private function image(Product $product, ?ProductVariant $variant = null): ProductImage
     {
         $path = 'products/'.fake()->uuid().'.jpg';
-        Storage::disk('s3')->put($path, 'existing-image');
+        Storage::disk(config('filesystems.image_disk'))->put($path, 'existing-image');
 
         return $product->images()->create(['path' => $path, 'product_variant_id' => $variant?->id]);
     }
@@ -60,7 +60,7 @@ class ProductVariantImageTest extends TestCase
         $this->assertSame(1, $created->images()->whereNull('product_variant_id')->count());
         $this->assertSame(1, $created->images()->where('is_primary', true)->count());
         foreach ($created->images as $image) {
-            Storage::disk('s3')->assertExists($image->path);
+            Storage::disk(config('filesystems.image_disk'))->assertExists($image->path);
             $this->assertSame($created->id, $image->product_id);
         }
     }
@@ -87,7 +87,7 @@ class ProductVariantImageTest extends TestCase
         $xpath = new \DOMXPath($dom);
         $variantPhotos = $xpath->query('//div[@data-variant-key="'.$existing->id.'"]//img[@src]');
         $this->assertSame(2, $variantPhotos->length);
-        $this->assertSame(Storage::disk('s3')->url($oldImage->path), $variantPhotos->item(0)->getAttribute('src'));
+        $this->assertSame(Storage::disk(config('filesystems.image_disk'))->url($oldImage->path), $variantPhotos->item(0)->getAttribute('src'));
     }
 
     public function test_edit_preserves_links_and_removed_variant_images_become_shared(): void
@@ -103,7 +103,7 @@ class ProductVariantImageTest extends TestCase
         $this->put(route('admin.products.update', $product), $payload)->assertSessionHasNoErrors();
         $this->assertSoftDeleted($variant);
         $this->assertNull($image->fresh()->product_variant_id);
-        Storage::disk('s3')->assertExists($image->path);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($image->path);
     }
 
     public function test_invalid_variant_upload_rejects_all_images_and_renders_errors_with_old_rows(): void
@@ -120,7 +120,7 @@ class ProductVariantImageTest extends TestCase
         $this->from(route('admin.products.edit', $product))->put(route('admin.products.update', $product), $payload)
             ->assertRedirect(route('admin.products.edit', $product));
         $this->assertSame(0, $product->variants()->count());
-        $this->assertCount(1, Storage::disk('s3')->allFiles());
+        $this->assertCount(1, Storage::disk(config('filesystems.image_disk'))->allFiles());
         $response = $this->get(route('admin.products.edit', $product))->assertOk();
         $response->assertSee('data-variant-key="new-4"', false)->assertSee('BLACK-M')->assertSee('Ảnh biến thể không được vượt quá 4MB.');
     }
@@ -149,8 +149,8 @@ class ProductVariantImageTest extends TestCase
         $this->put(route('admin.products.update', $product), $payload)->assertSessionHasNoErrors();
         $this->assertModelMissing($cover);
         $this->assertModelMissing($specific);
-        Storage::disk('s3')->assertMissing([$cover->path, $specific->path]);
-        Storage::disk('s3')->assertExists($kept->path);
+        Storage::disk(config('filesystems.image_disk'))->assertMissing([$cover->path, $specific->path]);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($kept->path);
         $this->assertTrue($kept->fresh()->is_primary);
 
         $payload['removed_images'] = [$kept->id];
@@ -171,7 +171,7 @@ class ProductVariantImageTest extends TestCase
             ->assertSessionHasNoErrors();
         $this->assertModelMissing($image);
         $this->assertModelExists($other);
-        Storage::disk('s3')->assertExists($image->path);
+        Storage::disk(config('filesystems.image_disk'))->assertExists($image->path);
     }
 
     public function test_deletion_rejects_foreign_images_and_keeps_pending_removals_after_invalid_input(): void
@@ -183,7 +183,7 @@ class ProductVariantImageTest extends TestCase
             ->assertSessionHasErrors('removed_images.0');
         $this->assertModelExists($own);
         $this->assertModelExists($foreign);
-        Storage::disk('s3')->assertExists([$own->path, $foreign->path]);
+        Storage::disk(config('filesystems.image_disk'))->assertExists([$own->path, $foreign->path]);
 
         $this->from(route('admin.products.edit', $product))->put(route('admin.products.update', $product), $this->payload($product, [
             'name' => '', 'removed_images' => [(string) $own->id],

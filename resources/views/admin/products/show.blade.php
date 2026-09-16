@@ -48,7 +48,7 @@
             <div class="grid grid-cols-2 gap-3">
                 @foreach ($product->images as $image)
                     <figure class="overflow-hidden rounded-lg border border-gray-200">
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $image->alt_text ?: $product->name }}" class="aspect-[4/5] w-full object-cover">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}" alt="{{ $image->alt_text ?: $product->name }}" class="aspect-[4/5] w-full object-cover">
                         <figcaption class="px-2 py-1 text-xs text-gray-500">
                             @if ($image->is_primary) <span class="text-green-600">Ảnh chính</span> @endif
                             @php($imageVariant = $product->variants->firstWhere('id', $image->product_variant_id))
