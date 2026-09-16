@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Discount;
 use App\Models\GoodsReceipt;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,5 +66,33 @@ class AdminInterfaceTest extends TestCase
         $product = Product::factory()->create();
         $product->images()->create(['path' => 'products/example.jpg', 'is_primary' => true, 'sort_order' => 0]);
         $this->get(route('admin.products.index'))->assertOk()->assertSee('products/example.jpg');
+    }
+
+    #[DataProvider('resources')]
+    public function test_rendered_form_controls_have_associated_labels(string $model, string $resource): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $record = $model::factory()->create();
+        if ($record instanceof GoodsReceipt) {
+            $record->items()->create([
+                'product_variant_id' => ProductVariant::factory()->create()->id,
+                'quantity' => 2, 'cost_price' => 10000, 'subtotal' => 20000,
+            ]);
+        }
+
+        foreach ([route('admin.'.$resource.'.create'), route('admin.'.$resource.'.edit', $record)] as $url) {
+            $response = $this->get($url)->assertOk();
+            $dom = new \DOMDocument;
+            @$dom->loadHTML('<?xml encoding="UTF-8">'.$response->getContent());
+            $xpath = new \DOMXPath($dom);
+            // DOMDocument also inspects controls inside the add-row templates.
+            foreach ($xpath->query('//form//input[not(@type="hidden")]|//form//select|//form//textarea') as $control) {
+                $id = $control->getAttribute('id');
+                $labels = $xpath->query('//label[@for="'.$id.'"]');
+                $wrapped = $xpath->query('ancestor::label', $control);
+                $hasLabel = ($id !== '' && $labels->length > 0) || $wrapped->length > 0;
+                $this->assertTrue($hasLabel, $resource.': missing label for '.$control->getAttribute('name'));
+            }
+        }
     }
 }

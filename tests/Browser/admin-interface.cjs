@@ -148,8 +148,20 @@ function luminance(css) {
         await visit('/admin/nhap-hang/tao-moi');
         await page.click('#add-item-row');
         await page.click('#add-item-row');
+        const receiptLabels = await page.$$eval('[data-item-row] label', labels => labels.map(label => ({
+            id: label.htmlFor,
+            controlId: label.control?.id,
+            rowMatches: label.control?.closest('[data-item-row]') === label.closest('[data-item-row]'),
+        })));
+        assert.equal(receiptLabels.length, 6);
+        assert.equal(new Set(receiptLabels.map(label => label.id)).size, 6, 'Receipt rows reuse field IDs');
+        assert.ok(receiptLabels.every(label => label.id === label.controlId && label.rowMatches), 'Receipt label targets the wrong row');
+        await page.click('label[for="' + receiptLabels[4].id + '"]');
+        assert.equal(await page.evaluate(() => document.activeElement.id), receiptLabels[4].id);
         await page.click('[data-remove-item]');
         assert.equal((await page.$$('[data-item-row]')).length, 1);
+        await page.click('#add-item-row');
+        assert.equal(await page.$$eval('#items-list [id]', fields => new Set(fields.map(field => field.id)).size), 6);
 
         await visit('/admin/san-pham');
         await page.click('.admin-row-actions form button');
@@ -188,6 +200,14 @@ function luminance(css) {
         for (const url of [...mobileUrls, '/admin/dashboard']) {
             await visit(url);
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile overflow: ' + url);
+            if (url === '/admin/san-pham') {
+                await page.focus('.data-table');
+                await page.keyboard.press('ArrowRight');
+                await page.waitForFunction(() => {
+                    const region = document.querySelector('.data-table');
+                    return region.scrollWidth <= region.clientWidth || region.scrollLeft > 0;
+                });
+            }
             await screenshot('mobile-' + url.split('/').slice(2).join('-'));
         }
         await page.setViewport({ width: 390, height: 500 });
