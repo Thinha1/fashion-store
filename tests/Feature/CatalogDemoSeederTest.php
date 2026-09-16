@@ -16,7 +16,7 @@ class CatalogDemoSeederTest extends TestCase
 
     public function test_database_seeder_creates_a_repeatable_demo_catalog_with_images(): void
     {
-        Storage::fake('s3');
+        Storage::fake(config('filesystems.image_disk'));
 
         $this->seed();
         $this->seed();
@@ -44,8 +44,8 @@ class CatalogDemoSeederTest extends TestCase
         $this->assertTrue($product->images->first()->is_primary);
         $this->assertGreaterThan(0, $product->variants->sum('stock_quantity'));
 
-        Storage::disk('s3')->assertExists('demo/catalog/ao-thun.jpg');
-        Storage::disk('s3')->assertExists('demo/brands/lang-studio.svg');
+        Storage::disk(config('filesystems.image_disk'))->assertExists('demo/catalog/ao-thun.jpg');
+        Storage::disk(config('filesystems.image_disk'))->assertExists('demo/brands/lang-studio.svg');
         $this->assertSame(
             6,
             ProductVariant::query()->where('product_id', $product->id)->count(),

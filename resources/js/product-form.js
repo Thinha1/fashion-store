@@ -19,7 +19,7 @@ export default (removedImages = []) => ({
             }
         });
         list.append(row);
-        list.lastElementChild.querySelector('input').focus();
+        list.lastElementChild.querySelector('select, input').focus();
     },
     removeVariant(button) {
         button.closest('[data-variant-row]').remove();

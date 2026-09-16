@@ -16,7 +16,7 @@
             <div class="sm:col-span-2">
                 <dt class="text-xs text-gray-500">Logo</dt>
                 <dd class="mt-1">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($brand->logo_path) }}" alt="Logo {{ $brand->name }}" class="h-20 w-20 rounded object-cover">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($brand->logo_path) }}" alt="Logo {{ $brand->name }}" class="h-20 w-20 rounded object-cover">
                 </dd>
             </div>
         @endif

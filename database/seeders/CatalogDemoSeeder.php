@@ -236,7 +236,7 @@ class CatalogDemoSeeder extends Seeder
             $path = self::STORAGE_DIRECTORY.'/'.$filename;
             $contents = file_get_contents($source);
 
-            if ($contents === false || ! Storage::disk('s3')->put($path, $contents, ['visibility' => 'public'])) {
+            if ($contents === false || ! Storage::disk(config('filesystems.image_disk'))->put($path, $contents, ['visibility' => 'public'])) {
                 throw new RuntimeException("Không thể đưa ảnh demo {$filename} lên disk s3.");
             }
 
@@ -273,7 +273,7 @@ class CatalogDemoSeeder extends Seeder
                 </svg>
                 SVG;
 
-            if (! Storage::disk('s3')->put($path, $svg, ['visibility' => 'public'])) {
+            if (! Storage::disk(config('filesystems.image_disk'))->put($path, $svg, ['visibility' => 'public'])) {
                 throw new RuntimeException("Không thể tạo logo demo {$slug} trên disk s3.");
             }
 

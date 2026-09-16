@@ -11,12 +11,22 @@
         ]);
         $imagesForJs = $product->images->map(fn ($image) => [
             'id' => $image->id,
-            'url' => \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path),
+            'url' => \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path),
             'alt' => $image->alt_text ?: $product->name,
             'variantId' => $image->product_variant_id,
+            'color' => $image->variant?->color,
         ])->values();
-        $colorSwatches = ['Đen' => '#17343a', 'Trắng' => '#ffffff'];
-        $sizes = $product->variants->pluck('size')->unique()->values();
+        $colorSwatches = [
+            'Đen' => '#17343a',
+            'Xám đậm' => '#4b5563',
+            'Xanh navy' => '#1f2a44',
+            'Xanh dương' => '#2563eb',
+            'Trắng' => '#ffffff',
+            'Nâu' => '#5c4033',
+            'Đỏ' => '#dc2626',
+        ];
+        $sizeOrder = array_flip(\App\Models\ProductVariant::SIZES);
+        $sizes = $product->variants->pluck('size')->unique()->sortBy(fn ($size) => $sizeOrder[$size] ?? count($sizeOrder))->values();
         $colors = $product->variants->pluck('color')->unique()->values();
     @endphp
 
@@ -31,17 +41,17 @@
     <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"
          x-data="productDetail({ variants: {{ Js::from($variantsForJs->values()) }}, images: {{ Js::from($imagesForJs) }} })">
         {{-- Gallery --}}
-        <div class="flex gap-3">
-            <div class="hidden shrink-0 flex-col gap-3 sm:flex" x-show="images.length > 1">
+        <div class="flex flex-col gap-3 sm:flex-row">
+            <div class="flex gap-3 overflow-x-auto sm:w-16 sm:shrink-0 sm:flex-col sm:overflow-visible" x-show="images.length">
                 <template x-for="(image, index) in images" :key="image.id">
-                    <button type="button" class="gallery-thumb w-16" :aria-current="activeImage === index"
+                    <button type="button" class="gallery-thumb w-16 shrink-0" :aria-current="activeImage === index"
                             x-on:click="activeImage = index" aria-label="Xem ảnh">
                         <img :src="image.url" alt="">
                     </button>
                 </template>
             </div>
 
-            <div class="product-card-media relative min-w-0 flex-1 rounded-2xl" style="aspect-ratio: 4 / 5;">
+            <div class="product-card-media relative min-w-0 rounded-2xl" style="width: 635px; max-width: 100%; aspect-ratio: 1 / 1;">
                 <template x-if="images.length">
                     <img :src="images[activeImage]?.url"
                          :alt="images[activeImage]?.alt" class="size-full object-cover"
@@ -84,7 +94,15 @@
                x-text="(variant ? variant.price : {{ (float) $product->base_price }}).toLocaleString('vi-VN') + ' ₫'"></p>
 
             @if ($product->description)
-                <p class="mt-4 max-w-md text-sm leading-7 text-gray-600">{{ $product->description }}</p>
+                @if (mb_strlen($product->description) > 220)
+                    <div class="mt-4 max-w-md" x-data="{ expanded: false }">
+                        <p class="text-sm leading-7 text-gray-600" :class="expanded ? '' : 'line-clamp-4'">{{ $product->description }}</p>
+                        <button type="button" class="mt-1.5 text-xs font-medium text-brand hover:underline"
+                                x-on:click="expanded = !expanded" x-text="expanded ? 'Thu gọn' : 'Xem thêm'"></button>
+                    </div>
+                @else
+                    <p class="mt-4 max-w-md text-sm leading-7 text-gray-600">{{ $product->description }}</p>
+                @endif
             @endif
 
             @if ($colors->isNotEmpty())
@@ -155,7 +173,7 @@
                     <a href="{{ route('products.show', $item) }}" class="product-card group">
                         <div class="product-card-media">
                             @if ($image)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="{{ $item->name }}" loading="lazy">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}" alt="{{ $item->name }}" loading="lazy">
                             @else
                                 <x-icon name="shirt" class="size-10" />
                             @endif

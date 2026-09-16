@@ -21,7 +21,7 @@
                     @php($thumbnail = $product->images->firstWhere('is_primary', true) ?? $product->images->first())
                     <a href="{{ route('admin.products.show', $product) }}" class="flex min-w-56 items-center gap-3 font-medium text-gray-900">
                         <span class="flex h-12 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 text-gray-400">
-                            @if ($thumbnail)<img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($thumbnail->path) }}" alt="" class="size-full object-cover" loading="lazy">@else<x-icon name="image" />@endif
+                            @if ($thumbnail)<img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($thumbnail->path) }}" alt="" class="size-full object-cover" loading="lazy">@else<x-icon name="image" />@endif
                         </span>
                         <span class="max-w-64"><span class="block leading-5">{{ $product->name }}</span><span class="mt-1 block text-xs font-normal tabular-nums text-gray-500">{{ number_format((float) $product->base_price, 0, ',', '.') }} ₫</span></span>
                     </a>

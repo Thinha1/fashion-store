@@ -138,7 +138,7 @@ class ProductController extends Controller
         // Some demo photos are shared by multiple products; keep files still in use.
         $unusedPaths = array_diff($removedPaths, ProductImage::query()->whereIn('path', $removedPaths)->pluck('path')->all());
         if ($unusedPaths) {
-            Storage::disk('s3')->delete(array_values($unusedPaths));
+            Storage::disk(config('filesystems.image_disk'))->delete(array_values($unusedPaths));
         }
 
         return redirect()->route('admin.products.show', $product)
@@ -186,7 +186,7 @@ class ProductController extends Controller
                 continue;
             }
 
-            $path = $image->store('products', 's3');
+            $path = $image->store('products', config('filesystems.image_disk'));
 
             ProductImage::query()->create([
                 'product_id' => $product->id,

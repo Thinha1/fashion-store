@@ -21,7 +21,7 @@
                                 @php($image = $product->images->first())
                                 <div class="collection-card-tile">
                                     @if ($image)
-                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($image->path) }}" alt="" loading="lazy">
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}" alt="" loading="lazy">
                                     @else
                                         <x-icon name="shirt" class="size-6" />
                                     @endif

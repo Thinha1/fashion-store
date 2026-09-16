@@ -1,12 +1,23 @@
 @props(['rowKey', 'variant' => [], 'images' => []])
 @php
     $fields = [
-        'size' => ['Size', 'text', ''], 'color' => ['Màu', 'text', ''],
+        'color' => ['Màu', 'text', ''],
         'sku' => ['SKU', 'text', ''], 'price' => ['Giá (VNĐ)', 'number', ''],
         'stock_quantity' => ['Tồn kho', 'number', 0], 'low_stock_threshold' => ['Cảnh báo tồn', 'number', 5],
     ];
 @endphp
 <div data-variant-row data-variant-key="{{ $rowKey }}" class="admin-variant-row">
+    <div>
+        <label for="variant-{{ $rowKey }}-size" class="block text-sm font-medium text-gray-700">Size</label>
+        <select id="variant-{{ $rowKey }}-size" name="variants[{{ $rowKey }}][size]" required
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            <option value="">— Chọn size —</option>
+            @foreach (\App\Models\ProductVariant::SIZES as $size)
+                <option value="{{ $size }}" @selected(data_get($variant, 'size') === $size)>{{ $size }}</option>
+            @endforeach
+        </select>
+        <x-input-error :messages="$errors->get('variants.'.$rowKey.'.size')" />
+    </div>
     @foreach ($fields as $field => [$label, $type, $default])
         <div>
             <label for="variant-{{ $rowKey }}-{{ $field }}" class="block text-sm font-medium text-gray-700">{{ $label }}</label>
