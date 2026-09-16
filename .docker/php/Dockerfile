@@ -28,3 +28,5 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY .docker/php/conf.d/app.ini /usr/local/etc/php/conf.d/99-fashion-store.ini
 
 WORKDIR /var/www/html
+
+USER www-data

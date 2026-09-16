@@ -24,6 +24,8 @@ x-laravel-service: &laravel-service
 
 services:
   setup:
+    # Only this one-shot initializer needs root to prepare named-volume ownership.
+    user: root
     build:
       context: .
       dockerfile: .docker/php/Dockerfile
