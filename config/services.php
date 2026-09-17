@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'vietqr' => [
+        'business_cache_seconds' => (int) env('VIETQR_BUSINESS_CACHE_SECONDS', 900),
+        'business_requests_per_minute' => (int) env('VIETQR_BUSINESS_REQUESTS_PER_MINUTE', 10),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

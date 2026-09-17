@@ -35,6 +35,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
+        RateLimiter::for('supplier-tax-lookup', fn ($request): Limit => Limit::perMinute(
+            max(1, (int) config('services.vietqr.business_requests_per_minute'))
+        )->by((string) $request->user()->id));
+
         // The storefront header renders a 3-level mega-menu (top category ->
         // garment type -> a handful of specific styles). A garment type with
         // no further styles (e.g. "Balo") falls back to listing its own

@@ -1,8 +1,9 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
+const fs = require('node:fs/promises');
 const path = require('node:path');
 const puppeteer = require(process.env.PUPPETEER_MODULE || 'puppeteer');
 const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
+const lookupPath = '/admin/nha-cong-cap/tra-cuu-ma-so-thue';
 
 (async () => {
     const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: process.env.ADMIN_TEST_HEADLESS !== 'false', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -10,10 +11,13 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         const page = await browser.newPage();
         const errors = [];
         let failLookup = false;
-        page.on('pageerror', error => errors.push(error.message));
+        page.on('pageerror', error => {
+            console.error(error.stack || error.message);
+            errors.push(error.message);
+        });
         await page.setRequestInterception(true);
         page.on('request', request => {
-            if (failLookup && request.url().includes('/tra-cuu-ma-so-thue')) {
+            if (failLookup && request.url().includes(lookupPath)) {
                 return request.respond({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Dịch vụ đang bận. Nhập thủ công.' }) });
             }
             const url = process.env.ADMIN_TEST_IMAGE_ORIGIN
@@ -30,7 +34,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await page.type('#phone', '0901234567');
         await page.type('#tax_code', '0316794479');
         const [response] = await Promise.all([
-            page.waitForResponse(response => response.url().includes('/tra-cuu-ma-so-thue')),
+            page.waitForResponse(response => response.url().includes(lookupPath)),
             page.click('#tax-lookup-button'),
         ]);
         assert.strictEqual(response.status(), 200, await response.text());
@@ -51,7 +55,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await page.waitForFunction(() => document.querySelector('#admin-navigation').getBoundingClientRect().right <= 1);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
         const artifacts = process.env.ADMIN_TEST_ARTIFACTS || '.admin-qa';
-        fs.mkdirSync(artifacts, { recursive: true });
+        await fs.mkdir(artifacts, { recursive: true });
         await page.screenshot({ path: path.join(artifacts, 'supplier-tax-mobile.png'), fullPage: true });
 
         await page.setJavaScriptEnabled(false);

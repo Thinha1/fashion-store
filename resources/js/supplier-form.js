@@ -24,7 +24,7 @@ export default (initial, lookupUrl) => ({
         this.loading = true;
         try {
             const response = await fetch(`${lookupUrl}?${new URLSearchParams({ tax_code: taxCode })}`, {
-                headers: { Accept: 'application/json' }, credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin',
             });
             const payload = await response.json();
             if (requestId !== this.requestId) return;

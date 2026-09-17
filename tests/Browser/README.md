@@ -7,7 +7,8 @@ powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/
 ```
 
 - API doanh nghiệp: [tài liệu VietQR](https://www.vietqr.io/en/business/%3AtaxCode/).
-- Ứng dụng gọi API ở server, timeout 8 giây, cache thành công 1 giờ và giới hạn 10 lượt/phút/người dùng.
+- Ứng dụng gọi API ở server, timeout 8 giây, mặc định cache thành công 15 phút và giới hạn 10 lượt/phút/người dùng.
+- Có thể chỉnh `VIETQR_BUSINESS_CACHE_SECONDS` (đặt `0` để tắt cache) và `VIETQR_BUSINESS_REQUESTS_PER_MINUTE` (tối thiểu `1`) trong `.env`.
 - Một lần bấm Tra cứu tự điền tên và địa chỉ; điện thoại và email vẫn nhập riêng.
 - Kiểm thử PHP dùng HTTP fake để kiểm tra lỗi API, không tìm thấy, thiếu dữ liệu và giới hạn lượt gọi.
 - Đặt `ADMIN_TEST_ARTIFACTS` khi chạy trực tiếp để đổi nơi lưu ảnh kiểm thử; `ADMIN_TEST_HEADLESS=false` mở cửa sổ Chromium khi debug local.

@@ -59,6 +59,33 @@ class SupplierTaxLookupTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_cached_details_refresh_after_configured_expiry(): void
+    {
+        config(['services.vietqr.business_cache_seconds' => 60]);
+        $updatedCompany = $this->company();
+        $updatedCompany['data']['address'] = 'Địa chỉ mới';
+        Http::fake(['api.vietqr.io/*' => Http::sequence()->push($this->company())->push($updatedCompany)]);
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->getJson($this->url())->assertOk()->assertJsonPath('data.address', 'TP Hồ Chí Minh');
+        $this->travel(59)->seconds();
+        $this->getJson($this->url())->assertOk()->assertJsonPath('data.address', 'TP Hồ Chí Minh');
+        Http::assertSentCount(1);
+        $this->travel(2)->seconds();
+        $this->getJson($this->url())->assertOk()->assertJsonPath('data.address', 'Địa chỉ mới');
+        Http::assertSentCount(2);
+    }
+
+    public function test_cache_can_be_disabled(): void
+    {
+        config(['services.vietqr.business_cache_seconds' => 0]);
+        Http::fake(['api.vietqr.io/*' => Http::response($this->company())]);
+        $this->actingAs(User::factory()->admin()->create());
+        $this->getJson($this->url())->assertOk();
+        $this->getJson($this->url())->assertOk();
+        Http::assertSentCount(2);
+    }
+
     public static function invalidCodes(): array
     {
         return [[''], ['123'], ['0316794479/..'], ['abcdefghij'], ['0316794479-01']];
@@ -78,10 +105,10 @@ class SupplierTaxLookupTest extends TestCase
             'not found' => [['code' => '51', 'data' => null], 200, 404],
             'rate limited' => [[], 429, 503],
             'server error' => [[], 500, 503],
-            'unexpected response' => ['not json', 200, 503],
-            'missing data' => [['code' => '00', 'data' => null], 200, 503],
-            'incomplete company' => [['code' => '00', 'data' => ['id' => '0316794479', 'name' => 'Example']], 200, 503],
-            'wrong company' => [['code' => '00', 'data' => ['id' => '0100000000', 'name' => 'Other', 'address' => 'Other']], 200, 503],
+            'unexpected response' => ['not json', 200, 502],
+            'missing data' => [['code' => '00', 'data' => null], 200, 502],
+            'incomplete company' => [['code' => '00', 'data' => ['id' => '0316794479', 'name' => 'Example']], 200, 502],
+            'wrong company' => [['code' => '00', 'data' => ['id' => '0100000000', 'name' => 'Other', 'address' => 'Other']], 200, 502],
         ];
     }
 
@@ -111,12 +138,15 @@ class SupplierTaxLookupTest extends TestCase
 
     public function test_lookup_is_rate_limited(): void
     {
+        $limit = 2;
+        config(['services.vietqr.business_requests_per_minute' => $limit]);
         Http::fake(['api.vietqr.io/*' => Http::response($this->company())]);
         $this->actingAs(User::factory()->admin()->create());
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < $limit; $i++) {
             $this->getJson($this->url())->assertOk();
         }
         $this->getJson($this->url())->assertStatus(429);
+        $this->actingAs(User::factory()->admin()->create())->getJson($this->url())->assertOk();
         Http::assertSentCount(1);
     }
 }

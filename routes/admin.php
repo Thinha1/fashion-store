@@ -61,20 +61,18 @@ Route::prefix('admin')
             ->delete('danh-muc/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
         // Supplier
-        Route::middleware(['permission:suppliers.manage', 'throttle:10,1'])
-            ->get('nha-cong-cap/tra-cuu-ma-so-thue', SupplierTaxLookupController::class)->name('suppliers.tax-lookup');
-        Route::middleware('permission:suppliers.manage')
-            ->get('nha-cong-cap', [SupplierController::class, 'index'])->name('suppliers.index');
-        Route::middleware('permission:suppliers.manage')
-            ->get('nha-cong-cap/tao-moi', [SupplierController::class, 'create'])->name('suppliers.create');
-        Route::middleware('permission:suppliers.manage')
-            ->post('nha-cong-cap', [SupplierController::class, 'store'])->name('suppliers.store');
-        Route::middleware('permission:suppliers.manage')
-            ->get('nha-cong-cap/{supplier}/sua', [SupplierController::class, 'edit'])->name('suppliers.edit');
-        Route::middleware('permission:suppliers.manage')
-            ->put('nha-cong-cap/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
-        Route::middleware('permission:suppliers.manage')
-            ->delete('nha-cong-cap/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+        Route::prefix('nha-cong-cap')->name('suppliers.')
+            ->middleware('permission:suppliers.manage')
+            ->group(function (): void {
+                Route::get('tra-cuu-ma-so-thue', SupplierTaxLookupController::class)
+                    ->middleware('throttle:supplier-tax-lookup')->name('tax-lookup');
+                Route::get('/', [SupplierController::class, 'index'])->name('index');
+                Route::get('tao-moi', [SupplierController::class, 'create'])->name('create');
+                Route::post('/', [SupplierController::class, 'store'])->name('store');
+                Route::get('{supplier}/sua', [SupplierController::class, 'edit'])->name('edit');
+                Route::put('{supplier}', [SupplierController::class, 'update'])->name('update');
+                Route::delete('{supplier}', [SupplierController::class, 'destroy'])->name('destroy');
+            });
 
         // Product (with variants + images)
         Route::middleware('permission:products.manage')
