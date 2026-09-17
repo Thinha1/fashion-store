@@ -30,12 +30,17 @@ export default (initial, lookupUrl) => ({
             if (requestId !== this.requestId) return;
             if (!response.ok) {
                 this.error = response.status === 429 ? 'Bạn tra cứu quá nhanh. Vui lòng thử lại sau một phút.'
-                    : payload.message || 'Chưa thể tra cứu. Bạn vẫn có thể nhập thông tin thủ công.';
+                    : payload?.message || 'Chưa thể tra cứu. Bạn vẫn có thể nhập thông tin thủ công.';
                 return;
             }
-            this.name = payload.data.name;
-            this.address = payload.data.address;
-            this.taxCode = payload.data.tax_code;
+            const company = payload?.data;
+            if (!company || !['name', 'address', 'tax_code'].every(key => typeof company[key] === 'string' && company[key].trim())) {
+                this.error = 'Kết quả tra cứu chưa đầy đủ. Vui lòng nhập thông tin thủ công.';
+                return;
+            }
+            this.name = company.name;
+            this.address = company.address;
+            this.taxCode = company.tax_code;
             this.message = 'Đã điền tên và địa chỉ.';
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được dịch vụ tra cứu. Bạn vẫn có thể nhập thông tin thủ công.';

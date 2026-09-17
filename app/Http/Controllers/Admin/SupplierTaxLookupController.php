@@ -38,14 +38,20 @@ class SupplierTaxLookupController extends Controller
             abort(503, self::UNAVAILABLE);
         }
 
-        abort_if($response->status() === 429, 503, 'Dịch vụ tra cứu đang quá tải. Vui lòng thử lại sau.');
+        if ($response->status() === 429) {
+            $retryAfter = $response->header('Retry-After');
+            abort(503, 'Dịch vụ tra cứu đang quá tải. Vui lòng thử lại sau.', [
+                'Retry-After' => ctype_digit($retryAfter) ? (string) min(3600, max(1, (int) $retryAfter)) : '60',
+            ]);
+        }
         abort_if($response->json('code') === '51', 404, 'Không tìm thấy doanh nghiệp với mã số thuế này. Bạn vẫn có thể nhập thông tin thủ công.');
         abort_unless($response->successful() && $response->json('code') === '00', 503, self::UNAVAILABLE);
 
         $data = $response->json('data');
         abort_unless(is_array($data), 503, self::UNAVAILABLE);
         foreach (['id', 'name', 'address'] as $field) {
-            abort_unless(isset($data[$field]) && is_string($data[$field]) && trim($data[$field]) !== '', 503, self::UNAVAILABLE);
+            abort_unless(isset($data[$field]) && is_string($data[$field]) && trim($data[$field]) !== '', 503,
+                'Dữ liệu doanh nghiệp chưa đầy đủ. Vui lòng nhập tên và địa chỉ thủ công.');
         }
         abort_unless(str_replace('-', '', $data['id']) === str_replace('-', '', $taxCode), 503, self::UNAVAILABLE);
 

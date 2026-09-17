@@ -6,7 +6,11 @@ Tra cứu mã số thuế nhà cung cấp (gọi VietQR thật với mã mẫu `
 powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/Browser/supplier-tax-lookup.cjs
 ```
 
-API doanh nghiệp: [tài liệu VietQR](https://www.vietqr.io/en/business/%3AtaxCode/). Ứng dụng gọi API ở server, timeout 8 giây, cache thành công 1 giờ và giới hạn 10 lượt/phút/người dùng. API cung cấp tên, địa chỉ; không tự điền điện thoại hay email. Kiểm thử PHP dùng HTTP fake để kiểm tra cả trường hợp API lỗi, không tìm thấy, thiếu dữ liệu và giới hạn lượt gọi.
+- API doanh nghiệp: [tài liệu VietQR](https://www.vietqr.io/en/business/%3AtaxCode/).
+- Ứng dụng gọi API ở server, timeout 8 giây, cache thành công 1 giờ và giới hạn 10 lượt/phút/người dùng.
+- Một lần bấm Tra cứu tự điền tên và địa chỉ; điện thoại và email vẫn nhập riêng.
+- Kiểm thử PHP dùng HTTP fake để kiểm tra lỗi API, không tìm thấy, thiếu dữ liệu và giới hạn lượt gọi.
+- Đặt `ADMIN_TEST_ARTIFACTS` khi chạy trực tiếp để đổi nơi lưu ảnh kiểm thử; `ADMIN_TEST_HEADLESS=false` mở cửa sổ Chromium khi debug local.
 
 `admin-interface.cjs` chạy Chromium qua Puppeteer, kiểm tra các trang quản trị ở desktop và mobile: độ tương phản nút, đường dẫn sửa, sắp xếp, dialog, chọn nhiều ảnh, báo lỗi biểu mẫu và sidebar. Ảnh chụp được lưu trong `.admin-qa/` (không đưa vào Git).
 

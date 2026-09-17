@@ -17,7 +17,7 @@
         <x-label for="tax_code">Mã số thuế (tùy chọn)</x-label>
         <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
             <x-input id="tax_code" name="tax_code" value="{{ old('tax_code', $supplier->tax_code) }}" x-model="taxCode"
-                x-on:input="resetLookup()" x-on:keydown.enter.prevent="lookup()" aria-describedby="tax-lookup-hint" class="mt-1 min-w-0 flex-1" />
+                x-on:input="resetLookup()" x-on:keydown.enter.prevent="lookup()" class="mt-1 min-w-0 flex-1" />
             <button type="button" x-cloak x-on:click="lookup()" x-bind:disabled="loading"
                     class="admin-action admin-action-secondary mt-1" id="tax-lookup-button">
                 <x-icon name="search" /><span x-text="loading ? 'Đang tra cứu…' : 'Tra cứu'">Tra cứu</span>

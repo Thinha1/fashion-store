@@ -1,10 +1,11 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const puppeteer = require(process.env.PUPPETEER_MODULE || 'puppeteer');
 const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
 
 (async () => {
-    const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: process.env.ADMIN_TEST_HEADLESS !== 'false', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
     try {
         const page = await browser.newPage();
         const errors = [];
@@ -49,8 +50,9 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await page.setViewport({ width: 390, height: 844 });
         await page.waitForFunction(() => document.querySelector('#admin-navigation').getBoundingClientRect().right <= 1);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-        fs.mkdirSync('.admin-qa', { recursive: true });
-        await page.screenshot({ path: '.admin-qa/supplier-tax-mobile.png', fullPage: true });
+        const artifacts = process.env.ADMIN_TEST_ARTIFACTS || '.admin-qa';
+        fs.mkdirSync(artifacts, { recursive: true });
+        await page.screenshot({ path: path.join(artifacts, 'supplier-tax-mobile.png'), fullPage: true });
 
         await page.setJavaScriptEnabled(false);
         await page.goto(base + '/admin/nha-cong-cap/tao-moi', { waitUntil: 'networkidle0' });

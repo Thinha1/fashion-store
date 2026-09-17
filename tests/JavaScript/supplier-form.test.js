@@ -44,7 +44,24 @@ test('provider and network failures keep manual entries intact', async t => {
     assert.strictEqual(form.name, 'Giữ lại');
     t.mock.method(globalThis, 'fetch', async () => { throw new Error('offline'); });
     await form.lookup();
-    assert.ok(form.error.includes('Không kết nối'));
+    assert.strictEqual(form.error, 'Không kết nối được dịch vụ tra cứu. Bạn vẫn có thể nhập thông tin thủ công.');
     assert.strictEqual(form.name, 'Giữ lại');
     assert.strictEqual(form.loading, false);
+});
+
+test('malformed JSON and incomplete success responses never erase form fields', async t => {
+    const form = supplierForm({ taxCode: company.tax_code, name: 'Giữ tên', address: 'Giữ địa chỉ' }, '/lookup');
+    const malformedResponses = [
+        { ok: false, json: async () => { throw new SyntaxError('HTML response'); } },
+        { ok: true, json: async () => ({}) },
+        { ok: true, json: async () => ({ data: { name: 'Thiếu địa chỉ' } }) },
+    ];
+    for (const malformed of malformedResponses) {
+        t.mock.method(globalThis, 'fetch', async () => malformed);
+        await form.lookup();
+        assert.strictEqual(form.name, 'Giữ tên');
+        assert.strictEqual(form.address, 'Giữ địa chỉ');
+        assert.ok(form.error);
+        assert.strictEqual(form.loading, false);
+    }
 });

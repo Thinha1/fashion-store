@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -16,7 +15,6 @@ class SupplierTaxLookupTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Cache::flush();
         Http::preventStrayRequests();
     }
 
@@ -102,6 +100,13 @@ class SupplierTaxLookupTest extends TestCase
         Http::fake(['api.vietqr.io/*' => Http::failedConnection()]);
         $this->actingAs(User::factory()->admin()->create())->getJson($this->url())->assertStatus(503)
             ->assertJsonPath('message', 'Chưa thể tra cứu mã số thuế. Vui lòng thử lại sau hoặc nhập thông tin thủ công.');
+    }
+
+    public function test_provider_throttling_returns_a_retry_after_header(): void
+    {
+        Http::fake(['api.vietqr.io/*' => Http::response([], 429, ['Retry-After' => '120'])]);
+        $this->actingAs(User::factory()->admin()->create())->getJson($this->url())
+            ->assertStatus(503)->assertHeader('Retry-After', '120');
     }
 
     public function test_lookup_is_rate_limited(): void
