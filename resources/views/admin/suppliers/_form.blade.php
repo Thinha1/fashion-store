@@ -48,7 +48,7 @@
     </div>
 
     <div>
-        <x-label for="address">Địa chỉ</x-label>
+        <label for="address" class="block text-sm font-medium text-gray-700">Địa chỉ</label>
         <textarea id="address" name="address" rows="2" required x-model="address"
                   class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">{{ old('address', $supplier->address) }}</textarea>
         <x-input-error :messages="$errors->get('address')" />
