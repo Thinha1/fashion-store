@@ -17,6 +17,14 @@ powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/
 
 Kiểm thử gallery thay bộ ảnh ngay trong trang bằng dữ liệu mẫu, không sửa sản phẩm trong cơ sở dữ liệu. Các kiểm thử PHPUnit trong `ProductVariantImageTest` kiểm tra việc lưu/xóa file trên S3 giả lập và liên kết ảnh với biến thể. Logic chọn size/màu cũng được kiểm thử bằng `node --test tests/JavaScript/*.test.js` trong CI.
 
+Kiểm tra component nhập tiền dùng chung: tự ngăn cách mỗi 3 chữ số, giữ giá đã lưu, dán/sửa/xóa số, phần thập phân, giá trị thực gửi lên form, dòng mới và phục hồi sau lỗi:
+
+```powershell
+powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/Browser/currency-input.cjs
+```
+
+Component `<x-currency-input id="price" name="price" :value="old('price', $price)" />` hiển thị `1.234.567,89` nhưng gửi `1234567.89`. Mặc định có đơn vị `₫`; để trống vẫn gửi chuỗi rỗng, phù hợp với giá biến thể dùng giá cơ bản khi chưa nhập.
+
 Script PowerShell sử dụng Chromium/Puppeteer từ image Mermaid CLI, tạm chuyển sang asset đã build và khôi phục `public/hot` khi kết thúc. Không chạy đồng thời với lệnh dọn cache view hoặc khởi động lại Vite. Các lệnh PHPUnit trong Docker nên dùng `--user www-data` để cache Blade có cùng quyền với web.
 
 Script không xác nhận xóa dữ liệu thật. Phần kiểm tra xác nhận chặn việc gửi form ngay trong trang; lần gửi form sản phẩm dùng dữ liệu thiếu trường bắt buộc để kiểm tra thông báo lỗi. Chỉ dùng với môi trường kiểm thử.

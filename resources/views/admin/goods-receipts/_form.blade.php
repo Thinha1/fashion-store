@@ -67,8 +67,8 @@
                     </div>
                     <div>
                         <label for="item-{{ $rowIndex }}-cost_price" class="block text-sm font-medium text-gray-700">Giá nhập (VNĐ)</label>
-                        <input type="number" id="item-{{ $rowIndex }}-cost_price" name="items[{{ $rowIndex }}][cost_price]" value="{{ old('items.'.$rowIndex.'.cost_price', $item->cost_price ?? 0) }}" min="0" step="0.01" required
-                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        <x-currency-input :id="'item-'.$rowIndex.'-cost_price'" :name="'items['.$rowIndex.'][cost_price]'"
+                            :value="old('items.'.$rowIndex.'.cost_price', $item->cost_price ?? 0)" required class="mt-1" />
                         <x-input-error :messages="$errors->get('items.'.$rowIndex.'.cost_price')" />
                     </div>
                     <div>
@@ -104,8 +104,7 @@
                 </div>
                 <div>
                     <label for="item-__INDEX__-cost_price" class="block text-sm font-medium text-gray-700">Giá nhập (VNĐ)</label>
-                    <input type="number" id="item-__INDEX__-cost_price" name="items[__INDEX__][cost_price]" value="0" min="0" step="0.01" required
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                    <x-currency-input id="item-__INDEX__-cost_price" name="items[__INDEX__][cost_price]" value="0" required class="mt-1" />
                 </div>
                 <div>
                     <p class="block text-sm font-medium text-gray-700">Thành tiền</p>
