@@ -21,6 +21,17 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
             return response;
         };
         const values = name => page.$eval('.admin-form', (form, field) => new FormData(form).getAll(field), name);
+        const discountUnit = () => page.$eval('#discount_value', input => input.closest('.currency-input').querySelector('span').textContent);
+        async function checkCurrencySpacing() {
+            const fields = await page.$$eval('.currency-input input[type="text"]', inputs => inputs.map(input => ({
+                id: input.id,
+                padding: Number.parseFloat(getComputedStyle(input).paddingRight),
+                requiredSpace: input.closest('.currency-input').querySelector('span').getBoundingClientRect().width + 12,
+            })));
+            for (const field of fields) {
+                assert.ok(field.padding > field.requiredSpace, field.id + ': currency suffix overlaps text');
+            }
+        }
         async function clear(selector) {
             await page.focus(selector);
             await page.keyboard.down('Control');
@@ -66,7 +77,12 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         assert.equal(await page.$eval('#base_price', input => input.value), '9.123.456');
         assert.ok(await page.$eval('#base_price', input => input.selectionStart < input.value.length), 'Caret jumped to the end');
         await enter('#base_price', '1234567,89', '1.234.567,89', 'base_price', '1234567.89');
+        await enter('#base_price', '1234,56', '1.234,56', 'base_price', '1234.56');
         // sendCharacter follows the browser's paste-like input path, not just key presses.
+        await clear('#base_price');
+        await page.keyboard.sendCharacter('1.234,56');
+        assert.equal(await page.$eval('#base_price', input => input.value), '1.234,56');
+        assert.deepEqual(await values('base_price'), ['1234.56']);
         await clear('#base_price');
         await page.keyboard.sendCharacter('2.500.000');
         assert.equal(await page.$eval('#base_price', input => input.value), '2.500.000');
@@ -83,6 +99,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await clear('#variant-new-1-price');
         assert.deepEqual(await values('variants[new-1][price]'), ['']);
         assert.equal(await page.$eval('#variant-new-1-price', input => input.checkValidity()), true);
+        await checkCurrencySpacing();
         // Missing product name/category/SKUs guarantees no product can be saved.
         await page.$eval('.admin-form', form => { form.noValidate = true; });
         await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.click('.admin-form-actions button[type=submit]')]);
@@ -100,20 +117,38 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         assert.deepEqual(await values('items[0][cost_price]'), []);
         await page.click('#add-item-row');
         await enter('#item-2-cost_price', '120000', '120.000', 'items[2][cost_price]', '120000');
+        await checkCurrencySpacing();
 
         await visit('/admin/giam-gia/tao-moi');
         await enter('#discount_value', '12,5', '12,5', 'discount_value', '12.5');
-        assert.equal(await page.$eval('#discount_value', input => input.closest('.currency-input').querySelector('span').textContent), '%');
+        assert.equal(await discountUnit(), '%');
         await page.select('#discount_type', 'fixed');
         await enter('#discount_value', '150000', '150.000', 'discount_value', '150000');
-        assert.equal(await page.$eval('#discount_value', input => input.closest('.currency-input').querySelector('span').textContent), '₫');
+        assert.equal(await discountUnit(), '₫');
         await enter('#max_discount_amount', '2500000', '2.500.000', 'max_discount_amount', '2500000');
         await page.setViewport({ width: 390, height: 844 });
         await page.waitForFunction(() => document.querySelector('#admin-navigation').getBoundingClientRect().right <= 1);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile overflow');
+        await checkCurrencySpacing();
         await page.screenshot({ path: '.admin-qa/currency-input-mobile.png', fullPage: true });
 
+        // Missing variant and dates guarantees no discount can be saved.
+        await page.$eval('.admin-form', form => { form.noValidate = true; });
+        await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.click('.admin-form-actions button[type=submit]')]);
+        assert.ok(await page.$('.admin-form-errors'));
+        assert.equal(await page.$eval('#discount_type', select => select.value), 'fixed');
+        assert.equal(await discountUnit(), '₫');
+        assert.deepEqual(await values('discount_value'), ['150000']);
         await page.setJavaScriptEnabled(false);
+        await page.$eval('.admin-form', form => { form.noValidate = true; });
+        await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.click('.admin-form-actions button[type=submit]')]);
+        assert.ok(await page.$('.admin-form-errors'));
+        assert.equal(await page.$eval('#discount_type', select => select.value), 'fixed');
+        assert.equal(await discountUnit(), '₫', 'No-JavaScript fallback has the wrong saved unit');
+        assert.deepEqual(await values('discount_value'), ['150000']);
+        await visit('/admin/giam-gia/tao-moi');
+        assert.equal(await discountUnit(), '%', 'No-JavaScript fallback has the wrong default unit');
+
         await visit('/admin/san-pham/tao-moi');
         await clear('#base_price');
         await page.type('#base_price', '1234567.89');

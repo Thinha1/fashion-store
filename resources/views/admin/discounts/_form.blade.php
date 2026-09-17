@@ -1,10 +1,11 @@
 @php($route = $route ?? route('admin.discounts.store'))
 @php($method = $method ?? 'POST')
+@php($discountType = old('discount_type', $discount->discount_type ?? 'percent'))
 
 <x-admin.form-errors :messages="$errors->all()" />
 
 <form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5"
-      x-data="{ discountType: {{ Js::from(old('discount_type', $discount->discount_type ?? 'percent')) }} }">
+      x-data="{ discountType: {{ Js::from($discountType) }} }">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -31,8 +32,8 @@
             <label for="discount_type" class="block text-sm font-medium text-gray-700">Loại giảm giá</label>
             <select id="discount_type" name="discount_type" required x-model="discountType"
                     class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                <option value="percent" @selected(old('discount_type', $discount->discount_type) === 'percent')>Phần trăm</option>
-                <option value="fixed" @selected(old('discount_type', $discount->discount_type) === 'fixed')>Cố định (VNĐ)</option>
+                <option value="percent" @selected($discountType === 'percent')>Phần trăm</option>
+                <option value="fixed" @selected($discountType === 'fixed')>Cố định (VNĐ)</option>
             </select>
             <x-input-error :messages="$errors->get('discount_type')" />
         </div>
@@ -40,7 +41,7 @@
         <div>
             <x-label for="discount_value">Giá trị</x-label>
             <x-currency-input id="discount_value" name="discount_value" :value="old('discount_value', $discount->discount_value)"
-                :unit="old('discount_type', $discount->discount_type ?? 'percent') === 'percent' ? '%' : '₫'"
+                :unit="$discountType === 'percent' ? '%' : '₫'"
                 unit-expression="discountType === 'percent' ? '%' : '₫'" required class="mt-1" />
             <x-input-error :messages="$errors->get('discount_value')" />
         </div>

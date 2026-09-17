@@ -23,7 +23,11 @@ Kiểm tra component nhập tiền dùng chung: tự ngăn cách mỗi 3 chữ s
 powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/Browser/currency-input.cjs
 ```
 
-Component `<x-currency-input id="price" name="price" :value="old('price', $price)" />` hiển thị `1.234.567,89` nhưng gửi `1234567.89`. Mặc định có đơn vị `₫`; để trống vẫn gửi chuỗi rỗng, phù hợp với giá biến thể dùng giá cơ bản khi chưa nhập.
+Sử dụng component `<x-currency-input id="price" name="price" :value="old('price', $price)" />`:
+
+- Hiển thị `1.234.567,89` nhưng gửi `1234567.89`.
+- Mặc định có đơn vị `₫`.
+- Để trống vẫn gửi chuỗi rỗng, phù hợp với giá biến thể dùng giá cơ bản khi chưa nhập.
 
 Script PowerShell sử dụng Chromium/Puppeteer từ image Mermaid CLI, tạm chuyển sang asset đã build và khôi phục `public/hot` khi kết thúc. Không chạy đồng thời với lệnh dọn cache view hoặc khởi động lại Vite. Các lệnh PHPUnit trong Docker nên dùng `--user www-data` để cache Blade có cùng quyền với web.
 
