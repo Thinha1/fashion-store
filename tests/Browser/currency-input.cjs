@@ -126,6 +126,9 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await visit('/admin/nhap-hang/tao-moi');
         await page.click('#add-item-row');
         await page.click('#add-item-row');
+        await clear('#item-0-cost_price');
+        assert.equal(await page.$eval('#item-0-cost_price', input => input.validity.valueMissing), true);
+        assert.deepEqual(await values('items[0][cost_price]'), ['']);
         await enter('#item-0-cost_price', '1000000', '1.000.000', 'items[0][cost_price]', '1000000');
         await enter('#item-1-cost_price', '250000,25', '250.000,25', 'items[1][cost_price]', '250000.25');
         await page.click('[data-remove-item]');
@@ -169,7 +172,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await page.type('#base_price', '1234567.89');
         assert.deepEqual(await values('base_price'), ['1234567.89'], 'No-JavaScript fallback submits duplicate or stale values');
         checkBrowserErrors();
-        console.log(JSON.stringify({ result: 'PASS', checks: 'initial saved price, each 3 digits, paste, caret, backspace, decimals, zero/empty, canonical FormData, dynamic rows, validation recovery, percentage unit, mobile, no-JS' }));
+        console.log(JSON.stringify({ suite: 'currency-input', result: 'PASS' }));
     } finally {
         await browser.close();
     }

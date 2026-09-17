@@ -1,11 +1,12 @@
 @php($route = $route ?? route('admin.discounts.store'))
 @php($method = $method ?? 'POST')
 @php($discountType = old('discount_type', $discount->discount_type ?? 'percent'))
+@php($discountUnits = ['percent' => '%', 'fixed' => '₫'])
 
 <x-admin.form-errors :messages="$errors->all()" />
 
 <form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5"
-      x-data="{ discountType: {{ Js::from($discountType) }} }">
+      x-data="{ discountType: {{ Js::from($discountType) }}, discountUnits: {{ Js::from($discountUnits) }} }">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -41,8 +42,8 @@
         <div>
             <x-label for="discount_value">Giá trị</x-label>
             <x-currency-input id="discount_value" name="discount_value" :value="old('discount_value', $discount->discount_value)"
-                :unit="$discountType === 'percent' ? '%' : '₫'"
-                unit-expression="discountType === 'percent' ? '%' : '₫'" required class="mt-1" />
+                :unit="$discountUnits[$discountType] ?? ''"
+                unit-expression="discountUnits[discountType] ?? ''" required class="mt-1" />
             <x-input-error :messages="$errors->get('discount_value')" />
         </div>
     </div>

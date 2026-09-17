@@ -17,7 +17,12 @@ powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/
 
 Kiểm thử gallery thay bộ ảnh ngay trong trang bằng dữ liệu mẫu, không sửa sản phẩm trong cơ sở dữ liệu. Các kiểm thử PHPUnit trong `ProductVariantImageTest` kiểm tra việc lưu/xóa file trên S3 giả lập và liên kết ảnh với biến thể. Logic chọn size/màu cũng được kiểm thử bằng `node --test tests/JavaScript/*.test.js` trong CI.
 
-Kiểm tra component nhập tiền dùng chung: tự ngăn cách mỗi 3 chữ số, giữ giá đã lưu, dán/sửa/xóa số, phần thập phân, giá trị thực gửi lên form, dòng mới và phục hồi sau lỗi:
+Kiểm tra component nhập tiền dùng chung:
+
+- Tự ngăn cách mỗi 3 chữ số; giữ nguyên giá đã lưu và phần thập phân.
+- Gõ, dán, sửa, xóa số và kiểm tra giá trị gửi lên form.
+- Thêm dòng, kiểm tra trường bắt buộc và phục hồi sau lỗi.
+- Gửi form khi JavaScript chưa tải hoặc bị tắt.
 
 ```powershell
 powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/Browser/currency-input.cjs

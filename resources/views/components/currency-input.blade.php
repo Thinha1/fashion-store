@@ -8,12 +8,13 @@
         : $rawValue;
 @endphp
 
-{{-- Keep the named, unformatted input usable without JavaScript. Alpine switches
-     submission to the hidden canonical value and formats only the visible field. --}}
-<div class="currency-input relative" x-data="{ display: {{ Js::from($displayValue) }} }">
+{{-- Without JavaScript, only the visible raw input has a name. Once Alpine starts,
+     transfer that name synchronously to the canonical input: exactly one value is submitted. --}}
+<div class="currency-input relative" x-data="{ display: {{ Js::from($displayValue) }} }"
+     x-init="$refs.canonical.name = $refs.display.name; $refs.display.removeAttribute('name')">
     <input type="text"
            id="{{ $id }}"
-           name="{{ $name }}" x-bind:name="null"
+           name="{{ $name }}" x-ref="display"
            value="{{ $rawValue }}"
            inputmode="decimal"
            autocomplete="off"
@@ -21,11 +22,11 @@
            x-model="display"
            x-mask:dynamic="$money($input, ',', '.', 2)"
            pattern="[0-9.,]+"
-           @if ($required) required @endif
+           @required($required)
            {{ $attributes->merge(['class' => 'field pr-10 tabular-nums']) }}
     >
     <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-gray-400" aria-hidden="true"
           @if ($unitExpression) x-text="{{ $unitExpression }}" @endif>{{ $unit }}</span>
-    <input type="hidden" name="{{ $name }}" value="{{ $rawValue }}" disabled x-bind:disabled="false"
+    <input type="hidden" x-ref="canonical" value="{{ $rawValue }}"
            :value="display.toString().replaceAll('.', '').replace(',', '.')">
 </div>
