@@ -30,7 +30,17 @@ class GoodsReceiptTest extends TestCase
         ]);
         $response = $this->actingAs($this->admin())->get(route('admin.goods-receipts.edit', $receipt))->assertOk();
         $document = new \DOMDocument;
-        @$document->loadHTML('<?xml encoding="UTF-8">'.$response->getContent());
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $this->assertTrue($document->loadHTML('<?xml encoding="UTF-8">'.$response->getContent()));
+            foreach (libxml_get_errors() as $error) {
+                // HTML4 parsing recovers from HTML5/Alpine markup; fatal parse errors must fail the test.
+                $this->assertLessThan(LIBXML_ERR_FATAL, $error->level, $error->message);
+            }
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
         $xpath = new \DOMXPath($document);
         $inputs = $xpath->query('//input[@type="text" and contains(@name, "[cost_price]")]');
 

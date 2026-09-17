@@ -10,8 +10,8 @@
 
 {{-- Without JavaScript, only the visible raw input has a name. Once Alpine starts,
      transfer that name synchronously to the canonical input: exactly one value is submitted. --}}
-<div class="currency-input relative" x-data="{ display: {{ Js::from($displayValue) }} }"
-     x-init="$refs.canonical.name = $refs.display.name; $refs.display.removeAttribute('name')">
+<div class="currency-input relative" x-data="currencyInput({{ Js::from($displayValue) }})"
+     x-effect="$refs.display.setCustomValidity(valid ? '' : 'Số tiền không hợp lệ.')">
     <input type="text"
            id="{{ $id }}"
            name="{{ $name }}" x-ref="display"
@@ -28,5 +28,5 @@
     <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-gray-400" aria-hidden="true"
           @if ($unitExpression) x-text="{{ $unitExpression }}" @endif>{{ $unit }}</span>
     <input type="hidden" x-ref="canonical" value="{{ $rawValue }}"
-           :value="display.toString().replaceAll('.', '').replace(',', '.')">
+           :value="canonicalValue">
 </div>

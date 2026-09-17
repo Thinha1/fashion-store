@@ -26,7 +26,7 @@ class CurrencyInputTest extends TestCase
     {
         $html = Blade::render('<x-currency-input id="price" name="price" :value="$value" :required="$required" class="mt-1" />', compact('value', 'required'));
         $document = new DOMDocument;
-        @$document->loadHTML($html);
+        $document->loadHTML($html);
         $xpath = new DOMXPath($document);
         $input = $xpath->query('//input[@id="price"]')->item(0);
 
