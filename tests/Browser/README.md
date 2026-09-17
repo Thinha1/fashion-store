@@ -1,5 +1,13 @@
 # Kiểm thử giao diện admin
 
+Tra cứu mã số thuế nhà cung cấp (gọi VietQR thật với mã mẫu `0316794479`, chỉ điền form, không lưu dữ liệu):
+
+```powershell
+powershell -NoProfile -File tests/Browser/run-admin-interface.ps1 -Script tests/Browser/supplier-tax-lookup.cjs
+```
+
+API doanh nghiệp: [tài liệu VietQR](https://www.vietqr.io/en/business/%3AtaxCode/). Ứng dụng gọi API ở server, timeout 8 giây, cache thành công 1 giờ và giới hạn 10 lượt/phút/người dùng. API cung cấp tên, địa chỉ; không tự điền điện thoại hay email. Kiểm thử PHP dùng HTTP fake để kiểm tra cả trường hợp API lỗi, không tìm thấy, thiếu dữ liệu và giới hạn lượt gọi.
+
 `admin-interface.cjs` chạy Chromium qua Puppeteer, kiểm tra các trang quản trị ở desktop và mobile: độ tương phản nút, đường dẫn sửa, sắp xếp, dialog, chọn nhiều ảnh, báo lỗi biểu mẫu và sidebar. Ảnh chụp được lưu trong `.admin-qa/` (không đưa vào Git).
 
 Chạy trên ứng dụng local đã có tài khoản và dữ liệu demo, với Docker Compose đang hoạt động:

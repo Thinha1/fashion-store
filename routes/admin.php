@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\SupplierTaxLookupController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -60,6 +61,8 @@ Route::prefix('admin')
             ->delete('danh-muc/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
         // Supplier
+        Route::middleware(['permission:suppliers.manage', 'throttle:10,1'])
+            ->get('nha-cong-cap/tra-cuu-ma-so-thue', SupplierTaxLookupController::class)->name('suppliers.tax-lookup');
         Route::middleware('permission:suppliers.manage')
             ->get('nha-cong-cap', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::middleware('permission:suppliers.manage')

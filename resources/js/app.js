@@ -7,6 +7,7 @@ import imageUpload from './image-upload';
 import productForm from './product-form';
 import productDetail from './product-detail';
 import currencyInput from './currency-input';
+import supplierForm from './supplier-form';
 
 window.Alpine = Alpine;
 
@@ -18,6 +19,7 @@ Alpine.data('imageUpload', imageUpload);
 Alpine.data('productForm', productForm);
 Alpine.data('productDetail', productDetail);
 Alpine.data('currencyInput', currencyInput);
+Alpine.data('supplierForm', supplierForm);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,
