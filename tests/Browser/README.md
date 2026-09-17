@@ -40,3 +40,5 @@ ADMIN_TEST_URL=http://localhost:8080 node tests/Browser/admin-interface.cjs
 ```
 
 Các biến tùy chọn: `ADMIN_TEST_EMAIL`, `ADMIN_TEST_PASSWORD`, `CHROMIUM_PATH`, `PUPPETEER_MODULE`, `ADMIN_TEST_ARTIFACTS`. Mặc định dùng tài khoản demo `admin@example.com` / `password`. `ADMIN_TEST_IMAGE_ORIGIN` dùng để ánh xạ URL MinIO khi trình duyệt chạy trong Docker.
+
+Với `currency-input.cjs` chạy trực tiếp trên máy có giao diện đồ họa, đặt `ADMIN_TEST_HEADLESS=false` để mở cửa sổ Chromium khi debug. Runner Docker vẫn dùng chế độ headless.

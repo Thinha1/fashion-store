@@ -5,12 +5,20 @@ const puppeteer = require(process.env.PUPPETEER_MODULE || 'puppeteer');
 const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
 
 (async () => {
-    const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    const browser = await puppeteer.launch({
+        executablePath: process.env.CHROMIUM_PATH,
+        headless: process.env.ADMIN_TEST_HEADLESS !== 'false',
+        args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    });
     try {
         fs.mkdirSync('.admin-qa', { recursive: true });
         const page = await browser.newPage();
         const errors = [];
-        page.on('pageerror', error => errors.push(error.message));
+        page.on('pageerror', error => {
+            errors.push(error.message);
+            console.error(error.stack);
+        });
+        const checkBrowserErrors = () => assert.deepEqual(errors, [], 'Browser errors');
         if (process.env.ADMIN_TEST_IMAGE_ORIGIN) {
             await page.setRequestInterception(true);
             page.on('request', request => request.continue({ url: request.url().replace('http://localhost:9000', process.env.ADMIN_TEST_IMAGE_ORIGIN) }));
@@ -18,11 +26,13 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         const visit = async url => {
             const response = await page.goto(url.startsWith('http') ? url : base + url, { waitUntil: 'networkidle0' });
             assert.equal(response.status(), 200, url);
+            checkBrowserErrors();
             return response;
         };
         const values = name => page.$eval('.admin-form', (form, field) => new FormData(form).getAll(field), name);
         const discountUnit = () => page.$eval('#discount_value', input => input.closest('.currency-input').querySelector('span').textContent);
         async function checkCurrencySpacing() {
+            checkBrowserErrors();
             const fields = await page.$$eval('.currency-input input[type="text"]', inputs => inputs.map(input => ({
                 id: input.id,
                 padding: Number.parseFloat(getComputedStyle(input).paddingRight),
@@ -44,6 +54,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
             await page.type(selector, text);
             await page.waitForFunction((field, value) => document.querySelector(field).value === value, {}, selector, expected);
             assert.deepEqual(await values(name), [raw], name + ': wrong submitted value');
+            checkBrowserErrors();
         }
         await page.setViewport({ width: 1440, height: 1000 });
         await visit('/dang-nhap');
@@ -83,6 +94,10 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await page.keyboard.sendCharacter('1.234,56');
         assert.equal(await page.$eval('#base_price', input => input.value), '1.234,56');
         assert.deepEqual(await values('base_price'), ['1234.56']);
+        await clear('#base_price');
+        await page.keyboard.sendCharacter('abc1.234,56xyz');
+        assert.equal(await page.$eval('#base_price', input => input.value), '1.234,56');
+        assert.deepEqual(await values('base_price'), ['1234.56'], 'Mask did not discard nonnumeric characters');
         await clear('#base_price');
         await page.keyboard.sendCharacter('2.500.000');
         assert.equal(await page.$eval('#base_price', input => input.value), '2.500.000');
@@ -153,7 +168,7 @@ const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
         await clear('#base_price');
         await page.type('#base_price', '1234567.89');
         assert.deepEqual(await values('base_price'), ['1234567.89'], 'No-JavaScript fallback submits duplicate or stale values');
-        assert.deepEqual(errors, [], 'Browser errors');
+        checkBrowserErrors();
         console.log(JSON.stringify({ result: 'PASS', checks: 'initial saved price, each 3 digits, paste, caret, backspace, decimals, zero/empty, canonical FormData, dynamic rows, validation recovery, percentage unit, mobile, no-JS' }));
     } finally {
         await browser.close();
