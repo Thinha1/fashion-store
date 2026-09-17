@@ -1,9 +1,9 @@
 @props(['rowKey', 'variant' => [], 'images' => []])
 @php
     $fields = [
-        'color' => ['Màu', 'text', ''],
-        'sku' => ['SKU', 'text', ''], 'price' => ['Giá (VNĐ)', 'number', ''],
-        'stock_quantity' => ['Tồn kho', 'number', 0], 'low_stock_threshold' => ['Cảnh báo tồn', 'number', 5],
+        'color' => ['Màu', 'text', '', true],
+        'sku' => ['SKU', 'text', '', true], 'price' => ['Giá (VNĐ)', 'number', '', false],
+        'stock_quantity' => ['Tồn kho', 'number', 0, true], 'low_stock_threshold' => ['Cảnh báo tồn', 'number', 5, true],
     ];
 @endphp
 <div data-variant-row data-variant-key="{{ $rowKey }}" class="admin-variant-row">
@@ -18,13 +18,18 @@
         </select>
         <x-input-error :messages="$errors->get('variants.'.$rowKey.'.size')" />
     </div>
-    @foreach ($fields as $field => [$label, $type, $default])
+    @foreach ($fields as $field => [$label, $type, $default, $required])
         <div>
             <label for="variant-{{ $rowKey }}-{{ $field }}" class="block text-sm font-medium text-gray-700">{{ $label }}</label>
+            @if ($field === 'price')
+                <x-currency-input :id="'variant-'.$rowKey.'-'.$field" :name="'variants['.$rowKey.']['.$field.']'"
+                    :value="data_get($variant, $field, $default)" :required="$required" class="mt-1" />
+            @else
             <input id="variant-{{ $rowKey }}-{{ $field }}" type="{{ $type }}" name="variants[{{ $rowKey }}][{{ $field }}]"
-                   value="{{ data_get($variant, $field, $default) }}" @required($field !== 'price')
-                   @if ($type === 'number') min="0" step="{{ $field === 'price' ? '0.01' : '1' }}" @endif
+                   value="{{ data_get($variant, $field, $default) }}" @required($required)
+                   @if ($type === 'number') min="0" step="1" @endif
                    class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+            @endif
             <x-input-error :messages="$errors->get('variants.'.$rowKey.'.'.$field)" />
         </div>
     @endforeach

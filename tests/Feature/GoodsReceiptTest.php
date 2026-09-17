@@ -19,6 +19,38 @@ class GoodsReceiptTest extends TestCase
         return User::factory()->admin()->create();
     }
 
+    public function test_existing_and_template_receipt_cost_inputs_are_required(): void
+    {
+        $receipt = GoodsReceipt::factory()->create();
+        $receipt->items()->create([
+            'product_variant_id' => ProductVariant::factory()->create()->id,
+            'quantity' => 2,
+            'cost_price' => 1234.56,
+            'subtotal' => 2469.12,
+        ]);
+        $response = $this->actingAs($this->admin())->get(route('admin.goods-receipts.edit', $receipt))->assertOk();
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $this->assertTrue($document->loadHTML('<?xml encoding="UTF-8">'.$response->getContent()));
+            foreach (libxml_get_errors() as $error) {
+                // HTML4 parsing recovers from HTML5/Alpine markup; fatal parse errors must fail the test.
+                $this->assertLessThan(LIBXML_ERR_FATAL, $error->level, $error->message);
+            }
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+        $xpath = new \DOMXPath($document);
+        $inputs = $xpath->query('//input[@type="text" and contains(@name, "[cost_price]")]');
+
+        $this->assertSame(2, $inputs->length);
+        foreach ($inputs as $input) {
+            $this->assertTrue($input->hasAttribute('required'));
+            $this->assertFalse($input->hasAttribute('disabled'));
+        }
+    }
+
     private function makePayload(array $overrides = []): array
     {
         $supplier = Supplier::factory()->create();

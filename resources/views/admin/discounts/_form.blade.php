@@ -1,9 +1,12 @@
 @php($route = $route ?? route('admin.discounts.store'))
 @php($method = $method ?? 'POST')
+@php($discountType = old('discount_type', $discount->discount_type ?? 'percent'))
+@php($discountUnits = ['percent' => '%', 'fixed' => '₫'])
 
 <x-admin.form-errors :messages="$errors->all()" />
 
-<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5">
+<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5"
+      x-data="{ discountType: {{ Js::from($discountType) }}, discountUnits: {{ Js::from($discountUnits) }} }">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -27,25 +30,27 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <x-label for="discount_type">Loại giảm giá</x-label>
-            <select id="discount_type" name="discount_type" required
+            <label for="discount_type" class="block text-sm font-medium text-gray-700">Loại giảm giá</label>
+            <select id="discount_type" name="discount_type" required x-model="discountType"
                     class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
-                <option value="percent" @selected(old('discount_type', $discount->discount_type) === 'percent')>Phần trăm</option>
-                <option value="fixed" @selected(old('discount_type', $discount->discount_type) === 'fixed')>Cố định (VNĐ)</option>
+                <option value="percent" @selected($discountType === 'percent')>Phần trăm</option>
+                <option value="fixed" @selected($discountType === 'fixed')>Cố định (VNĐ)</option>
             </select>
             <x-input-error :messages="$errors->get('discount_type')" />
         </div>
 
         <div>
             <x-label for="discount_value">Giá trị</x-label>
-            <x-input id="discount_value" type="number" name="discount_value" value="{{ old('discount_value', $discount->discount_value) }}" min="0" step="0.01" required class="mt-1" />
+            <x-currency-input id="discount_value" name="discount_value" :value="old('discount_value', $discount->discount_value)"
+                :unit="$discountUnits[$discountType] ?? ''"
+                unit-expression="discountUnits[discountType] ?? ''" required class="mt-1" />
             <x-input-error :messages="$errors->get('discount_value')" />
         </div>
     </div>
 
     <div>
         <x-label for="max_discount_amount">Giới hạn giá trị giảm (VNĐ, tùy chọn)</x-label>
-        <x-input id="max_discount_amount" type="number" name="max_discount_amount" value="{{ old('max_discount_amount', $discount->max_discount_amount) }}" min="0" step="0.01" class="mt-1" />
+        <x-currency-input id="max_discount_amount" name="max_discount_amount" :value="old('max_discount_amount', $discount->max_discount_amount)" class="mt-1" />
         <x-input-error :messages="$errors->get('max_discount_amount')" />
     </div>
 
