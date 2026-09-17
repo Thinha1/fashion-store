@@ -28,7 +28,7 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <x-label for="discount_type">Loại giảm giá</x-label>
+            <label for="discount_type" class="block text-sm font-medium text-gray-700">Loại giảm giá</label>
             <select id="discount_type" name="discount_type" required x-model="discountType"
                     class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
                 <option value="percent" @selected(old('discount_type', $discount->discount_type) === 'percent')>Phần trăm</option>
