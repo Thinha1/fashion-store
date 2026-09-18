@@ -257,6 +257,23 @@ class ProductAiAssistTest extends TestCase
             ->assertStatus(502);
     }
 
+    public function test_omitting_the_newer_optional_tool_fields_does_not_fail_the_whole_reply(): void
+    {
+        // navigate/set_fields/variant_price/variant_stock were added after the
+        // original "compose a product" fields — a model that simply leaves
+        // them out entirely (rather than an empty "" / []) must still work.
+        $draft = $this->draft();
+        unset($draft['navigate'], $draft['set_fields'], $draft['variant_price'], $draft['variant_stock']);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))
+            ->assertOk()
+            ->assertJsonPath('navigate', null)
+            ->assertJsonPath('data.set_fields', [])
+            ->assertJsonPath('data.variant_price', '')
+            ->assertJsonPath('data.variant_stock', '');
+    }
+
     public function test_non_json_ai_reply_returns_a_bad_gateway_error(): void
     {
         Http::fake(['internal-ai.example.test/*' => Http::response(['choices' => [['message' => ['content' => 'không phải JSON']]]])]);

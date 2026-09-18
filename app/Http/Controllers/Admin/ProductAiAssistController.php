@@ -13,6 +13,8 @@ use App\Services\Ai\ProductDraftPromptBuilder;
 use App\Services\Ai\ProductDraftResponseParser;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class ProductAiAssistController extends Controller
@@ -43,7 +45,15 @@ class ProductAiAssistController extends Controller
 
         try {
             $draft = $responseParser->parse($reply);
-        } catch (InvalidAiResponseException) {
+        } catch (InvalidAiResponseException $exception) {
+            // The raw reply is the only way to diagnose *why* a model
+            // response didn't parse (a genuinely malformed core field vs.
+            // something the prompt should phrase differently) — without
+            // this, a 502 here is a dead end to debug.
+            Log::warning('Product AI assist: reply failed to parse.', [
+                'reason' => $exception->getMessage(),
+                'raw' => Str::limit($reply, 2000),
+            ]);
             abort(502, 'AI trả về nội dung không đúng định dạng. Vui lòng thử lại hoặc diễn đạt lại yêu cầu.');
         }
 
