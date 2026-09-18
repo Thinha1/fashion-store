@@ -46,7 +46,7 @@ class ProductAiAssistTest extends TestCase
             'name' => 'Áo sơ mi trắng', 'description' => 'Chất liệu thoáng mát.',
             'bullets' => ['Form rộng', 'Vải cotton'], 'seo_title' => 'Áo sơ mi trắng nam',
             'price' => '350000', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
-            'category' => '', 'brand' => '', 'variant_images' => [], 'navigate' => '',
+            'category' => '', 'brand' => '', 'variant_images' => [], 'navigate' => '', 'set_fields' => [],
         ];
     }
 
@@ -159,6 +159,59 @@ class ProductAiAssistTest extends TestCase
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertOk()
             ->assertJsonPath('navigate', null);
+    }
+
+    public function test_set_fields_pass_through_when_valid(): void
+    {
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'price', 'value' => '100000'],
+            ['field' => 'sizes', 'value' => ['S', 'XL']],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('giá 100k'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [
+                ['field' => 'price', 'value' => '100000'],
+                ['field' => 'sizes', 'value' => ['S', 'XL']],
+            ]);
+    }
+
+    public function test_set_fields_entries_outside_the_whitelist_or_malformed_are_dropped(): void
+    {
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'price', 'value' => '100000'],
+            ['field' => 'description', 'value' => 'không được phép ghi đè mô tả'],
+            // A "value" key that's missing entirely (as opposed to present
+            // but empty) has nothing usable to apply, so it's dropped.
+            ['field' => 'price'],
+            'not-an-object',
+            ['field' => 'unknown-field', 'value' => 'x'],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('giá 100k'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [['field' => 'price', 'value' => '100000']]);
+    }
+
+    public function test_set_fields_with_an_empty_value_is_kept_as_an_explicit_clear_signal(): void
+    {
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'price', 'value' => ''],
+            ['field' => 'sizes', 'value' => []],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('xoá giá đi'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [
+                ['field' => 'price', 'value' => ''],
+                ['field' => 'sizes', 'value' => []],
+            ]);
     }
 
     public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void

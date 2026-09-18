@@ -45,12 +45,14 @@
                     <template x-if="message.role === 'assistant'">
                         <p x-text="message.navigateLabel
                             ? `Đã di chuyển đến trang ${message.navigateLabel}.`
-                            : 'Đã cập nhật nội dung gợi ý bên dưới.'"></p>
+                            : (message.setFieldsLabel
+                                ? `Đã điền ${message.setFieldsLabel} vào form.`
+                                : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                     </template>
                 </div>
             </template>
 
-            <div class="ai-chat-draft-card" x-show="draft">
+            <div class="ai-chat-draft-card" x-show="draft && draftMessageIndex === messages.length - 1">
                 <template x-if="draft">
                     <dl>
                         <dt>Tên sản phẩm</dt>

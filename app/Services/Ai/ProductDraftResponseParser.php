@@ -11,7 +11,7 @@ namespace App\Services\Ai;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>}
      *
      * @throws InvalidAiResponseException
      */
@@ -30,18 +30,8 @@ class ProductDraftResponseParser
         }
 
         $stringField = fn (mixed $value): string => is_string($value) ? $value : '';
-        $stringList = function (mixed $value): array {
-            if (! is_array($value)) {
-                return [];
-            }
 
-            return array_values(array_filter(array_map(
-                fn (mixed $item): string => is_string($item) ? trim($item) : '',
-                $value,
-            ), fn (string $item): bool => $item !== ''));
-        };
-
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate'] as $key) {
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate', 'set_fields'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -50,18 +40,83 @@ class ProductDraftResponseParser
         return [
             'name' => trim($stringField($decoded['name'])),
             'description' => trim($stringField($decoded['description'])),
-            'bullets' => $stringList($decoded['bullets']),
+            'bullets' => $this->stringList($decoded['bullets']),
             'seo_title' => trim($stringField($decoded['seo_title'])),
             'price' => trim($stringField($decoded['price'])),
-            'sizes' => $stringList($decoded['sizes']),
-            'colors' => $stringList($decoded['colors']),
+            'sizes' => $this->stringList($decoded['sizes']),
+            'colors' => $this->stringList($decoded['colors']),
             'category' => trim($stringField($decoded['category'])),
             'brand' => trim($stringField($decoded['brand'])),
             'variant_images' => $this->variantImages($decoded['variant_images']),
             // Raw key as the model returned it — AdminPageDirectory (called
             // by the controller) is what validates it against real pages.
             'navigate' => trim($stringField($decoded['navigate'])),
+            // Quick single/few-field edits (see ProductDraftPromptBuilder) —
+            // applied straight to the live form, no draft-card review step,
+            // so only a small whitelisted set of simple fields is accepted.
+            'set_fields' => $this->setFields($decoded['set_fields']),
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function stringList(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $item): string => is_string($item) ? trim($item) : '',
+            $value,
+        ), fn (string $item): bool => $item !== ''));
+    }
+
+    /**
+     * Malformed entries and anything outside the fixed field whitelist are
+     * dropped rather than failing the whole response.
+     *
+     * @return array<int, array{field: string, value: string|array<int, string>}>
+     */
+    private function setFields(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        // "sizes"/"colors" edit the variant rows (a list), everything else
+        // is a single form field (a string). Deliberately excludes
+        // description/bullets/seo_title/variant_images — those are long or
+        // photo-dependent enough that they should stay behind the draft
+        // card's review step instead of silently overwriting the form.
+        $listFields = ['sizes', 'colors'];
+        $stringFields = ['name', 'price', 'category', 'brand'];
+
+        $entries = [];
+        foreach ($value as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $field = is_string($item['field'] ?? null) ? trim($item['field']) : '';
+
+            if (in_array($field, $listFields, true)) {
+                // An empty list is kept, not dropped — it's how the model
+                // clears a field ("xoá hết size"), distinct from the field
+                // simply not being mentioned this turn (no entry at all).
+                $entries[] = ['field' => $field, 'value' => $this->stringList($item['value'] ?? null)];
+            } elseif (in_array($field, $stringFields, true)) {
+                // Same reasoning: a present-but-empty "value" is a deliberate
+                // clear signal, so it's kept as long as it's actually a
+                // string — only a missing/non-string "value" is malformed.
+                if (! is_string($item['value'] ?? null)) {
+                    continue;
+                }
+                $entries[] = ['field' => $field, 'value' => trim($item['value'])];
+            }
+        }
+
+        return $entries;
     }
 
     /**
