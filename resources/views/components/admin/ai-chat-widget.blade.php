@@ -52,7 +52,7 @@
                 </div>
             </template>
 
-            <div class="ai-chat-draft-card" x-show="draft">
+            <div class="ai-chat-draft-card" x-show="draft && draftMessageIndex === messages.length - 1">
                 <template x-if="draft">
                     <dl>
                         <dt>Tên sản phẩm</dt>

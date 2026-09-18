@@ -390,6 +390,11 @@ export default (assistUrl, productCreateUrl) => ({
     // (e.g. "giá 100k") made while no product form was on the page —
     // holds the fields themselves (not just a flag) so they survive the jump.
     pendingSetFields: null,
+    // Index of the assistant message that produced the current `draft` —
+    // the draft card only renders while that's still the LAST message (see
+    // the blade template), so it retires on its own once the conversation
+    // moves on instead of lingering below every later, unrelated turn.
+    draftMessageIndex: null,
 
     init() {
         const saved = loadPersistedState();
@@ -401,6 +406,7 @@ export default (assistUrl, productCreateUrl) => ({
             this.pendingFill = saved.pendingFill ?? false;
             this.pendingSetFields = saved.pendingSetFields ?? null;
             this.imageCounter = saved.imageCounter ?? 0;
+            this.draftMessageIndex = saved.draftMessageIndex ?? null;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
@@ -412,6 +418,10 @@ export default (assistUrl, productCreateUrl) => ({
         this.$watch('draft', () => this.scrollToBottom());
         this.$watch('navigate', () => this.scrollToBottom());
         this.$watch('loading', () => this.scrollToBottom());
+        // $watch only fires on FUTURE changes, not the restore above — so a
+        // conversation reopened after navigating (or a fresh page load with
+        // a persisted history) would otherwise render scrolled to the top.
+        this.scrollToBottom();
 
         if (this.pendingFill) {
             const form = document.getElementById('product-form');
@@ -440,6 +450,7 @@ export default (assistUrl, productCreateUrl) => ({
         persistState({
             open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
             pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
+            draftMessageIndex: this.draftMessageIndex,
         });
     },
 
@@ -453,6 +464,7 @@ export default (assistUrl, productCreateUrl) => ({
         this.pendingFill = false;
         this.pendingSetFields = null;
         this.imageCounter = 0;
+        this.draftMessageIndex = null;
     },
 
     toggle() {
@@ -561,6 +573,8 @@ export default (assistUrl, productCreateUrl) => ({
                 navigateLabel: this.navigate?.label ?? null,
                 setFieldsLabel,
             });
+            // Ties the card to this exact turn — see `draftMessageIndex`.
+            this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
 
             // A quick single/few-field edit ("giá 100k") is applied straight
             // to the live form — no draft-card review step, since it's a

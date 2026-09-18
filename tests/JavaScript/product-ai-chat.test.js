@@ -23,6 +23,11 @@ function fakeSessionStorage() {
 
 function withAlpineStubs(chat) {
     chat.$watch = () => {};
+    // init() now calls scrollToBottom() directly (not just via a $watch)
+    // to fix the initial-restore case, so every init()-driven test needs a
+    // working $nextTick even if it never touches scrolling itself.
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = {};
 
     return chat;
 }
@@ -155,6 +160,26 @@ test('send() resends the full conversation history and stores the parsed draft',
     assert.equal(chat.messages.length, 2);
     assert.equal(chat.loading, false);
     assert.equal(chat.error, '');
+    // Ties the draft card to this exact (last) message so it retires once
+    // the conversation moves on to unrelated turns (see the blade's
+    // `draftMessageIndex === messages.length - 1` guard).
+    assert.equal(chat.draftMessageIndex, 1);
+});
+
+test('send() retires the previous draft card once a later turn composes nothing new', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.equal(chat.draftMessageIndex, 1);
+
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '' }, raw: '{}' }),
+    }));
+    chat.input = 'cảm ơn nhé';
+    await chat.send();
+    assert.equal(chat.draft, null);
+    assert.equal(chat.draftMessageIndex, null);
 });
 
 test('send() surfaces a friendly message on rate limiting and keeps the failed turn for retry', async t => {
@@ -376,7 +401,8 @@ test('init() restores a conversation saved before navigating to another admin pa
     globalThis.sessionStorage = fakeSessionStorage();
     const navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
-        open: true, draft, navigate, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
+        open: true, draft, navigate, draftMessageIndex: 0,
+        messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
     }));
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
@@ -384,6 +410,21 @@ test('init() restores a conversation saved before navigating to another admin pa
     assert.deepEqual(chat.draft, draft);
     assert.deepEqual(chat.navigate, navigate);
     assert.equal(chat.messages.length, 1);
+    assert.equal(chat.draftMessageIndex, 0);
+});
+
+test('init() scrolls a restored conversation to the bottom (e.g. right after an auto-navigate reload)', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: true, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
+    }));
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    // $watch never fires for the direct assignment inside init() itself
+    // (only for changes afterward), so without an explicit scroll call the
+    // panel would render stuck at the top of a restored history.
+    chat.$refs = { messageList: { scrollTop: 0, scrollHeight: 480 } };
+    chat.init();
+    assert.equal(chat.$refs.messageList.scrollTop, 480);
 });
 
 test('init() starts empty when nothing was previously saved', () => {
@@ -416,12 +457,14 @@ test('startNewConversation() clears the conversation, draft, navigate suggestion
     chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     chat.attachedImages = [{ dataUrl: 'data:image/jpeg;base64,abc', mediaType: 'image/jpeg', data: 'abc', name: 'a.jpg', imageIndex: 0 }];
     chat.imageCounter = 3;
+    chat.draftMessageIndex = 0;
     chat.startNewConversation();
     assert.deepEqual(chat.messages, []);
     assert.equal(chat.draft, null);
     assert.equal(chat.navigate, null);
     assert.deepEqual(chat.attachedImages, []);
     assert.equal(chat.imageCounter, 0);
+    assert.equal(chat.draftMessageIndex, null);
 });
 
 test('fillForm() jumps to the product create page when no form is on the current page', () => {
