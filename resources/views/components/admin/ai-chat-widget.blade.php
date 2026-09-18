@@ -5,7 +5,14 @@
         <x-icon name="close" x-show="open" class="size-5" />
     </button>
 
-    <div class="ai-chat-panel" x-show="open" x-transition x-on:click.outside="open = false" role="dialog"
+    <div class="ai-chat-panel" x-show="open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+         x-on:click.outside="open = false" role="dialog"
          aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
         <div class="ai-chat-panel-header">
             <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý đăng sản phẩm</h2>
@@ -68,6 +75,20 @@
                     Điền vào form
                 </button>
             </div>
+
+            <div class="ai-chat-draft-card" x-show="navigate">
+                <template x-if="navigate">
+                    <p>Chuyển tới trang <strong x-text="navigate.label"></strong>?</p>
+                </template>
+                <button type="button" class="admin-action admin-action-primary w-full justify-center" x-on:click="goToPage()">
+                    Đi tới trang này
+                </button>
+            </div>
+
+            <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
+                <span></span><span></span><span></span>
+                <span class="ai-chat-thinking-label">Đang suy nghĩ...</span>
+            </div>
         </div>
 
         <div class="ai-chat-composer">
@@ -96,8 +117,7 @@
                           x-on:keydown.enter.exact.prevent="send()"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"
                         :disabled="loading || (!input.trim() && !attachedImages.length)" x-on:click="send()" aria-label="Gửi">
-                    <x-icon name="send" class="size-4" x-show="!loading" />
-                    <span x-show="loading" class="text-xs">…</span>
+                    <x-icon name="send" class="size-4" />
                 </button>
             </div>
         </div>

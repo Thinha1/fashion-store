@@ -295,6 +295,9 @@ export default (assistUrl, productCreateUrl) => ({
     loading: false,
     error: '',
     draft: null,
+    // { key, label, url } resolved server-side against the fixed page
+    // directory — never a raw model-provided URL, see AdminPageDirectory.
+    navigate: null,
     requestId: 0,
     // Assigned once per attached photo, for the whole life of the
     // conversation — this is the "Ảnh số N" the AI is told to reference.
@@ -309,12 +312,20 @@ export default (assistUrl, productCreateUrl) => ({
             this.open = saved.open ?? false;
             this.messages = saved.messages ?? [];
             this.draft = saved.draft ?? null;
+            this.navigate = saved.navigate ?? null;
             this.pendingFill = saved.pendingFill ?? false;
             this.imageCounter = saved.imageCounter ?? 0;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
         this.$watch('draft', () => this.persist());
+        this.$watch('navigate', () => this.persist());
+        // New message, draft card, navigate card, or the "thinking" bubble
+        // appearing should never be hidden below the fold.
+        this.$watch('messages', () => this.scrollToBottom());
+        this.$watch('draft', () => this.scrollToBottom());
+        this.$watch('navigate', () => this.scrollToBottom());
+        this.$watch('loading', () => this.scrollToBottom());
 
         if (this.pendingFill) {
             const form = document.getElementById('product-form');
@@ -325,9 +336,16 @@ export default (assistUrl, productCreateUrl) => ({
         }
     },
 
+    scrollToBottom() {
+        this.$nextTick(() => {
+            const list = this.$refs.messageList;
+            if (list) list.scrollTop = list.scrollHeight;
+        });
+    },
+
     persist() {
         persistState({
-            open: this.open, messages: this.messages, draft: this.draft,
+            open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
             pendingFill: this.pendingFill, imageCounter: this.imageCounter,
         });
     },
@@ -335,6 +353,7 @@ export default (assistUrl, productCreateUrl) => ({
     startNewConversation() {
         this.messages = [];
         this.draft = null;
+        this.navigate = null;
         this.error = '';
         this.attachedImages = [];
         this.input = '';
@@ -426,12 +445,22 @@ export default (assistUrl, productCreateUrl) => ({
             }
 
             this.draft = draft;
+            // Overwrites every turn, including back to null — the prompt
+            // tells the model not to repeat "navigate" unless asked again,
+            // so a stale suggestion from an earlier turn must not linger.
+            this.navigate = payload?.navigate ?? null;
             this.messages.push({ role: 'assistant', blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }] });
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.';
         } finally {
             if (requestId === this.requestId) this.loading = false;
         }
+    },
+
+    /** The URL is already resolved server-side against the fixed page directory — never model-provided. */
+    goToPage() {
+        if (!this.navigate) return;
+        window.location.href = this.navigate.url;
     },
 
     fillForm() {

@@ -11,7 +11,7 @@ namespace App\Services\Ai;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string}
      *
      * @throws InvalidAiResponseException
      */
@@ -41,7 +41,7 @@ class ProductDraftResponseParser
             ), fn (string $item): bool => $item !== ''));
         };
 
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -58,6 +58,9 @@ class ProductDraftResponseParser
             'category' => trim($stringField($decoded['category'])),
             'brand' => trim($stringField($decoded['brand'])),
             'variant_images' => $this->variantImages($decoded['variant_images']),
+            // Raw key as the model returned it — AdminPageDirectory (called
+            // by the controller) is what validates it against real pages.
+            'navigate' => trim($stringField($decoded['navigate'])),
         ];
     }
 

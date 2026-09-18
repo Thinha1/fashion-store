@@ -201,6 +201,55 @@ test('send() labels each attached image with its stable index so the AI can refe
     assert.deepEqual(chat.attachedImages, []);
 });
 
+test('send() stores the resolved navigate suggestion, overwriting any previous one', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}', navigate: { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' } }),
+    }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'đưa tôi tới danh sách sản phẩm';
+    await chat.send();
+    assert.deepEqual(chat.navigate, { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' });
+});
+
+test('send() clears a previous navigate suggestion when the next reply has none', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}', navigate: null }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.navigate, null);
+});
+
+test('goToPage() navigates to the server-resolved URL', () => {
+    globalThis.window = { location: { href: '' } };
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
+    chat.goToPage();
+    assert.equal(globalThis.window.location.href, '/admin/san-pham');
+});
+
+test('goToPage() does nothing without a pending suggestion', () => {
+    globalThis.window = { location: { href: '' } };
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.goToPage();
+    assert.equal(globalThis.window.location.href, '');
+});
+
+test('scrollToBottom() scrolls the message list to reveal the newest content', () => {
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = { messageList: { scrollTop: 0, scrollHeight: 480 } };
+    chat.scrollToBottom();
+    assert.equal(chat.$refs.messageList.scrollTop, 480);
+});
+
+test('scrollToBottom() does nothing when the message list ref is not mounted yet', () => {
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = {};
+    assert.doesNotThrow(() => chat.scrollToBottom());
+});
+
 test('send() does nothing without text or an attached image', async t => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft }) }));
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
@@ -211,13 +260,15 @@ test('send() does nothing without text or an attached image', async t => {
 
 test('init() restores a conversation saved before navigating to another admin page', () => {
     globalThis.sessionStorage = fakeSessionStorage();
+    const navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
-        open: true, draft, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
+        open: true, draft, navigate, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
     }));
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
     assert.equal(chat.open, true);
     assert.deepEqual(chat.draft, draft);
+    assert.deepEqual(chat.navigate, navigate);
     assert.equal(chat.messages.length, 1);
 });
 
@@ -242,17 +293,19 @@ test('persist() writes the current conversation so it survives the next page loa
     assert.deepEqual(saved.draft, draft);
 });
 
-test('startNewConversation() clears the conversation, draft and any attached images', () => {
+test('startNewConversation() clears the conversation, draft, navigate suggestion and any attached images', () => {
     globalThis.sessionStorage = fakeSessionStorage();
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
     chat.messages.push({ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] });
     chat.draft = draft;
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     chat.attachedImages = [{ dataUrl: 'data:image/jpeg;base64,abc', mediaType: 'image/jpeg', data: 'abc', name: 'a.jpg', imageIndex: 0 }];
     chat.imageCounter = 3;
     chat.startNewConversation();
     assert.deepEqual(chat.messages, []);
     assert.equal(chat.draft, null);
+    assert.equal(chat.navigate, null);
     assert.deepEqual(chat.attachedImages, []);
     assert.equal(chat.imageCounter, 0);
 });
