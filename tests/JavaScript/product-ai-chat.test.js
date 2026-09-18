@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
-    buildFillPlan, toWireMessages, parsePriceToInteger, collectImageGallery,
+    buildFillPlan, toWireMessages, parsePriceToInteger, collectImageGallery, compactMessages,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -144,6 +144,63 @@ test('toWireMessages merges consecutive same-role turns to keep strict alternati
     ]);
     assert.equal(wire[1].role, 'assistant');
     assert.equal(wire[2].role, 'user');
+});
+
+function textTurn(role, text) {
+    return { role, blocks: [{ type: 'text', text }] };
+}
+
+function imageTurn(imageIndex) {
+    return { role: 'user', blocks: [{ type: 'image', mediaType: 'image/jpeg', data: 'abc', imageIndex }] };
+}
+
+test('compactMessages leaves a short conversation untouched', () => {
+    const messages = Array.from({ length: 10 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    assert.equal(compactMessages(messages, draft), messages);
+});
+
+test('compactMessages collapses older text-only turns into one recap, keeping the last few verbatim', () => {
+    const messages = Array.from({ length: 20 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    const compacted = compactMessages(messages, draft);
+    assert.equal(compacted.length, 7); // 1 recap + last 6 kept verbatim
+    assert.equal(compacted[0].isRecap, true);
+    assert.match(compacted[0].blocks[0].text, /Áo sơ mi trắng/);
+    assert.deepEqual(compacted.slice(1), messages.slice(-6));
+});
+
+test('compactMessages never drops or renumbers a message carrying a photo', () => {
+    const messages = [
+        imageTurn(0), textTurn('assistant', 'a0'),
+        ...Array.from({ length: 16 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`)),
+    ];
+    const compacted = compactMessages(messages, draft);
+    const keptImage = compacted.find((m) => m.blocks.some((b) => b.type === 'image'));
+    assert.deepEqual(keptImage, messages[0]);
+    assert.equal(keptImage.blocks[0].imageIndex, 0);
+});
+
+test('compactMessages falls back to a generic note when nothing was composed yet', () => {
+    const messages = Array.from({ length: 20 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    const compacted = compactMessages(messages, null);
+    assert.match(compacted[0].blocks[0].text, /chưa soạn nội dung sản phẩm nào/);
+});
+
+test('compactMessages does nothing once the older portion is entirely photos (nothing to collapse)', () => {
+    const messages = [imageTurn(0), imageTurn(1), ...Array.from({ length: 16 }, (_, i) => imageTurn(i + 2))];
+    assert.equal(compactMessages(messages, draft), messages);
+});
+
+test('send() auto-compacts a long conversation before it can hit the server history limit', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    for (let i = 0; i < 9; i++) {
+        chat.input = `lượt ${i}`;
+        await chat.send();
+    }
+    // 9 turns is 18 raw messages uncompacted — well past MAX_MESSAGES_BEFORE_COMPACT (16),
+    // so compaction must have kicked in partway through instead of growing unbounded.
+    assert.equal(chat.messages.length, 8);
+    assert.equal(chat.messages[0].isRecap, true);
 });
 
 test('send() resends the full conversation history and stores the parsed draft', async t => {

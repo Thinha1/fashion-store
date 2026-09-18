@@ -100,6 +100,7 @@
     .ai-chat-bubble-user { @apply ml-auto bg-brand-soft text-gray-900; }
     .ai-chat-bubble-assistant { @apply bg-gray-100 text-gray-900; }
     .ai-chat-draft-card { @apply space-y-2 rounded-xl border border-gray-200 bg-white p-4 text-base shadow-sm; animation: ai-chat-rise 220ms cubic-bezier(.2,.8,.2,1) both; }
+    .ai-chat-recap-note { @apply my-1 text-center text-xs text-gray-400; }
     .ai-chat-draft-card dt { @apply text-xs font-medium text-gray-500; }
     .ai-chat-draft-card dd { @apply mb-2 whitespace-pre-line text-gray-900; }
     .ai-chat-thinking { @apply flex items-center gap-2 text-gray-500; }

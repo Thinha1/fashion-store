@@ -348,6 +348,63 @@ function toContentBlocks(blocks) {
         : { type: 'text', text: block.text }));
 }
 
+// Every turn resends the FULL conversation, and the server hard-rejects once
+// it's too long (`services.ai.max_history_messages`, default 24 wire
+// messages) with "Hội thoại quá dài, hãy bắt đầu cuộc trò chuyện mới." —
+// forcing the staff member to lose all context and start over. Compacting
+// well below that (in raw message count, which tracks the wire count 1:1 in
+// normal usage since every turn alternates user/assistant) avoids ever
+// hitting it.
+const MAX_MESSAGES_BEFORE_COMPACT = 16;
+// How many of the most recent raw messages stay untouched after compacting
+// (must be even — every turn is exactly one user + one assistant message).
+const KEEP_RECENT_MESSAGES = 6;
+
+function describeDraftForRecap(draft) {
+    if (!draft?.name?.trim()) {
+        return '(Đã rút gọn các tin nhắn trước đó để hội thoại không quá dài — phần bị rút gọn chưa soạn nội dung sản phẩm nào.)';
+    }
+
+    const summary = [
+        `Tên: ${draft.name}`,
+        `Mô tả: ${draft.description || '—'}`,
+        `Giá: ${draft.price || '—'}`,
+        `Size: ${draft.sizes?.length ? draft.sizes.join(', ') : '—'}`,
+        `Màu: ${draft.colors?.length ? draft.colors.join(', ') : '—'}`,
+        `Danh mục: ${draft.category || '—'}`,
+        `Thương hiệu: ${draft.brand || '—'}`,
+    ].join('; ');
+
+    return `(Đã rút gọn các tin nhắn trước đó để hội thoại không quá dài. Trạng thái sản phẩm hiện đã soạn: ${summary}.)`;
+}
+
+/**
+ * Keeps the conversation from growing without bound. Rather than calling the
+ * AI a second time just to summarize itself, this leans on something
+ * specific to this widget's design: `draft` already IS a running summary of
+ * everything composed so far (see ProductDraftPromptBuilder), so older
+ * purely-text exchanges can be collapsed straight into one synthetic recap
+ * built from it — no extra request, no extra latency.
+ *
+ * Messages carrying a photo are always kept verbatim, in their original
+ * relative order — `collectImageGallery`/`variant_images` reference them by
+ * a stable `imageIndex`, so dropping or renumbering one would silently break
+ * "Ảnh số N" tracking for a fill that hasn't happened yet.
+ */
+export function compactMessages(messages, draft) {
+    if (messages.length <= MAX_MESSAGES_BEFORE_COMPACT) return messages;
+
+    const older = messages.slice(0, messages.length - KEEP_RECENT_MESSAGES);
+    const recent = messages.slice(messages.length - KEEP_RECENT_MESSAGES);
+    const hasImage = (message) => message.blocks.some((block) => block.type === 'image');
+
+    if (!older.some((message) => !hasImage(message))) return messages; // nothing text-only to collapse
+
+    const recap = { role: 'user', blocks: [{ type: 'text', text: describeDraftForRecap(draft) }], isRecap: true };
+
+    return [recap, ...older.filter(hasImage), ...recent];
+}
+
 /**
  * The AI has no memory between calls, so every request resends the full
  * conversation. Anthropic's Messages API additionally requires strictly
@@ -515,6 +572,9 @@ export default (assistUrl, productCreateUrl) => ({
         if (text) blocks.push({ type: 'text', text });
 
         this.messages.push({ role: 'user', blocks });
+        // Keeps every request comfortably under the server's hard history
+        // limit instead of eventually hitting a dead-end "start over" error.
+        this.messages = compactMessages(this.messages, this.draft);
         this.input = '';
         this.attachedImages = [];
         this.error = '';

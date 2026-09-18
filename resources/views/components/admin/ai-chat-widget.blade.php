@@ -33,8 +33,13 @@
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
             </p>
             <template x-for="(message, index) in messages" :key="index">
-                <div :class="message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant'">
-                    <template x-if="message.role === 'user'">
+                <div :class="message.isRecap
+                    ? 'ai-chat-recap-note'
+                    : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant')">
+                    <template x-if="message.isRecap">
+                        <p x-text="message.blocks[0].text"></p>
+                    </template>
+                    <template x-if="!message.isRecap && message.role === 'user'">
                         <div class="space-y-1">
                             <template x-for="block in message.blocks.filter((b) => b.type === 'image')" :key="block.dataUrl">
                                 <img :src="block.dataUrl" alt="Ảnh đính kèm" class="h-16 w-16 rounded-lg object-cover">
