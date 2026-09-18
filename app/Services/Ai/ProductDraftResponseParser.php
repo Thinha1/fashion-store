@@ -31,7 +31,15 @@ class ProductDraftResponseParser
 
         $stringField = fn (mixed $value): string => is_string($value) ? $value : '';
 
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate', 'set_fields', 'variant_price', 'variant_stock'] as $key) {
+        // Only the original "compose a product" fields are hard-required —
+        // a reply missing one of these is genuinely malformed. The newer
+        // additive "tool" fields below (navigate/set_fields/variant_*) are
+        // treated as optional instead: as more of them get added to the
+        // schema over time, an otherwise-fine reply from an imperfect model
+        // is increasingly likely to simply omit one it isn't using, and
+        // that shouldn't hard-fail the whole turn — a missing key means the
+        // same thing as an explicitly empty one ("no tool used this turn").
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -50,16 +58,16 @@ class ProductDraftResponseParser
             'variant_images' => $this->variantImages($decoded['variant_images']),
             // Raw key as the model returned it — AdminPageDirectory (called
             // by the controller) is what validates it against real pages.
-            'navigate' => trim($stringField($decoded['navigate'])),
+            'navigate' => trim($stringField($decoded['navigate'] ?? '')),
             // Quick single/few-field edits (see ProductDraftPromptBuilder) —
             // applied straight to the live form, no draft-card review step,
             // so only a small whitelisted set of simple fields is accepted.
-            'set_fields' => $this->setFields($decoded['set_fields']),
+            'set_fields' => $this->setFields($decoded['set_fields'] ?? []),
             // Per-variant overrides — distinct from "price" above, which is
             // the product's own base price. Applied uniformly to every
             // variant row this turn creates (see buildFillPlan/applySetFields).
-            'variant_price' => trim($stringField($decoded['variant_price'])),
-            'variant_stock' => trim($stringField($decoded['variant_stock'])),
+            'variant_price' => trim($stringField($decoded['variant_price'] ?? '')),
+            'variant_stock' => trim($stringField($decoded['variant_stock'] ?? '')),
         ];
     }
 
