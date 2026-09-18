@@ -1,8 +1,8 @@
 <div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
-        <x-icon name="robot" x-show="!open" class="size-5" />
-        <x-icon name="close" x-show="open" class="size-5" />
+        <x-icon name="robot" x-show="!open" class="size-4" />
+        <x-icon name="close" x-show="open" class="size-4" />
     </button>
 
     <div class="ai-chat-panel" x-show="open"
@@ -48,11 +48,14 @@
                         </div>
                     </template>
                     <template x-if="message.role === 'assistant'">
-                        <p x-text="message.navigateLabel
-                            ? `Đã di chuyển đến trang ${message.navigateLabel}.`
-                            : (message.setFieldsLabel
-                                ? `Đã điền ${message.setFieldsLabel} vào form.`
-                                : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
+                        <div>
+                            <p x-text="message.navigateLabel
+                                ? `Đã di chuyển đến trang ${message.navigateLabel}.`
+                                : (message.setFieldsLabel
+                                    ? `Đã điền ${message.setFieldsLabel} vào form.`
+                                    : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
+                            <p class="ai-chat-tool-tag" x-show="message.tools?.length" x-text="'tool: ' + message.tools?.join(', ')"></p>
+                        </div>
                     </template>
                 </div>
             </template>
