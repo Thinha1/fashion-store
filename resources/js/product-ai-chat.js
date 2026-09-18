@@ -444,12 +444,30 @@ export default (assistUrl, productCreateUrl) => ({
                 return;
             }
 
-            this.draft = draft;
+            // Only surface the draft card when the AI actually composed a
+            // product (non-empty name) — otherwise, e.g. the staff member
+            // only asked to navigate somewhere, it would show a useless
+            // empty "form" card every turn. Disabled for now on purpose.
+            this.draft = draft.name.trim() ? draft : null;
             // Overwrites every turn, including back to null — the prompt
             // tells the model not to repeat "navigate" unless asked again,
             // so a stale suggestion from an earlier turn must not linger.
             this.navigate = payload?.navigate ?? null;
-            this.messages.push({ role: 'assistant', blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }] });
+            // Carries the resolved page label onto the message itself so the
+            // bubble can say exactly where it went, instead of the generic
+            // "updated the draft below" text that doesn't apply here.
+            this.messages.push({
+                role: 'assistant',
+                blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
+                navigateLabel: this.navigate?.label ?? null,
+            });
+
+            // Navigating is just a page jump (no data write), so it happens
+            // right away instead of waiting for a confirmation click.
+            if (this.navigate) {
+                this.persist();
+                this.goToPage();
+            }
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.';
         } finally {
