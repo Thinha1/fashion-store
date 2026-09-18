@@ -76,15 +76,6 @@
                 </button>
             </div>
 
-            <div class="ai-chat-draft-card" x-show="navigate">
-                <template x-if="navigate">
-                    <p>Chuyển tới trang <strong x-text="navigate.label"></strong>?</p>
-                </template>
-                <button type="button" class="admin-action admin-action-primary w-full justify-center" x-on:click="goToPage()">
-                    Đi tới trang này
-                </button>
-            </div>
-
             <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
                 <span></span><span></span><span></span>
                 <span class="ai-chat-thinking-label">Đang suy nghĩ...</span>

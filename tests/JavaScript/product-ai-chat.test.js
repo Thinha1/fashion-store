@@ -201,14 +201,25 @@ test('send() labels each attached image with its stable index so the AI can refe
     assert.deepEqual(chat.attachedImages, []);
 });
 
-test('send() stores the resolved navigate suggestion, overwriting any previous one', async t => {
-    t.mock.method(globalThis, 'fetch', async () => ({
-        ok: true, json: async () => ({ data: draft, raw: '{}', navigate: { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' } }),
-    }));
+test('send() does not surface a draft card when the AI composed nothing (e.g. the staff member only asked to navigate)', async t => {
+    const emptyDraft = { ...draft, name: '' };
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: emptyDraft, raw: '{}' }) }));
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
     chat.input = 'đưa tôi tới danh sách sản phẩm';
     await chat.send();
+    assert.equal(chat.draft, null);
+});
+
+test('send() stores the resolved navigate suggestion and navigates there immediately, no confirmation needed', async t => {
+    globalThis.window = { location: { href: '' } };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}', navigate: { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' } }),
+    }));
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.input = 'đưa tôi tới danh sách sản phẩm';
+    await chat.send();
     assert.deepEqual(chat.navigate, { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' });
+    assert.equal(globalThis.window.location.href, '/admin/san-pham');
 });
 
 test('send() clears a previous navigate suggestion when the next reply has none', async t => {
