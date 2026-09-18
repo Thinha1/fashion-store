@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Models\Category;
 use App\Models\User;
+use App\Services\Ai\AiProviderContract;
+use App\Services\Ai\AnthropicMessagesProvider;
+use App\Services\Ai\OpenAiCompatibleProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -17,7 +20,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Swappable AI backend for the product-draft chat widget: switch
+        // AI_PROVIDER in .env between the Anthropic Messages API and a
+        // self-hosted OpenAI-compatible endpoint without touching the
+        // controller, widget, or prompt/parsing logic.
+        $this->app->bind(AiProviderContract::class, fn () => match (config('services.ai.provider')) {
+            'openai_compatible' => $this->app->make(OpenAiCompatibleProvider::class),
+            default => $this->app->make(AnthropicMessagesProvider::class),
+        });
     }
 
     /**
@@ -37,6 +47,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('supplier-tax-lookup', fn ($request): Limit => Limit::perMinute(
             max(1, (int) config('services.vietqr.business_requests_per_minute'))
+        )->by((string) $request->user()->id));
+
+        RateLimiter::for('product-ai-assist', fn ($request): Limit => Limit::perMinute(
+            max(1, (int) config('services.ai.requests_per_minute'))
         )->by((string) $request->user()->id));
 
         // The storefront header renders a 3-level mega-menu (top category ->

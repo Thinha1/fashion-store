@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
+use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\SupplierTaxLookupController;
@@ -75,6 +76,8 @@ Route::prefix('admin')
             });
 
         // Product (with variants + images)
+        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+            ->post('san-pham/ai-goi-y', ProductAiAssistController::class)->name('products.ai-assist');
         Route::middleware('permission:products.manage')
             ->get('san-pham', [ProductController::class, 'index'])->name('products.index');
         Route::middleware('permission:products.manage')

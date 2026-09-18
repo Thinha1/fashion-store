@@ -19,6 +19,27 @@ return [
         'business_requests_per_minute' => (int) env('VIETQR_BUSINESS_REQUESTS_PER_MINUTE', 10),
     ],
 
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'anthropic'),
+        'requests_per_minute' => (int) env('AI_REQUESTS_PER_MINUTE', 6),
+        'max_image_kb' => (int) env('AI_MAX_IMAGE_KB', 4096),
+        'max_history_messages' => (int) env('AI_MAX_HISTORY_MESSAGES', 24),
+        // Reasoning models (e.g. Qwen-thinking style) spend a large share of
+        // this budget on hidden reasoning before emitting the actual JSON
+        // reply, so the default is well above a typical non-reasoning model.
+        'max_tokens' => (int) env('AI_MAX_TOKENS', 3072),
+        'anthropic' => [
+            'key' => env('ANTHROPIC_API_KEY'),
+            'model' => env('AI_MODEL', 'claude-sonnet-5'),
+            'version' => env('ANTHROPIC_VERSION', '2023-06-01'),
+        ],
+        'openai_compatible' => [
+            'endpoint' => env('AI_SELF_HOST_ENDPOINT'),
+            'key' => env('AI_SELF_HOST_KEY'),
+            'model' => env('AI_SELF_HOST_MODEL'),
+        ],
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
