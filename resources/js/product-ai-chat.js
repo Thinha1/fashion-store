@@ -75,7 +75,20 @@ function groupThousands(amount) {
  */
 function setCurrencyFieldValue(input, priceText) {
     if (!input) return;
-    const amount = parsePriceToInteger(priceText);
+    const canonical = input.closest('.currency-input')?.querySelector('input[type="hidden"]');
+    const trimmed = String(priceText ?? '').trim();
+
+    // An explicit empty value (from `set_fields`, see applySetFields) means
+    // "clear this field", not "nothing to do" — applyFillPlan never passes
+    // an empty string here (it's guarded by `if (plan.price)`), so this only
+    // ever fires for a deliberate clear request.
+    if (!trimmed) {
+        input.value = '';
+        if (canonical) canonical.value = '';
+        return;
+    }
+
+    const amount = parsePriceToInteger(trimmed);
     if (amount === null) return;
 
     // No dispatched events here on purpose (see comment above) — both the
@@ -83,7 +96,6 @@ function setCurrencyFieldValue(input, priceText) {
     // direct write. If the staff member edits the field afterwards, typing
     // reads the live DOM value, so it self-corrects from there.
     input.value = groupThousands(amount);
-    const canonical = input.closest('.currency-input')?.querySelector('input[type="hidden"]');
     if (canonical) canonical.value = String(amount);
 }
 
@@ -96,8 +108,15 @@ function normalizeLabel(text) {
  * and firing `change` is all a real click would do.
  */
 function selectPlainOptionByLabel(select, label) {
-    if (!select || !label) return;
+    if (!select) return;
     const target = normalizeLabel(label);
+    // Explicit clear request (see applySetFields) — applyFillPlan never
+    // calls this with an empty label (guarded by `if (plan.category)`).
+    if (!target) {
+        select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+    }
     const match = [...select.options].find((option) => normalizeLabel(option.textContent) === target);
     if (!match) return;
     select.value = match.value;
@@ -111,11 +130,18 @@ function selectPlainOptionByLabel(select, label) {
  * select, and fires `change`) — reuse it instead of reimplementing it.
  */
 function selectImageOptionByLabel(nativeSelect, label, alpine) {
-    if (!nativeSelect || !label) return;
+    if (!nativeSelect) return;
     const wrapper = nativeSelect.closest('.image-select');
     if (!wrapper) return;
     const component = alpine.$data(wrapper);
     const target = normalizeLabel(label);
+    // Explicit clear request (see applySetFields) — option 0 is always the
+    // component's own placeholder (see image-select.blade.php). applyFillPlan
+    // never calls this with an empty label (guarded by `if (plan.brand)`).
+    if (!target) {
+        component.choose(0);
+        return;
+    }
     const index = component.options.findIndex((option) => normalizeLabel(option.label) === target);
     if (index === -1) return;
     component.choose(index);
@@ -199,6 +225,11 @@ export function buildFillPlan(draft) {
     };
 }
 
+/** Removes every existing variant row — used by `applySetFields` before laying out its replacement list. */
+function clearVariantRows(form) {
+    form.querySelectorAll('#variants-list [data-variant-row]').forEach((row) => row.remove());
+}
+
 /**
  * Adds one variant row per entry in `rows` (see `buildFillPlan`'s
  * `variantRows`) to the live product form. Shared by `applyFillPlan` (a full
@@ -274,6 +305,10 @@ export function applySetFields(fields, form, alpine) {
     }
 
     if (sizes !== undefined || colors !== undefined) {
+        // "sizes"/"colors" replace the whole variant list rather than adding
+        // to it (see ProductDraftPromptBuilder) — including clearing every
+        // row when the resolved list ends up empty ("xoá hết size").
+        clearVariantRows(form);
         applyVariantRows(buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [] }).variantRows, form, alpine);
     }
 

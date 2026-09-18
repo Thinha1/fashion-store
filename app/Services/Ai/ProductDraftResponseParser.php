@@ -101,13 +101,18 @@ class ProductDraftResponseParser
             $field = is_string($item['field'] ?? null) ? trim($item['field']) : '';
 
             if (in_array($field, $listFields, true)) {
+                // An empty list is kept, not dropped — it's how the model
+                // clears a field ("xoá hết size"), distinct from the field
+                // simply not being mentioned this turn (no entry at all).
                 $entries[] = ['field' => $field, 'value' => $this->stringList($item['value'] ?? null)];
             } elseif (in_array($field, $stringFields, true)) {
-                $stringValue = is_string($item['value'] ?? null) ? trim($item['value']) : '';
-                if ($stringValue === '') {
+                // Same reasoning: a present-but-empty "value" is a deliberate
+                // clear signal, so it's kept as long as it's actually a
+                // string — only a missing/non-string "value" is malformed.
+                if (! is_string($item['value'] ?? null)) {
                     continue;
                 }
-                $entries[] = ['field' => $field, 'value' => $stringValue];
+                $entries[] = ['field' => $field, 'value' => trim($item['value'])];
             }
         }
 

@@ -79,6 +79,11 @@ class ProductDraftPromptBuilder
             phần đó luôn phải soạn qua các field chính ở trên để nhân viên xem trước khi điền vào form. Khi trả
             lời bằng "set_fields", để trống "name" và các field chính khác (không soạn lại toàn bộ nội dung).
             Để mảng rỗng [] nếu không có yêu cầu chỉnh field nào.
+
+            Nếu nhân viên yêu cầu XOÁ/bỏ trống một giá trị đã điền (ví dụ "xoá giá đi", "bỏ trống tên sản phẩm",
+            "xoá hết size"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là chuỗi rỗng ""
+            (cho "name"/"price"/"category"/"brand") hoặc mảng rỗng [] (cho "sizes"/"colors") — đây là tín hiệu
+            XOÁ rõ ràng, khác với việc không nhắc tới field đó (không có entry = không đổi gì).
             PROMPT;
     }
 }
