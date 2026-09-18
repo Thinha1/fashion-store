@@ -6,7 +6,7 @@
 @endphp
 <x-admin.form-errors :messages="$errors->all()" />
 
-<form method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6" x-data="productForm({{ Js::from(old('removed_images', [])) }})">
+<form id="product-form" method="POST" action="{{ $route }}" enctype="multipart/form-data" class="admin-form space-y-6" x-data="productForm({{ Js::from(old('removed_images', [])) }})">
     @csrf
     @if ($method !== 'POST')
         @method($method)

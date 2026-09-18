@@ -8,6 +8,7 @@ import productForm from './product-form';
 import productDetail from './product-detail';
 import currencyInput from './currency-input';
 import supplierForm from './supplier-form';
+import productAiChat from './product-ai-chat';
 
 window.Alpine = Alpine;
 
@@ -20,6 +21,7 @@ Alpine.data('productForm', productForm);
 Alpine.data('productDetail', productDetail);
 Alpine.data('currencyInput', currencyInput);
 Alpine.data('supplierForm', supplierForm);
+Alpine.data('productAiChat', productAiChat);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,

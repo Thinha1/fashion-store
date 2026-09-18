@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#175b60">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Quản trị') - {{ config('app.name', 'Fashion Store') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -40,5 +41,8 @@
         <footer class="px-4 pb-6 text-xs text-gray-400 sm:px-8">&copy; {{ now()->year }} {{ config('app.name', 'Fashion Store') }} · Quản lý cửa hàng</footer>
     </div>
     <x-admin.confirm-dialog />
+    @if (auth()->user()->hasPermission('products.manage'))
+        <x-admin.ai-chat-widget />
+    @endif
 </body>
 </html>
