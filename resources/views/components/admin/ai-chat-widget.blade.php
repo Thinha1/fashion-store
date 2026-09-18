@@ -13,9 +13,9 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
          x-on:click.outside="open = false" role="dialog"
-         aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
+         aria-label="Trợ lý AI">
         <div class="ai-chat-panel-header">
-            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý đăng sản phẩm</h2>
+            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý AI</h2>
             <div class="flex items-center gap-1">
                 <button type="button" class="admin-action-quiet admin-action !min-h-8 !px-2" x-show="messages.length"
                         x-on:click="startNewConversation()" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
@@ -43,7 +43,9 @@
                         </div>
                     </template>
                     <template x-if="message.role === 'assistant'">
-                        <p>Đã cập nhật nội dung gợi ý bên dưới.</p>
+                        <p x-text="message.navigateLabel
+                            ? `Đã di chuyển đến trang ${message.navigateLabel}.`
+                            : 'Đã cập nhật nội dung gợi ý bên dưới.'"></p>
                     </template>
                 </div>
             </template>
@@ -105,7 +107,7 @@
                 <label for="ai-chat-message-input" class="sr-only">Nội dung gửi trợ lý AI</label>
                 <textarea id="ai-chat-message-input" x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
                           class="field flex-1 resize-none text-sm"
-                          x-on:keydown.enter.exact.prevent="send()"></textarea>
+                          x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); send(); }"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"
                         :disabled="loading || (!input.trim() && !attachedImages.length)" x-on:click="send()" aria-label="Gửi">
                     <x-icon name="send" class="size-4" />

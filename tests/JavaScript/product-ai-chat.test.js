@@ -220,6 +220,7 @@ test('send() stores the resolved navigate suggestion and navigates there immedia
     await chat.send();
     assert.deepEqual(chat.navigate, { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' });
     assert.equal(globalThis.window.location.href, '/admin/san-pham');
+    assert.equal(chat.messages.at(-1).navigateLabel, 'Danh sách sản phẩm');
 });
 
 test('send() clears a previous navigate suggestion when the next reply has none', async t => {

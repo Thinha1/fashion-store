@@ -453,7 +453,14 @@ export default (assistUrl, productCreateUrl) => ({
             // tells the model not to repeat "navigate" unless asked again,
             // so a stale suggestion from an earlier turn must not linger.
             this.navigate = payload?.navigate ?? null;
-            this.messages.push({ role: 'assistant', blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }] });
+            // Carries the resolved page label onto the message itself so the
+            // bubble can say exactly where it went, instead of the generic
+            // "updated the draft below" text that doesn't apply here.
+            this.messages.push({
+                role: 'assistant',
+                blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
+                navigateLabel: this.navigate?.label ?? null,
+            });
 
             // Navigating is just a page jump (no data write), so it happens
             // right away instead of waiting for a confirmation click.
