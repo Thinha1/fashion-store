@@ -84,12 +84,14 @@
                 </template>
             </div>
             <div class="flex items-end gap-2">
-                <input type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" x-on:change="onFileChange($event)">
+                <label for="ai-chat-file-input" class="sr-only">Đính kèm ảnh</label>
+                <input id="ai-chat-file-input" type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" x-on:change="onFileChange($event)">
                 <button type="button" class="admin-action-quiet admin-action !min-h-11 !px-3" x-on:click="$refs.fileInput.click()"
                         aria-label="Đính kèm ảnh">
                     <x-icon name="paperclip" class="size-4" />
                 </button>
-                <textarea x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
+                <label for="ai-chat-message-input" class="sr-only">Nội dung gửi trợ lý AI</label>
+                <textarea id="ai-chat-message-input" x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
                           class="field flex-1 resize-none text-sm"
                           x-on:keydown.enter.exact.prevent="send()"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"

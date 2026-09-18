@@ -20,7 +20,7 @@ class ProductDraftResponseParser
         $json = trim($raw);
         // Tolerate a ```json ... ``` fence even though the prompt asks the model not to use one.
         if (str_starts_with($json, '```')) {
-            $json = preg_replace('/\A```[a-z]*\n?|\n?```\z/i', '', $json) ?? $json;
+            $json = preg_replace('/(?:\A```[a-z]*\n?)|(?:\n?```\z)/i', '', $json) ?? $json;
         }
 
         $decoded = json_decode(trim($json), true);
