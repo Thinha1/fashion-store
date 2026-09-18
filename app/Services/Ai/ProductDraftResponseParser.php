@@ -11,7 +11,7 @@ namespace App\Services\Ai;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>, variant_price: string, variant_stock: string}
      *
      * @throws InvalidAiResponseException
      */
@@ -31,7 +31,7 @@ class ProductDraftResponseParser
 
         $stringField = fn (mixed $value): string => is_string($value) ? $value : '';
 
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate', 'set_fields'] as $key) {
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images', 'navigate', 'set_fields', 'variant_price', 'variant_stock'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -55,6 +55,11 @@ class ProductDraftResponseParser
             // applied straight to the live form, no draft-card review step,
             // so only a small whitelisted set of simple fields is accepted.
             'set_fields' => $this->setFields($decoded['set_fields']),
+            // Per-variant overrides — distinct from "price" above, which is
+            // the product's own base price. Applied uniformly to every
+            // variant row this turn creates (see buildFillPlan/applySetFields).
+            'variant_price' => trim($stringField($decoded['variant_price'])),
+            'variant_stock' => trim($stringField($decoded['variant_stock'])),
         ];
     }
 
@@ -91,7 +96,7 @@ class ProductDraftResponseParser
         // photo-dependent enough that they should stay behind the draft
         // card's review step instead of silently overwriting the form.
         $listFields = ['sizes', 'colors'];
-        $stringFields = ['name', 'price', 'category', 'brand'];
+        $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock'];
 
         $entries = [];
         foreach ($value as $item) {

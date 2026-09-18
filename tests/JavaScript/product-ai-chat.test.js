@@ -50,15 +50,23 @@ test('buildFillPlan folds bullets and SEO title into the description', () => {
 test('buildFillPlan builds the cartesian product of sizes and colors, capped at 12 rows', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: ['Trắng', 'Đen', 'Xanh', 'Vàng', 'Hồng'] });
     assert.equal(plan.variantRows.length, 12);
-    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng', imageIndex: undefined });
+    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng', imageIndex: undefined, price: undefined, stock: undefined });
 });
 
 test('buildFillPlan creates one row per size (empty color) when no colors were suggested', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: [] });
     assert.deepEqual(plan.variantRows, [
-        { size: 'S', color: '', imageIndex: undefined },
-        { size: 'M', color: '', imageIndex: undefined },
-        { size: 'L', color: '', imageIndex: undefined },
+        { size: 'S', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+        { size: 'M', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+        { size: 'L', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+    ]);
+});
+
+test('buildFillPlan applies variant_price/variant_stock uniformly to every generated row', () => {
+    const plan = buildFillPlan({ ...draft, sizes: ['S', 'M'], colors: [], variant_price: '120000', variant_stock: '20' });
+    assert.deepEqual(plan.variantRows, [
+        { size: 'S', color: '', imageIndex: undefined, price: '120000', stock: '20' },
+        { size: 'M', color: '', imageIndex: undefined, price: '120000', stock: '20' },
     ]);
 });
 
@@ -85,10 +93,10 @@ test('buildFillPlan attaches the matching image index to every row sharing that 
         variant_images: [{ color: 'Đen', image_index: 2 }, { color: '  trắng  ', image_index: 1 }],
     });
     assert.deepEqual(plan.variantRows, [
-        { size: 'S', color: 'Trắng', imageIndex: 1 },
-        { size: 'S', color: 'Đen', imageIndex: 2 },
-        { size: 'M', color: 'Trắng', imageIndex: 1 },
-        { size: 'M', color: 'Đen', imageIndex: 2 },
+        { size: 'S', color: 'Trắng', imageIndex: 1, price: undefined, stock: undefined },
+        { size: 'S', color: 'Đen', imageIndex: 2, price: undefined, stock: undefined },
+        { size: 'M', color: 'Trắng', imageIndex: 1, price: undefined, stock: undefined },
+        { size: 'M', color: 'Đen', imageIndex: 2, price: undefined, stock: undefined },
     ]);
 });
 
@@ -96,7 +104,7 @@ test('buildFillPlan ignores variant_images entries for colors that are not in th
     const plan = buildFillPlan({
         ...draft, sizes: ['S'], colors: ['Trắng'], variant_images: [{ color: 'Xanh lá', image_index: 3 }],
     });
-    assert.deepEqual(plan.variantRows, [{ size: 'S', color: 'Trắng', imageIndex: undefined }]);
+    assert.deepEqual(plan.variantRows, [{ size: 'S', color: 'Trắng', imageIndex: undefined, price: undefined, stock: undefined }]);
 });
 
 test('collectImageGallery lays out every attached image by its stable index, across all messages', () => {
@@ -337,6 +345,40 @@ test('send() applies set_fields directly to the live form without a confirmation
     } finally {
         globalThis.document = defaultDocument;
     }
+});
+
+test('send() applies variant_price/variant_stock straight to existing variant rows when sizes/colors are not part of the turn', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true,
+        json: async () => ({
+            data: { ...draft, name: '', set_fields: [{ field: 'variant_stock', value: '20' }, { field: 'variant_price', value: '120000' }] },
+            raw: '{}',
+        }),
+    }));
+    const existingRow = { querySelector: () => null };
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [existingRow] };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'tồn kho 20, giá riêng 120k';
+        await chat.send();
+        assert.equal(chat.messages.at(-1).setFieldsLabel, 'tồn kho biến thể, giá biến thể');
+        assert.equal(chat.error, '');
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() tags the message with which tool(s) were used this turn', async t => {
+    globalThis.window = {};
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}' }),
+    }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.deepEqual(chat.messages.at(-1).tools, ['draft']);
 });
 
 test('send() jumps to the product create page and remembers set_fields when no form is on the current page', async t => {

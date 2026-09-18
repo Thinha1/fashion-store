@@ -47,6 +47,7 @@ class ProductAiAssistTest extends TestCase
             'bullets' => ['Form rộng', 'Vải cotton'], 'seo_title' => 'Áo sơ mi trắng nam',
             'price' => '350000', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
             'category' => '', 'brand' => '', 'variant_images' => [], 'navigate' => '', 'set_fields' => [],
+            'variant_price' => '', 'variant_stock' => '',
         ];
     }
 
@@ -212,6 +213,23 @@ class ProductAiAssistTest extends TestCase
                 ['field' => 'price', 'value' => ''],
                 ['field' => 'sizes', 'value' => []],
             ]);
+    }
+
+    public function test_variant_price_and_stock_pass_through_at_the_top_level_and_in_set_fields(): void
+    {
+        $draft = $this->draft();
+        $draft['variant_price'] = '120000';
+        $draft['variant_stock'] = '20';
+        $draft['set_fields'] = [
+            ['field' => 'variant_stock', 'value' => '20'],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('mỗi biến thể giá 120k tồn kho 20'))
+            ->assertOk()
+            ->assertJsonPath('data.variant_price', '120000')
+            ->assertJsonPath('data.variant_stock', '20')
+            ->assertJsonPath('data.set_fields', [['field' => 'variant_stock', 'value' => '20']]);
     }
 
     public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void

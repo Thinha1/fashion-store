@@ -203,16 +203,25 @@ export function buildFillPlan(draft) {
         }
     }
 
+    // Per-variant overrides, applied uniformly to every row built below —
+    // distinct from the product's own base "price" above.
+    const variantPrice = draft.variant_price?.trim() || undefined;
+    const variantStock = draft.variant_stock?.trim() || undefined;
+
     const variantRows = [];
     if (sizes.length && colors.length) {
         outer: for (const size of sizes) {
             for (const color of colors) {
                 if (variantRows.length >= MAX_VARIANT_ROWS) break outer;
-                variantRows.push({ size, color, imageIndex: imageIndexByColor.get(normalizeLabel(color)) });
+                variantRows.push({
+                    size, color, imageIndex: imageIndexByColor.get(normalizeLabel(color)), price: variantPrice, stock: variantStock,
+                });
             }
         }
     } else if (sizes.length) {
-        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) variantRows.push({ size, color: '', imageIndex: undefined });
+        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) {
+            variantRows.push({ size, color: '', imageIndex: undefined, price: variantPrice, stock: variantStock });
+        }
     }
 
     return {
@@ -231,6 +240,18 @@ function clearVariantRows(form) {
 }
 
 /**
+ * Writes the per-variant price/stock overrides into one existing row —
+ * used both right after a row is freshly created and when adjusting rows
+ * already on the form (see applySetFields). `price`/`stock` are each either
+ * a non-empty string to set, an explicit "" to clear, or `undefined` to
+ * leave that particular field untouched.
+ */
+function setVariantRowPriceAndStock(row, price, stock) {
+    if (price !== undefined) setCurrencyFieldValue(row.querySelector('.currency-input input[type="text"]'), price);
+    if (stock !== undefined) setFieldValue(row.querySelector('input[name$="[stock_quantity]"]'), stock);
+}
+
+/**
  * Adds one variant row per entry in `rows` (see `buildFillPlan`'s
  * `variantRows`) to the live product form. Shared by `applyFillPlan` (a full
  * composed draft) and `applySetFields` (a standalone "set sizes/colors"
@@ -240,10 +261,18 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
     if (!rows.length) return;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color, imageIndex } of rows) {
+    for (const { size, color, imageIndex, price, stock } of rows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
+        // The freshly-cloned row's own `x-data="currencyInput(...)"` (its
+        // price field) hasn't run yet — Alpine only discovers and inits new
+        // DOM via a MutationObserver, which fires on a later microtask, so
+        // writing to the price field before this would just get clobbered
+        // once that init runs and renders its own (empty) initial state
+        // over it. `initTree` is a no-op on anything already initialized
+        // (guarded by an internal marker), so this is safe either way.
+        alpine.initTree(row);
         const sizeSelect = row.querySelector('select[name$="[size]"]');
         const colorInput = row.querySelector('input[name$="[color]"]');
         if (sizeSelect) {
@@ -251,6 +280,7 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
         if (color) setFieldValue(colorInput, color);
+        setVariantRowPriceAndStock(row, price, stock);
         if (typeof imageIndex === 'number' && gallery[imageIndex]) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
         }
@@ -277,6 +307,7 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
 
 const SET_FIELD_LABELS = {
     name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
+    variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể',
 };
 
 /**
@@ -293,9 +324,13 @@ export function applySetFields(fields, form, alpine) {
     const applied = [];
     let sizes;
     let colors;
+    let variantPrice;
+    let variantStock;
     for (const { field, value } of fields) {
         if (field === 'sizes') sizes = value;
         else if (field === 'colors') colors = value;
+        else if (field === 'variant_price') variantPrice = value;
+        else if (field === 'variant_stock') variantStock = value;
         else if (field === 'price') setCurrencyFieldValue(form.querySelector('#base_price'), value);
         else if (field === 'name') setFieldValue(form.querySelector('#name'), value);
         else if (field === 'category') selectPlainOptionByLabel(form.querySelector('#category_id'), value);
@@ -307,9 +342,22 @@ export function applySetFields(fields, form, alpine) {
     if (sizes !== undefined || colors !== undefined) {
         // "sizes"/"colors" replace the whole variant list rather than adding
         // to it (see ProductDraftPromptBuilder) — including clearing every
-        // row when the resolved list ends up empty ("xoá hết size").
+        // row when the resolved list ends up empty ("xoá hết size"). Any
+        // variant_price/variant_stock this same turn applies to the newly
+        // created rows.
         clearVariantRows(form);
-        applyVariantRows(buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [] }).variantRows, form, alpine);
+        applyVariantRows(
+            buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [], variant_price: variantPrice, variant_stock: variantStock }).variantRows,
+            form, alpine,
+        );
+    } else if (variantPrice !== undefined || variantStock !== undefined) {
+        // No size/color change this turn, so there's nothing new to lay
+        // out — apply straight to every variant row already on the form
+        // instead (e.g. the staff member just said "tồn kho 20" for
+        // variants created earlier in the conversation).
+        for (const row of form.querySelectorAll('#variants-list [data-variant-row]')) {
+            setVariantRowPriceAndStock(row, variantPrice, variantStock);
+        }
     }
 
     return applied;
@@ -623,6 +671,15 @@ export default (assistUrl, productCreateUrl) => ({
             const setFieldsLabel = setFields.length
                 ? setFields.map(({ field }) => SET_FIELD_LABELS[field] ?? field).join(', ')
                 : null;
+            // Which "tool" this turn actually used — shown as a small tag
+            // under the bubble so it's easy to check at a glance during
+            // testing, without having to open devtools on every reply.
+            const tools = [];
+            if (this.navigate) tools.push('navigate');
+            if (setFields.length) tools.push('set_fields');
+            if (this.draft) tools.push('draft');
+            if (!tools.length) tools.push('none');
+
             // Carries the resolved page label / edited field names onto the
             // message itself so the bubble can say exactly what happened,
             // instead of the generic "updated the draft below" text that
@@ -632,6 +689,7 @@ export default (assistUrl, productCreateUrl) => ({
                 blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
                 navigateLabel: this.navigate?.label ?? null,
                 setFieldsLabel,
+                tools,
             });
             // Ties the card to this exact turn — see `draftMessageIndex`.
             this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
