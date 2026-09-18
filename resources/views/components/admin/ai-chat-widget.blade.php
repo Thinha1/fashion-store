@@ -45,7 +45,9 @@
                     <template x-if="message.role === 'assistant'">
                         <p x-text="message.navigateLabel
                             ? `Đã di chuyển đến trang ${message.navigateLabel}.`
-                            : 'Đã cập nhật nội dung gợi ý bên dưới.'"></p>
+                            : (message.setFieldsLabel
+                                ? `Đã điền ${message.setFieldsLabel} vào form.`
+                                : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                     </template>
                 </div>
             </template>

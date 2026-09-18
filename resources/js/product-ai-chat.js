@@ -200,24 +200,16 @@ export function buildFillPlan(draft) {
 }
 
 /**
- * Applies a fill plan to the real product form. Never submits the form —
- * the staff member reviews and submits it themselves. `gallery` (see
- * `collectImageGallery`) supplies the photos: index 0 always goes to the
- * shared "general photos" input, and any other index referenced by a
- * variant row goes to that row's own per-variant photo input.
+ * Adds one variant row per entry in `rows` (see `buildFillPlan`'s
+ * `variantRows`) to the live product form. Shared by `applyFillPlan` (a full
+ * composed draft) and `applySetFields` (a standalone "set sizes/colors"
+ * edit), since both boil down to the same size/color cartesian product.
  */
-export function applyFillPlan(plan, form, alpine, gallery = []) {
-    if (plan.name) setFieldValue(form.querySelector('#name'), plan.name);
-    if (plan.description) setFieldValue(form.querySelector('#description'), plan.description);
-    if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
-    if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
-    if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
-    if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
-
-    if (!plan.variantRows.length) return;
+function applyVariantRows(rows, form, alpine, gallery = []) {
+    if (!rows.length) return;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color, imageIndex } of plan.variantRows) {
+    for (const { size, color, imageIndex } of rows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
@@ -232,6 +224,60 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
         }
     }
+}
+
+/**
+ * Applies a fill plan to the real product form. Never submits the form —
+ * the staff member reviews and submits it themselves. `gallery` (see
+ * `collectImageGallery`) supplies the photos: index 0 always goes to the
+ * shared "general photos" input, and any other index referenced by a
+ * variant row goes to that row's own per-variant photo input.
+ */
+export function applyFillPlan(plan, form, alpine, gallery = []) {
+    if (plan.name) setFieldValue(form.querySelector('#name'), plan.name);
+    if (plan.description) setFieldValue(form.querySelector('#description'), plan.description);
+    if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
+    if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
+    if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
+    if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
+
+    applyVariantRows(plan.variantRows, form, alpine, gallery);
+}
+
+const SET_FIELD_LABELS = {
+    name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
+};
+
+/**
+ * Applies a `set_fields` reply (see ProductDraftPromptBuilder) straight to
+ * the live product form — no draft-card review step, unlike `applyFillPlan`.
+ * Only a small whitelist of simple fields ever reaches here (enforced
+ * server-side by ProductDraftResponseParser), so blindly trusting `field`
+ * here is safe.
+ *
+ * @param  Array<{field: string, value: string|string[]}>  fields
+ * @return string[] Vietnamese labels of the fields actually applied, for the chat bubble.
+ */
+export function applySetFields(fields, form, alpine) {
+    const applied = [];
+    let sizes;
+    let colors;
+    for (const { field, value } of fields) {
+        if (field === 'sizes') sizes = value;
+        else if (field === 'colors') colors = value;
+        else if (field === 'price') setCurrencyFieldValue(form.querySelector('#base_price'), value);
+        else if (field === 'name') setFieldValue(form.querySelector('#name'), value);
+        else if (field === 'category') selectPlainOptionByLabel(form.querySelector('#category_id'), value);
+        else if (field === 'brand') selectImageOptionByLabel(form.querySelector('#brand_id-native'), value, alpine);
+        else continue;
+        applied.push(SET_FIELD_LABELS[field] ?? field);
+    }
+
+    if (sizes !== undefined || colors !== undefined) {
+        applyVariantRows(buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [] }).variantRows, form, alpine);
+    }
+
+    return applied;
 }
 
 const STORAGE_KEY = 'product-ai-chat:v1';
@@ -305,6 +351,10 @@ export default (assistUrl, productCreateUrl) => ({
     // Set right before navigating away to go find a product form; consumed
     // once the destination page has loaded, so the fill survives the reload.
     pendingFill: false,
+    // Same idea as `pendingFill`, but for a standalone `set_fields` edit
+    // (e.g. "giá 100k") made while no product form was on the page —
+    // holds the fields themselves (not just a flag) so they survive the jump.
+    pendingSetFields: null,
 
     init() {
         const saved = loadPersistedState();
@@ -314,6 +364,7 @@ export default (assistUrl, productCreateUrl) => ({
             this.draft = saved.draft ?? null;
             this.navigate = saved.navigate ?? null;
             this.pendingFill = saved.pendingFill ?? false;
+            this.pendingSetFields = saved.pendingSetFields ?? null;
             this.imageCounter = saved.imageCounter ?? 0;
         }
         this.$watch('open', () => this.persist());
@@ -334,6 +385,13 @@ export default (assistUrl, productCreateUrl) => ({
                 this.applyDraftToForm(form);
             }
         }
+        if (this.pendingSetFields) {
+            const form = document.getElementById('product-form');
+            if (form) {
+                this.open = true;
+                this.applySetFieldsToForm(form);
+            }
+        }
     },
 
     scrollToBottom() {
@@ -346,7 +404,7 @@ export default (assistUrl, productCreateUrl) => ({
     persist() {
         persistState({
             open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
-            pendingFill: this.pendingFill, imageCounter: this.imageCounter,
+            pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
         });
     },
 
@@ -358,6 +416,7 @@ export default (assistUrl, productCreateUrl) => ({
         this.attachedImages = [];
         this.input = '';
         this.pendingFill = false;
+        this.pendingSetFields = null;
         this.imageCounter = 0;
     },
 
@@ -453,14 +512,40 @@ export default (assistUrl, productCreateUrl) => ({
             // tells the model not to repeat "navigate" unless asked again,
             // so a stale suggestion from an earlier turn must not linger.
             this.navigate = payload?.navigate ?? null;
-            // Carries the resolved page label onto the message itself so the
-            // bubble can say exactly where it went, instead of the generic
-            // "updated the draft below" text that doesn't apply here.
+            const setFields = Array.isArray(draft.set_fields) ? draft.set_fields : [];
+            const setFieldsLabel = setFields.length
+                ? setFields.map(({ field }) => SET_FIELD_LABELS[field] ?? field).join(', ')
+                : null;
+            // Carries the resolved page label / edited field names onto the
+            // message itself so the bubble can say exactly what happened,
+            // instead of the generic "updated the draft below" text that
+            // doesn't apply to either of those two turns.
             this.messages.push({
                 role: 'assistant',
                 blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
                 navigateLabel: this.navigate?.label ?? null,
+                setFieldsLabel,
             });
+
+            // A quick single/few-field edit ("giá 100k") is applied straight
+            // to the live form — no draft-card review step, since it's a
+            // small, explicit, easily-undone change.
+            if (setFields.length) {
+                const form = document.getElementById('product-form');
+                if (form) {
+                    applySetFields(setFields, form, window.Alpine);
+                } else if (productCreateUrl) {
+                    // No product form on this page — same fallback as
+                    // fillForm(): remember the fields, jump to the "add
+                    // product" page, and finish once it has loaded.
+                    this.pendingSetFields = setFields;
+                    this.persist();
+                    window.location.href = productCreateUrl;
+                    return;
+                } else {
+                    this.error = 'Không tìm thấy form thêm/sửa sản phẩm trên trang này.';
+                }
+            }
 
             // Navigating is just a page jump (no data write), so it happens
             // right away instead of waiting for a confirmation click.
@@ -503,5 +588,10 @@ export default (assistUrl, productCreateUrl) => ({
         const gallery = collectImageGallery(this.messages);
         applyFillPlan(buildFillPlan(this.draft), form, window.Alpine, gallery);
         this.pendingFill = false;
+    },
+
+    applySetFieldsToForm(form) {
+        applySetFields(this.pendingSetFields ?? [], form, window.Alpine);
+        this.pendingSetFields = null;
     },
 });

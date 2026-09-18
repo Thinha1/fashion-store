@@ -232,6 +232,108 @@ test('send() clears a previous navigate suggestion when the next reply has none'
     assert.equal(chat.navigate, null);
 });
 
+test('send() applies set_fields directly to the live form without a confirmation click', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    // A minimal stand-in for the real product form — just enough (a no-op
+    // `querySelector`) for the field-writing helpers to no-op safely instead
+    // of touching real DOM APIs Node doesn't have. Confirms the surrounding
+    // orchestration (which form it targets, no draft card, the bubble
+    // label) rather than the DOM writes themselves, which get exercised
+    // live in the browser.
+    const fakeForm = { querySelector: () => null };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.equal(chat.draft, null);
+        assert.equal(chat.messages.at(-1).setFieldsLabel, 'giá');
+        assert.equal(chat.error, '');
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() jumps to the product create page and remembers set_fields when no form is on the current page', async t => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.window = { location: { href: '' } };
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.deepEqual(chat.pendingSetFields, [{ field: 'price', value: '100000' }]);
+        assert.equal(globalThis.window.location.href, '/admin/san-pham/tao-moi');
+        const saved = JSON.parse(globalThis.sessionStorage.getItem('product-ai-chat:v1'));
+        assert.deepEqual(saved.pendingSetFields, [{ field: 'price', value: '100000' }]);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() shows an error instead of navigating when set_fields has nowhere to go', async t => {
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.match(chat.error, /Không tìm thấy form/);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() ignores an absent or empty set_fields (no error, no redirect)', async t => {
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'áo thun';
+        await chat.send();
+        assert.equal(chat.error, '');
+        assert.equal(chat.messages.at(-1).setFieldsLabel, null);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('init() finishes a pending set_fields edit once the product-form page has loaded', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: false, messages: [], pendingSetFields: [{ field: 'price', value: '100000' }],
+    }));
+    const fakeForm = {};
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        let appliedWith = null;
+        chat.applySetFieldsToForm = (form) => { appliedWith = form; };
+        chat.init();
+        assert.equal(chat.open, true);
+        assert.equal(appliedWith, fakeForm);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('startNewConversation() also clears a pending set_fields edit', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.init();
+    chat.pendingSetFields = [{ field: 'price', value: '100000' }];
+    chat.startNewConversation();
+    assert.equal(chat.pendingSetFields, null);
+});
+
 test('goToPage() navigates to the server-resolved URL', () => {
     globalThis.window = { location: { href: '' } };
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
