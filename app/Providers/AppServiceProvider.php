@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\Ai\AiProviderContract;
-use App\Services\Ai\AnthropicMessagesProvider;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
@@ -20,14 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Swappable AI backend for the product-draft chat widget: switch
-        // AI_PROVIDER in .env between the Anthropic Messages API and a
-        // self-hosted OpenAI-compatible endpoint without touching the
-        // controller, widget, or prompt/parsing logic.
-        $this->app->bind(AiProviderContract::class, fn () => match (config('services.ai.provider')) {
-            'openai_compatible' => $this->app->make(OpenAiCompatibleProvider::class),
-            default => $this->app->make(AnthropicMessagesProvider::class),
-        });
+        // The product-draft chat widget's AI backend: a self-hosted,
+        // OpenAI-compatible chat completions endpoint. Bound behind the
+        // interface (not just `new`d in the controller) so tests can swap it
+        // for a fake, and so a second provider can be added later without
+        // touching the controller, widget, or prompt/parsing logic.
+        $this->app->bind(AiProviderContract::class, OpenAiCompatibleProvider::class);
     }
 
     /**

@@ -20,7 +20,6 @@ return [
     ],
 
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'anthropic'),
         'requests_per_minute' => (int) env('AI_REQUESTS_PER_MINUTE', 6),
         'max_image_kb' => (int) env('AI_MAX_IMAGE_KB', 4096),
         'max_history_messages' => (int) env('AI_MAX_HISTORY_MESSAGES', 24),
@@ -28,11 +27,9 @@ return [
         // this budget on hidden reasoning before emitting the actual JSON
         // reply, so the default is well above a typical non-reasoning model.
         'max_tokens' => (int) env('AI_MAX_TOKENS', 3072),
-        'anthropic' => [
-            'key' => env('ANTHROPIC_API_KEY'),
-            'model' => env('AI_MODEL', 'claude-sonnet-5'),
-            'version' => env('ANTHROPIC_VERSION', '2023-06-01'),
-        ],
+        // Self-hosted, OpenAI-compatible chat completions endpoint — paste
+        // the full base URL exactly as given (usually already ends in
+        // "/v1"); OpenAiCompatibleProvider only appends "/chat/completions".
         'openai_compatible' => [
             'endpoint' => env('AI_SELF_HOST_ENDPOINT'),
             'key' => env('AI_SELF_HOST_KEY'),

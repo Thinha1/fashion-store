@@ -18,7 +18,13 @@ class ProductAiAssistTest extends TestCase
     {
         parent::setUp();
         Http::preventStrayRequests();
-        config(['services.ai.provider' => 'anthropic', 'services.ai.anthropic.key' => 'test-key']);
+        // The endpoint intentionally already ends in "/v1" here — that's the
+        // base URL exactly as a provider hands it out, and the code must not
+        // append another one (see OpenAiCompatibleProvider).
+        config([
+            'services.ai.openai_compatible.endpoint' => 'https://internal-ai.example.test/v1',
+            'services.ai.openai_compatible.key' => 'test-key',
+        ]);
     }
 
     private function url(): string
@@ -44,9 +50,9 @@ class ProductAiAssistTest extends TestCase
         ];
     }
 
-    private function anthropicResponse(array $draft): array
+    private function chatCompletionResponse(array $draft): array
     {
-        return ['content' => [['type' => 'text', 'text' => json_encode($draft)]]];
+        return ['choices' => [['message' => ['content' => json_encode($draft)]]]];
     }
 
     public function test_request_requires_products_manage_permission(): void
@@ -58,7 +64,7 @@ class ProductAiAssistTest extends TestCase
 
     public function test_successful_call_returns_the_parsed_draft_and_raw_reply(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($this->draft()))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo sơ mi trắng giá 350k size S M L'))
             ->assertOk()
@@ -68,18 +74,29 @@ class ProductAiAssistTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_base_url_already_ending_in_v1_is_used_as_is(): void
+    {
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
+        // Endpoint config already ends in "/v1" (see setUp) — the request
+        // must go to exactly ".../v1/chat/completions", never ".../v1/v1/...".
+        Http::assertSent(fn ($request) => $request->url() === 'https://internal-ai.example.test/v1/chat/completions');
+    }
+
     public function test_active_category_and_brand_names_are_sent_to_the_provider(): void
     {
         Category::factory()->create(['name' => 'Áo thun', 'is_active' => true]);
         Category::factory()->create(['name' => 'Ngừng bán', 'is_active' => false]);
         Brand::factory()->create(['name' => 'Local Brand X', 'is_active' => true]);
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($this->draft()))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
         Http::assertSent(function ($request) {
-            $system = $request['system'];
+            $system = $request['messages'][0]['content'];
 
-            return str_contains($system, 'Áo thun') && ! str_contains($system, 'Ngừng bán') && str_contains($system, 'Local Brand X');
+            return $request['messages'][0]['role'] === 'system'
+                && str_contains($system, 'Áo thun') && ! str_contains($system, 'Ngừng bán') && str_contains($system, 'Local Brand X');
         });
     }
 
@@ -89,7 +106,7 @@ class ProductAiAssistTest extends TestCase
         $draft['category'] = 'Áo thun';
         $draft['brand'] = 'Local Brand X';
         $draft['variant_images'] = [['color' => 'Trắng', 'image_index' => 1]];
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($draft))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertOk()
@@ -108,7 +125,7 @@ class ProductAiAssistTest extends TestCase
             ['color' => 'Xanh'],
             'not-an-object',
         ];
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($draft))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertOk()
@@ -117,7 +134,7 @@ class ProductAiAssistTest extends TestCase
 
     public function test_missing_fields_in_ai_reply_return_a_bad_gateway_error(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse(['name' => 'Áo']))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse(['name' => 'Áo']))]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertStatus(502);
@@ -125,7 +142,7 @@ class ProductAiAssistTest extends TestCase
 
     public function test_non_json_ai_reply_returns_a_bad_gateway_error(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response(['content' => [['type' => 'text', 'text' => 'không phải JSON']]])]);
+        Http::fake(['internal-ai.example.test/*' => Http::response(['choices' => [['message' => ['content' => 'không phải JSON']]]])]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertStatus(502);
@@ -133,7 +150,7 @@ class ProductAiAssistTest extends TestCase
 
     public function test_connection_failure_returns_a_retryable_message(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::failedConnection()]);
+        Http::fake(['internal-ai.example.test/*' => Http::failedConnection()]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertStatus(503);
@@ -141,7 +158,7 @@ class ProductAiAssistTest extends TestCase
 
     public function test_provider_error_status_returns_a_retryable_message(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response([], 500)]);
+        Http::fake(['internal-ai.example.test/*' => Http::response([], 500)]);
         $this->actingAs(User::factory()->admin()->create())
             ->postJson($this->url(), $this->textMessage('áo thun'))
             ->assertStatus(503);
@@ -150,7 +167,7 @@ class ProductAiAssistTest extends TestCase
     public function test_call_is_rate_limited(): void
     {
         config(['services.ai.requests_per_minute' => 2]);
-        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($this->draft()))]);
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
         $this->actingAs(User::factory()->admin()->create());
         for ($i = 0; $i < 2; $i++) {
             $this->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
@@ -199,21 +216,5 @@ class ProductAiAssistTest extends TestCase
             ->postJson($this->url(), $payload)
             ->assertUnprocessable();
         Http::assertNothingSent();
-    }
-
-    public function test_openai_compatible_provider_can_be_selected_via_config(): void
-    {
-        config([
-            'services.ai.provider' => 'openai_compatible',
-            'services.ai.openai_compatible.endpoint' => 'https://internal-ai.example.test',
-            'services.ai.openai_compatible.key' => 'internal-key',
-        ]);
-        Http::fake(['internal-ai.example.test/*' => Http::response([
-            'choices' => [['message' => ['content' => json_encode($this->draft())]]],
-        ])]);
-        $this->actingAs(User::factory()->admin()->create())
-            ->postJson($this->url(), $this->textMessage('áo sơ mi trắng'))
-            ->assertOk()->assertJsonPath('data.name', 'Áo sơ mi trắng');
-        Http::assertSent(fn ($request) => $request->url() === 'https://internal-ai.example.test/v1/chat/completions');
     }
 }

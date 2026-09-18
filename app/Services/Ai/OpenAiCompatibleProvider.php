@@ -14,13 +14,17 @@ class OpenAiCompatibleProvider implements AiProviderContract
 {
     public function complete(array $messages, string $systemPrompt): string
     {
+        // `endpoint` is the full base URL exactly as the provider gives it to
+        // copy-paste — for most OpenAI-compatible servers that already ends
+        // in "/v1", so only "/chat/completions" is appended here, never a
+        // hardcoded "/v1" (that would double it for the common case).
         $endpoint = rtrim((string) config('services.ai.openai_compatible.endpoint'), '/');
 
         $response = Http::withToken((string) config('services.ai.openai_compatible.key'))
             ->acceptJson()
             ->connectTimeout(5)
             ->timeout(60)
-            ->post($endpoint.'/v1/chat/completions', [
+            ->post($endpoint.'/chat/completions', [
                 'model' => config('services.ai.openai_compatible.model'),
                 'max_tokens' => config('services.ai.max_tokens'),
                 'messages' => [
