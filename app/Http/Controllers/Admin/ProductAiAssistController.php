@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductAiAssistRequest;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\InvalidAiResponseException;
 use App\Services\Ai\ProductDraftPromptBuilder;
@@ -24,8 +26,14 @@ class ProductAiAssistController extends Controller
     ): JsonResponse {
         $messages = $request->validated('messages');
 
+        // The AI can only pick a category/brand that actually exists by
+        // being shown the real list — otherwise it would freely invent a
+        // name the storefront has no matching option for.
+        $categories = Category::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
+        $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
+
         try {
-            $reply = $provider->complete($messages, $promptBuilder->build());
+            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands));
         } catch (ConnectionException|RuntimeException) {
             abort(503, self::UNAVAILABLE);
         }

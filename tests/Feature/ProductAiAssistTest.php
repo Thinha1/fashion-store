@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -38,6 +40,7 @@ class ProductAiAssistTest extends TestCase
             'name' => 'Áo sơ mi trắng', 'description' => 'Chất liệu thoáng mát.',
             'bullets' => ['Form rộng', 'Vải cotton'], 'seo_title' => 'Áo sơ mi trắng nam',
             'price' => '350000', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
+            'category' => '', 'brand' => '', 'variant_images' => [],
         ];
     }
 
@@ -63,6 +66,53 @@ class ProductAiAssistTest extends TestCase
             ->assertJsonPath('data.sizes', ['S', 'M', 'L'])
             ->assertJsonStructure(['data', 'raw']);
         Http::assertSentCount(1);
+    }
+
+    public function test_active_category_and_brand_names_are_sent_to_the_provider(): void
+    {
+        Category::factory()->create(['name' => 'Áo thun', 'is_active' => true]);
+        Category::factory()->create(['name' => 'Ngừng bán', 'is_active' => false]);
+        Brand::factory()->create(['name' => 'Local Brand X', 'is_active' => true]);
+        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($this->draft()))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
+        Http::assertSent(function ($request) {
+            $system = $request['system'];
+
+            return str_contains($system, 'Áo thun') && ! str_contains($system, 'Ngừng bán') && str_contains($system, 'Local Brand X');
+        });
+    }
+
+    public function test_category_brand_and_variant_images_pass_through_when_valid(): void
+    {
+        $draft = $this->draft();
+        $draft['category'] = 'Áo thun';
+        $draft['brand'] = 'Local Brand X';
+        $draft['variant_images'] = [['color' => 'Trắng', 'image_index' => 1]];
+        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))
+            ->assertOk()
+            ->assertJsonPath('data.category', 'Áo thun')
+            ->assertJsonPath('data.brand', 'Local Brand X')
+            ->assertJsonPath('data.variant_images', [['color' => 'Trắng', 'image_index' => 1]]);
+    }
+
+    public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void
+    {
+        $draft = $this->draft();
+        $draft['variant_images'] = [
+            ['color' => 'Trắng', 'image_index' => 1],
+            ['color' => '', 'image_index' => 2],
+            ['color' => 'Đen', 'image_index' => -1],
+            ['color' => 'Xanh'],
+            'not-an-object',
+        ];
+        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))
+            ->assertOk()
+            ->assertJsonPath('data.variant_images', [['color' => 'Trắng', 'image_index' => 1]]);
     }
 
     public function test_missing_fields_in_ai_reply_return_a_bad_gateway_error(): void

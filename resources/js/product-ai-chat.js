@@ -1,4 +1,5 @@
 const MAX_VARIANT_ROWS = 12;
+const MAX_IMAGES_PER_SELECTION = 6;
 
 function toBase64(dataUrl) {
     const commaIndex = dataUrl.indexOf(',');
@@ -32,6 +33,125 @@ function setFieldValue(el, value) {
 }
 
 /**
+ * The AI returns price as a free-form string ("350000", "350.000đ", "350k"...).
+ * Extracts the amount as a plain integer of VND (this shop has no cents), or
+ * null when nothing numeric could be found.
+ */
+export function parsePriceToInteger(text) {
+    const trimmed = String(text ?? '').trim().toLowerCase();
+    if (!trimmed) return null;
+
+    const shorthand = trimmed.match(/^([\d.,]+)\s*k$/);
+    if (shorthand) {
+        const amount = parseFloat(shorthand[1].replace(',', '.'));
+
+        return Number.isFinite(amount) ? Math.round(amount * 1000) : null;
+    }
+
+    const digits = trimmed.replace(/\D/g, '');
+
+    return digits ? parseInt(digits, 10) : null;
+}
+
+function groupThousands(amount) {
+    return String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * The base-price field isn't a plain input — it's the `<x-currency-input>`
+ * component. Its visible field is driven by an input-masking plugin built to
+ * diff one keystroke at a time; feeding it a whole value through a fired
+ * `input` event mangles it (confirmed against the real component: it turns
+ * "199000" into garbage like ",2"). Writing straight into the component's
+ * Alpine `display` state instead doesn't help either — Alpine only re-syncs
+ * the DOM from that state on the next reactive tick, and nothing in this
+ * flow triggers one.
+ *
+ * So this bypasses both: it writes the DOM values directly — the visible
+ * field for the staff member to see, and the hidden "canonical" input for
+ * what actually gets submitted (its `name` was moved there by the
+ * component's own init(), exactly like the visible field carries no name
+ * once Alpine has booted).
+ */
+function setCurrencyFieldValue(input, priceText) {
+    if (!input) return;
+    const amount = parsePriceToInteger(priceText);
+    if (amount === null) return;
+
+    // No dispatched events here on purpose (see comment above) — both the
+    // mask plugin and Alpine's own reactive re-render would fight this
+    // direct write. If the staff member edits the field afterwards, typing
+    // reads the live DOM value, so it self-corrects from there.
+    input.value = groupThousands(amount);
+    const canonical = input.closest('.currency-input')?.querySelector('input[type="hidden"]');
+    if (canonical) canonical.value = String(amount);
+}
+
+function normalizeLabel(text) {
+    return String(text ?? '').trim().toLowerCase();
+}
+
+/**
+ * `#category_id` is a plain `<select>` — matching its option by visible text
+ * and firing `change` is all a real click would do.
+ */
+function selectPlainOptionByLabel(select, label) {
+    if (!select || !label) return;
+    const target = normalizeLabel(label);
+    const match = [...select.options].find((option) => normalizeLabel(option.textContent) === target);
+    if (!match) return;
+    select.value = match.value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/**
+ * The brand field is the `<x-image-select>` component: a hidden native
+ * `<select>` plus a custom Alpine-driven listbox. Its own `choose(index)`
+ * method already does the right thing (updates its state, the native
+ * select, and fires `change`) — reuse it instead of reimplementing it.
+ */
+function selectImageOptionByLabel(nativeSelect, label, alpine) {
+    if (!nativeSelect || !label) return;
+    const wrapper = nativeSelect.closest('.image-select');
+    if (!wrapper) return;
+    const component = alpine.$data(wrapper);
+    const target = normalizeLabel(label);
+    const index = component.options.findIndex((option) => normalizeLabel(option.label) === target);
+    if (index === -1) return;
+    component.choose(index);
+}
+
+/** Moves a photo from the chat into a file input via DataTransfer, firing `change` so any preview listener picks it up. */
+function assignImageFile(input, dataUrl, filename) {
+    if (!input || !dataUrl) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(dataUrlToFile(dataUrl, filename));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/**
+ * Every image attached during the conversation carries a stable `imageIndex`
+ * (assigned once, when the staff member picks the file — see `onFileChange`)
+ * matching the "Ảnh số N:" label sent to the AI alongside it. This walks the
+ * whole conversation and lays every image out by that index, so the fill
+ * step can look photos up the same way the AI referenced them. No DOM
+ * access, so it's unit-testable on its own.
+ */
+export function collectImageGallery(messages) {
+    const gallery = [];
+    for (const message of messages) {
+        for (const block of message.blocks) {
+            if (block.type === 'image' && typeof block.imageIndex === 'number') {
+                gallery[block.imageIndex] = block.dataUrl;
+            }
+        }
+    }
+
+    return gallery;
+}
+
+/**
  * Pure planning step: turns a parsed AI draft into the flat list of writes
  * the real form needs. No DOM access, so this is unit-testable on its own —
  * the product form has no dedicated bullets/SEO-title fields, so those are
@@ -48,34 +168,56 @@ export function buildFillPlan(draft) {
 
     const sizes = Array.isArray(draft.sizes) ? draft.sizes.filter(Boolean) : [];
     const colors = Array.isArray(draft.colors) ? draft.colors.filter(Boolean) : [];
+
+    const imageIndexByColor = new Map();
+    if (Array.isArray(draft.variant_images)) {
+        for (const entry of draft.variant_images) {
+            const color = normalizeLabel(entry?.color);
+            if (color && Number.isInteger(entry?.image_index)) imageIndexByColor.set(color, entry.image_index);
+        }
+    }
+
     const variantRows = [];
     if (sizes.length && colors.length) {
         outer: for (const size of sizes) {
             for (const color of colors) {
                 if (variantRows.length >= MAX_VARIANT_ROWS) break outer;
-                variantRows.push({ size, color });
+                variantRows.push({ size, color, imageIndex: imageIndexByColor.get(normalizeLabel(color)) });
             }
         }
     } else if (sizes.length) {
-        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) variantRows.push({ size, color: '' });
+        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) variantRows.push({ size, color: '', imageIndex: undefined });
     }
 
-    return { name: draft.name?.trim() ?? '', description, price: draft.price?.trim() ?? '', variantRows };
+    return {
+        name: draft.name?.trim() ?? '',
+        description,
+        price: draft.price?.trim() ?? '',
+        category: draft.category?.trim() ?? '',
+        brand: draft.brand?.trim() ?? '',
+        variantRows,
+    };
 }
 
 /**
  * Applies a fill plan to the real product form. Never submits the form —
- * the staff member reviews and submits it themselves.
+ * the staff member reviews and submits it themselves. `gallery` (see
+ * `collectImageGallery`) supplies the photos: index 0 always goes to the
+ * shared "general photos" input, and any other index referenced by a
+ * variant row goes to that row's own per-variant photo input.
  */
-export function applyFillPlan(plan, form, alpine) {
+export function applyFillPlan(plan, form, alpine, gallery = []) {
     if (plan.name) setFieldValue(form.querySelector('#name'), plan.name);
     if (plan.description) setFieldValue(form.querySelector('#description'), plan.description);
-    if (plan.price) setFieldValue(form.querySelector('#base_price'), plan.price);
+    if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
+    if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
+    if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
+    if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
 
     if (!plan.variantRows.length) return;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color } of plan.variantRows) {
+    for (const { size, color, imageIndex } of plan.variantRows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
@@ -86,17 +228,10 @@ export function applyFillPlan(plan, form, alpine) {
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
         if (color) setFieldValue(colorInput, color);
+        if (typeof imageIndex === 'number' && gallery[imageIndex]) {
+            assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
+        }
     }
-}
-
-/** Moves the photo attached in chat into the form's shared image input via DataTransfer. */
-export function applyImageToForm(form, dataUrl, filename = 'ai-chat-image.jpg') {
-    const input = form.querySelector('#images');
-    if (!input) return;
-    const transfer = new DataTransfer();
-    transfer.items.add(dataUrlToFile(dataUrl, filename));
-    input.files = transfer.files;
-    input.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 const STORAGE_KEY = 'product-ai-chat:v1';
@@ -152,15 +287,21 @@ export function toWireMessages(messages) {
     return merged;
 }
 
-export default (assistUrl) => ({
+export default (assistUrl, productCreateUrl) => ({
     open: false,
     messages: [],
     input: '',
-    attachedImage: null,
+    attachedImages: [],
     loading: false,
     error: '',
     draft: null,
     requestId: 0,
+    // Assigned once per attached photo, for the whole life of the
+    // conversation — this is the "Ảnh số N" the AI is told to reference.
+    imageCounter: 0,
+    // Set right before navigating away to go find a product form; consumed
+    // once the destination page has loaded, so the fill survives the reload.
+    pendingFill: false,
 
     init() {
         const saved = loadPersistedState();
@@ -168,22 +309,37 @@ export default (assistUrl) => ({
             this.open = saved.open ?? false;
             this.messages = saved.messages ?? [];
             this.draft = saved.draft ?? null;
+            this.pendingFill = saved.pendingFill ?? false;
+            this.imageCounter = saved.imageCounter ?? 0;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
         this.$watch('draft', () => this.persist());
+
+        if (this.pendingFill) {
+            const form = document.getElementById('product-form');
+            if (form) {
+                this.open = true;
+                this.applyDraftToForm(form);
+            }
+        }
     },
 
     persist() {
-        persistState({ open: this.open, messages: this.messages, draft: this.draft });
+        persistState({
+            open: this.open, messages: this.messages, draft: this.draft,
+            pendingFill: this.pendingFill, imageCounter: this.imageCounter,
+        });
     },
 
     startNewConversation() {
         this.messages = [];
         this.draft = null;
         this.error = '';
-        this.attachedImage = null;
+        this.attachedImages = [];
         this.input = '';
+        this.pendingFill = false;
+        this.imageCounter = 0;
     },
 
     toggle() {
@@ -191,38 +347,51 @@ export default (assistUrl) => ({
     },
 
     onFileChange(event) {
-        const file = event.target.files?.[0];
+        const files = [...(event.target.files ?? [])].filter((file) => file.type.startsWith('image/'));
         event.target.value = '';
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            this.error = 'Vui lòng chọn một file ảnh.';
+        if (!files.length) {
+            this.error = 'Vui lòng chọn ít nhất một file ảnh.';
             return;
         }
-        const reader = new FileReader();
-        reader.onload = () => {
-            this.attachedImage = { dataUrl: reader.result, mediaType: file.type, data: toBase64(reader.result), name: file.name };
-        };
-        reader.readAsDataURL(file);
+        if (files.length > MAX_IMAGES_PER_SELECTION) {
+            this.error = `Chỉ chọn tối đa ${MAX_IMAGES_PER_SELECTION} ảnh mỗi lần.`;
+            return;
+        }
+        this.error = '';
+        for (const file of files) {
+            const imageIndex = this.imageCounter++;
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.attachedImages.push({
+                    dataUrl: reader.result, mediaType: file.type, data: toBase64(reader.result), name: file.name, imageIndex,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
     },
 
-    removeAttachedImage() {
-        this.attachedImage = null;
+    removeAttachedImage(index) {
+        this.attachedImages.splice(index, 1);
     },
 
     async send() {
         if (this.loading) return;
         const text = this.input.trim();
-        if (!text && !this.attachedImage) return;
+        if (!text && !this.attachedImages.length) return;
 
         const blocks = [];
-        if (this.attachedImage) {
-            blocks.push({ type: 'image', mediaType: this.attachedImage.mediaType, data: this.attachedImage.data, dataUrl: this.attachedImage.dataUrl });
+        for (const image of this.attachedImages) {
+            // Labels the image with the exact index the AI is told to use in "variant_images".
+            blocks.push({ type: 'text', text: `Ảnh số ${image.imageIndex}:` });
+            blocks.push({
+                type: 'image', mediaType: image.mediaType, data: image.data, dataUrl: image.dataUrl, imageIndex: image.imageIndex,
+            });
         }
         if (text) blocks.push({ type: 'text', text });
 
         this.messages.push({ role: 'user', blocks });
         this.input = '';
-        this.attachedImage = null;
+        this.attachedImages = [];
         this.error = '';
         this.loading = true;
         this.requestId++;
@@ -269,13 +438,23 @@ export default (assistUrl) => ({
         if (!this.draft) return;
         const form = document.getElementById('product-form');
         if (!form) {
-            this.error = 'Không tìm thấy form thêm/sửa sản phẩm trên trang này.';
+            if (!productCreateUrl) {
+                this.error = 'Không tìm thấy form thêm/sửa sản phẩm trên trang này.';
+                return;
+            }
+            // No product form on this page — remember the intent, then jump
+            // to the "add product" page and finish the fill once it loads.
+            this.pendingFill = true;
+            this.persist();
+            window.location.href = productCreateUrl;
             return;
         }
-        applyFillPlan(buildFillPlan(this.draft), form, window.Alpine);
-        const lastImage = [...this.messages].reverse()
-            .flatMap((message) => message.blocks)
-            .find((block) => block.type === 'image');
-        if (lastImage) applyImageToForm(form, lastImage.dataUrl);
+        this.applyDraftToForm(form);
+    },
+
+    applyDraftToForm(form) {
+        const gallery = collectImageGallery(this.messages);
+        applyFillPlan(buildFillPlan(this.draft), form, window.Alpine, gallery);
+        this.pendingFill = false;
     },
 });

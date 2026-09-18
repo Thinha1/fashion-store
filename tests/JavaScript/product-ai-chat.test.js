@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import productAiChat, { buildFillPlan, toWireMessages } from '../../resources/js/product-ai-chat.js';
+import productAiChat, {
+    buildFillPlan, toWireMessages, parsePriceToInteger, collectImageGallery,
+} from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
 // which doesn't exist under Node's test runner. A minimal stub is enough to
@@ -25,6 +27,8 @@ function withAlpineStubs(chat) {
     return chat;
 }
 
+const defaultDocument = { querySelector: () => null, getElementById: () => null };
+
 const draft = {
     name: 'Áo sơ mi trắng', description: 'Chất liệu thoáng mát.',
     bullets: ['Form rộng', 'Vải cotton'], seo_title: 'Áo sơ mi trắng nam',
@@ -41,17 +45,83 @@ test('buildFillPlan folds bullets and SEO title into the description', () => {
 test('buildFillPlan builds the cartesian product of sizes and colors, capped at 12 rows', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: ['Trắng', 'Đen', 'Xanh', 'Vàng', 'Hồng'] });
     assert.equal(plan.variantRows.length, 12);
-    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng' });
+    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng', imageIndex: undefined });
 });
 
 test('buildFillPlan creates one row per size (empty color) when no colors were suggested', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: [] });
-    assert.deepEqual(plan.variantRows, [{ size: 'S', color: '' }, { size: 'M', color: '' }, { size: 'L', color: '' }]);
+    assert.deepEqual(plan.variantRows, [
+        { size: 'S', color: '', imageIndex: undefined },
+        { size: 'M', color: '', imageIndex: undefined },
+        { size: 'L', color: '', imageIndex: undefined },
+    ]);
 });
 
 test('buildFillPlan creates no variant rows when only colors were suggested (size is required)', () => {
     const plan = buildFillPlan({ ...draft, sizes: [], colors: ['Trắng'] });
     assert.deepEqual(plan.variantRows, []);
+});
+
+test('buildFillPlan passes category and brand through untouched (DOM matching happens later)', () => {
+    const plan = buildFillPlan({ ...draft, category: ' Áo thun ', brand: 'Local Brand X' });
+    assert.equal(plan.category, 'Áo thun');
+    assert.equal(plan.brand, 'Local Brand X');
+});
+
+test('buildFillPlan defaults category and brand to empty when the AI left them blank', () => {
+    const plan = buildFillPlan(draft);
+    assert.equal(plan.category, '');
+    assert.equal(plan.brand, '');
+});
+
+test('buildFillPlan attaches the matching image index to every row sharing that color', () => {
+    const plan = buildFillPlan({
+        ...draft, sizes: ['S', 'M'], colors: ['Trắng', 'Đen'],
+        variant_images: [{ color: 'Đen', image_index: 2 }, { color: '  trắng  ', image_index: 1 }],
+    });
+    assert.deepEqual(plan.variantRows, [
+        { size: 'S', color: 'Trắng', imageIndex: 1 },
+        { size: 'S', color: 'Đen', imageIndex: 2 },
+        { size: 'M', color: 'Trắng', imageIndex: 1 },
+        { size: 'M', color: 'Đen', imageIndex: 2 },
+    ]);
+});
+
+test('buildFillPlan ignores variant_images entries for colors that are not in the draft', () => {
+    const plan = buildFillPlan({
+        ...draft, sizes: ['S'], colors: ['Trắng'], variant_images: [{ color: 'Xanh lá', image_index: 3 }],
+    });
+    assert.deepEqual(plan.variantRows, [{ size: 'S', color: 'Trắng', imageIndex: undefined }]);
+});
+
+test('collectImageGallery lays out every attached image by its stable index, across all messages', () => {
+    const gallery = collectImageGallery([
+        {
+            role: 'user',
+            blocks: [
+                { type: 'text', text: 'Ảnh số 0:' },
+                { type: 'image', dataUrl: 'data:image/jpeg;base64,AAA', imageIndex: 0 },
+                { type: 'text', text: 'Ảnh số 1:' },
+                { type: 'image', dataUrl: 'data:image/jpeg;base64,BBB', imageIndex: 1 },
+            ],
+        },
+        { role: 'assistant', blocks: [{ type: 'text', text: '{}' }] },
+        {
+            role: 'user',
+            blocks: [{ type: 'text', text: 'Ảnh số 2:' }, { type: 'image', dataUrl: 'data:image/jpeg;base64,CCC', imageIndex: 2 }],
+        },
+    ]);
+    assert.deepEqual(gallery, ['data:image/jpeg;base64,AAA', 'data:image/jpeg;base64,BBB', 'data:image/jpeg;base64,CCC']);
+});
+
+test('parsePriceToInteger understands plain digits, grouped VND text, and "k" shorthand', () => {
+    assert.equal(parsePriceToInteger('199000'), 199000);
+    assert.equal(parsePriceToInteger('350.000đ'), 350000);
+    assert.equal(parsePriceToInteger('350,000 VND'), 350000);
+    assert.equal(parsePriceToInteger('350k'), 350000);
+    assert.equal(parsePriceToInteger('12.5k'), 12500);
+    assert.equal(parsePriceToInteger(''), null);
+    assert.equal(parsePriceToInteger('liên hệ'), null);
 });
 
 test('toWireMessages merges consecutive same-role turns to keep strict alternation', () => {
@@ -109,6 +179,28 @@ test('send() ignores a call made while a request is already in flight', async t 
     assert.equal(chat.messages.length, 1);
 });
 
+test('send() labels each attached image with its stable index so the AI can reference it back', async t => {
+    const fetch = t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}' }),
+    }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.attachedImages = [
+        { dataUrl: 'data:image/jpeg;base64,AAA', mediaType: 'image/jpeg', data: 'AAA', name: 'a.jpg', imageIndex: 0 },
+        { dataUrl: 'data:image/jpeg;base64,BBB', mediaType: 'image/jpeg', data: 'BBB', name: 'b.jpg', imageIndex: 1 },
+    ];
+    chat.input = 'áo có 2 màu';
+    await chat.send();
+    const body = JSON.parse(fetch.mock.calls[0].arguments[1].body);
+    assert.deepEqual(body.messages[0].content, [
+        { type: 'text', text: 'Ảnh số 0:' },
+        { type: 'image', media_type: 'image/jpeg', data: 'AAA' },
+        { type: 'text', text: 'Ảnh số 1:' },
+        { type: 'image', media_type: 'image/jpeg', data: 'BBB' },
+        { type: 'text', text: 'áo có 2 màu' },
+    ]);
+    assert.deepEqual(chat.attachedImages, []);
+});
+
 test('send() does nothing without text or an attached image', async t => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft }) }));
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
@@ -150,15 +242,82 @@ test('persist() writes the current conversation so it survives the next page loa
     assert.deepEqual(saved.draft, draft);
 });
 
-test('startNewConversation() clears the conversation, draft and any attached image', () => {
+test('startNewConversation() clears the conversation, draft and any attached images', () => {
     globalThis.sessionStorage = fakeSessionStorage();
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
     chat.messages.push({ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] });
     chat.draft = draft;
-    chat.attachedImage = { dataUrl: 'data:image/jpeg;base64,abc', mediaType: 'image/jpeg', data: 'abc', name: 'a.jpg' };
+    chat.attachedImages = [{ dataUrl: 'data:image/jpeg;base64,abc', mediaType: 'image/jpeg', data: 'abc', name: 'a.jpg', imageIndex: 0 }];
+    chat.imageCounter = 3;
     chat.startNewConversation();
     assert.deepEqual(chat.messages, []);
     assert.equal(chat.draft, null);
-    assert.equal(chat.attachedImage, null);
+    assert.deepEqual(chat.attachedImages, []);
+    assert.equal(chat.imageCounter, 0);
+});
+
+test('fillForm() jumps to the product create page when no form is on the current page', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.window = { location: { href: '' } };
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        chat.init();
+        chat.draft = draft;
+        chat.fillForm();
+        assert.equal(chat.pendingFill, true);
+        assert.equal(globalThis.window.location.href, '/admin/san-pham/tao-moi');
+        const saved = JSON.parse(globalThis.sessionStorage.getItem('product-ai-chat:v1'));
+        assert.equal(saved.pendingFill, true);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('fillForm() shows an error instead of navigating when no create-page URL was configured', () => {
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.draft = draft;
+        chat.fillForm();
+        assert.match(chat.error, /Không tìm thấy form/);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('init() finishes a pending fill once the product-form page has loaded', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: false, draft, messages: [], pendingFill: true,
+    }));
+    const fakeForm = {};
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        let filledWith = null;
+        chat.applyDraftToForm = (form) => { filledWith = form; };
+        chat.init();
+        assert.equal(chat.open, true);
+        assert.equal(filledWith, fakeForm);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('init() leaves the fill pending when the destination page still has no form', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: false, draft, messages: [], pendingFill: true,
+    }));
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        chat.init();
+        assert.equal(chat.open, false);
+        assert.equal(chat.pendingFill, true);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
 });

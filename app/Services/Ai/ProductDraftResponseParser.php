@@ -11,7 +11,7 @@ namespace App\Services\Ai;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>}
      *
      * @throws InvalidAiResponseException
      */
@@ -41,7 +41,7 @@ class ProductDraftResponseParser
             ), fn (string $item): bool => $item !== ''));
         };
 
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors'] as $key) {
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -55,6 +55,37 @@ class ProductDraftResponseParser
             'price' => trim($stringField($decoded['price'])),
             'sizes' => $stringList($decoded['sizes']),
             'colors' => $stringList($decoded['colors']),
+            'category' => trim($stringField($decoded['category'])),
+            'brand' => trim($stringField($decoded['brand'])),
+            'variant_images' => $this->variantImages($decoded['variant_images']),
         ];
+    }
+
+    /**
+     * Malformed entries are dropped rather than failing the whole response —
+     * this is a "nice to have" mapping the widget can also just leave blank.
+     *
+     * @return array<int, array{color: string, image_index: int}>
+     */
+    private function variantImages(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $entries = [];
+        foreach ($value as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $color = is_string($item['color'] ?? null) ? trim($item['color']) : '';
+            $index = $item['image_index'] ?? null;
+            if ($color === '' || ! is_numeric($index) || (int) $index < 0) {
+                continue;
+            }
+            $entries[] = ['color' => $color, 'image_index' => (int) $index];
+        }
+
+        return $entries;
     }
 }
