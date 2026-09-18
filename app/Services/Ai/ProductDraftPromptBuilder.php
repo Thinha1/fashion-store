@@ -12,8 +12,10 @@ class ProductDraftPromptBuilder
      * @param  array<int, string>  $categories  active category names, exactly as stored — the model must
      *                                          pick one verbatim or leave the field blank, never invent a new one.
      * @param  array<int, string>  $brands  active brand names, same rule.
+     * @param  string  $pageList  "- key: label" lines from AdminPageDirectory::describeForPrompt(),
+     *                            the fixed set of pages the model may send the staff member to.
      */
-    public function build(array $categories, array $brands): string
+    public function build(array $categories, array $brands, string $pageList): string
     {
         $categoryList = $categories === [] ? '(chưa có danh mục nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $categories));
         $brandList = $brands === [] ? '(chưa có thương hiệu nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $brands));
@@ -41,6 +43,11 @@ class ProductDraftPromptBuilder
             KHÔNG được bịa tên khác):
             {$brandList}
 
+            Ngoài soạn nội dung, bạn còn có thể đưa nhân viên tới một trang khác trong khu quản trị nếu họ yêu cầu
+            (ví dụ "đưa tôi tới danh sách sản phẩm", "sang trang nhập hàng"). Các trang khả dụng — dùng đúng "key"
+            bên trái dấu ":", KHÔNG dùng tên hiển thị, KHÔNG bịa key khác:
+            {$pageList}
+
             CHỈ trả lời bằng một object JSON DUY NHẤT, không kèm giải thích, không bọc trong markdown code fence,
             đúng hình dạng sau (điền chuỗi rỗng "" hoặc mảng rỗng [] cho phần chưa xác định được, không bỏ field):
             {
@@ -53,11 +60,15 @@ class ProductDraftPromptBuilder
               "colors": ["string"],
               "category": "string (nguyên văn 1 tên trong danh sách danh mục ở trên, hoặc chuỗi rỗng)",
               "brand": "string (nguyên văn 1 tên trong danh sách thương hiệu ở trên, hoặc chuỗi rỗng)",
-              "variant_images": [{"color": "string (khớp 1 giá trị trong colors)", "image_index": 0}]
+              "variant_images": [{"color": "string (khớp 1 giá trị trong colors)", "image_index": 0}],
+              "navigate": "string (đúng key trong danh sách trang ở trên nếu nhân viên yêu cầu chuyển trang, hoặc chuỗi rỗng)"
             }
 
             "variant_images" chỉ liệt kê ảnh số 1 trở đi (ảnh số 0 luôn là ảnh đại diện chung, không đưa vào đây)
             và chỉ khi ảnh đó thể hiện rõ một màu cụ thể của sản phẩm. Để mảng rỗng [] nếu không có ảnh nào như vậy.
+
+            "navigate" chỉ điền khi nhân viên RÕ RÀNG yêu cầu chuyển trang trong lượt nhắn gần nhất — không tự ý
+            gợi ý chuyển trang, và không lặp lại "navigate" ở các lượt trả lời sau nếu nhân viên không yêu cầu lại.
             PROMPT;
     }
 }

@@ -46,7 +46,7 @@ class ProductAiAssistTest extends TestCase
             'name' => 'Áo sơ mi trắng', 'description' => 'Chất liệu thoáng mát.',
             'bullets' => ['Form rộng', 'Vải cotton'], 'seo_title' => 'Áo sơ mi trắng nam',
             'price' => '350000', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
-            'category' => '', 'brand' => '', 'variant_images' => [],
+            'category' => '', 'brand' => '', 'variant_images' => [], 'navigate' => '',
         ];
     }
 
@@ -113,6 +113,52 @@ class ProductAiAssistTest extends TestCase
             ->assertJsonPath('data.category', 'Áo thun')
             ->assertJsonPath('data.brand', 'Local Brand X')
             ->assertJsonPath('data.variant_images', [['color' => 'Trắng', 'image_index' => 1]]);
+    }
+
+    public function test_page_directory_is_sent_to_the_provider(): void
+    {
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
+        Http::assertSent(function ($request) {
+            $system = $request['messages'][0]['content'];
+
+            return str_contains($system, 'products.index: Danh sách sản phẩm');
+        });
+    }
+
+    public function test_a_valid_navigate_key_resolves_to_its_real_url(): void
+    {
+        $draft = $this->draft();
+        $draft['navigate'] = 'products.index';
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('đưa tôi tới danh sách sản phẩm'))
+            ->assertOk()
+            ->assertJsonPath('navigate.key', 'products.index')
+            ->assertJsonPath('navigate.label', 'Danh sách sản phẩm')
+            ->assertJsonPath('navigate.url', route('admin.products.index'))
+            ->assertJsonMissingPath('data.navigate');
+    }
+
+    public function test_an_unknown_navigate_key_resolves_to_null_instead_of_a_broken_link(): void
+    {
+        $draft = $this->draft();
+        $draft['navigate'] = 'a-page-that-does-not-exist';
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))
+            ->assertOk()
+            ->assertJsonPath('navigate', null);
+    }
+
+    public function test_an_empty_navigate_resolves_to_null(): void
+    {
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))
+            ->assertOk()
+            ->assertJsonPath('navigate', null);
     }
 
     public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void

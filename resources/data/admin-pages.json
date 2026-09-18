@@ -1,0 +1,38 @@
+{
+    "dashboard": {
+        "label": "Trang tổng quan",
+        "route": "admin.dashboard"
+    },
+    "products.index": {
+        "label": "Danh sách sản phẩm",
+        "route": "admin.products.index"
+    },
+    "products.create": {
+        "label": "Thêm sản phẩm mới",
+        "route": "admin.products.create"
+    },
+    "categories.index": {
+        "label": "Danh mục sản phẩm",
+        "route": "admin.categories.index"
+    },
+    "brands.index": {
+        "label": "Thương hiệu",
+        "route": "admin.brands.index"
+    },
+    "suppliers.index": {
+        "label": "Nhà cung cấp",
+        "route": "admin.suppliers.index"
+    },
+    "goods-receipts.index": {
+        "label": "Phiếu nhập hàng",
+        "route": "admin.goods-receipts.index"
+    },
+    "goods-receipts.create": {
+        "label": "Tạo phiếu nhập hàng mới",
+        "route": "admin.goods-receipts.create"
+    },
+    "discounts.index": {
+        "label": "Giảm giá sản phẩm",
+        "route": "admin.discounts.index"
+    }
+}
