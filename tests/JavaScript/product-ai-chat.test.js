@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
-    buildFillPlan, toWireMessages, parsePriceToInteger, collectImageGallery,
+    buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -60,6 +60,23 @@ test('buildFillPlan creates one row per size (empty color) when no colors were s
 test('buildFillPlan creates no variant rows when only colors were suggested (size is required)', () => {
     const plan = buildFillPlan({ ...draft, sizes: [], colors: ['Trắng'] });
     assert.deepEqual(plan.variantRows, []);
+});
+
+test('parseStockQuantity extracts the plain count from free-form text', () => {
+    assert.equal(parseStockQuantity('5'), 5);
+    assert.equal(parseStockQuantity('còn 5 cái mỗi màu'), 5);
+    assert.equal(parseStockQuantity(''), null);
+    assert.equal(parseStockQuantity(undefined), null);
+});
+
+test('buildFillPlan carries the parsed stock quantity for every variant row to share', () => {
+    const plan = buildFillPlan({ ...draft, stock_quantity: '5' });
+    assert.equal(plan.stockQuantity, 5);
+});
+
+test('buildFillPlan defaults stock quantity to null when the AI left it blank', () => {
+    const plan = buildFillPlan(draft);
+    assert.equal(plan.stockQuantity, null);
 });
 
 test('buildFillPlan passes category and brand through untouched (DOM matching happens later)', () => {

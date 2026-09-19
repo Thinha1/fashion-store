@@ -11,7 +11,7 @@ namespace App\Services\Ai;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, stock_quantity: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>}
      *
      * @throws InvalidAiResponseException
      */
@@ -41,7 +41,7 @@ class ProductDraftResponseParser
             ), fn (string $item): bool => $item !== ''));
         };
 
-        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
+        foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'stock_quantity', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
             if (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
@@ -53,6 +53,7 @@ class ProductDraftResponseParser
             'bullets' => $stringList($decoded['bullets']),
             'seo_title' => trim($stringField($decoded['seo_title'])),
             'price' => trim($stringField($decoded['price'])),
+            'stock_quantity' => trim($stringField($decoded['stock_quantity'])),
             'sizes' => $stringList($decoded['sizes']),
             'colors' => $stringList($decoded['colors']),
             'category' => trim($stringField($decoded['category'])),

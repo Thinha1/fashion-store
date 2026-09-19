@@ -53,6 +53,17 @@ export function parsePriceToInteger(text) {
     return digits ? parseInt(digits, 10) : null;
 }
 
+/**
+ * The AI returns stock as a free-form string too ("5", "5 cái", "còn 5 mỗi
+ * màu"...). Extracts the plain integer count, or null when nothing numeric
+ * was found.
+ */
+export function parseStockQuantity(text) {
+    const digits = String(text ?? '').replace(/\D/g, '');
+
+    return digits ? parseInt(digits, 10) : null;
+}
+
 function groupThousands(amount) {
     return String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
@@ -193,6 +204,7 @@ export function buildFillPlan(draft) {
         name: draft.name?.trim() ?? '',
         description,
         price: draft.price?.trim() ?? '',
+        stockQuantity: parseStockQuantity(draft.stock_quantity),
         category: draft.category?.trim() ?? '',
         brand: draft.brand?.trim() ?? '',
         variantRows,
@@ -228,6 +240,9 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
         if (color) setFieldValue(colorInput, color);
+        if (plan.stockQuantity !== null) {
+            setFieldValue(row.querySelector('input[name$="[stock_quantity]"]'), String(plan.stockQuantity));
+        }
         if (typeof imageIndex === 'number' && gallery[imageIndex]) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
         }

@@ -39,7 +39,7 @@ class ProductAiAssistTest extends TestCase
         return [
             'name' => 'Áo sơ mi trắng', 'description' => 'Chất liệu thoáng mát.',
             'bullets' => ['Form rộng', 'Vải cotton'], 'seo_title' => 'Áo sơ mi trắng nam',
-            'price' => '350000', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
+            'price' => '350000', 'stock_quantity' => '', 'sizes' => ['S', 'M', 'L'], 'colors' => ['Trắng'],
             'category' => '', 'brand' => '', 'variant_images' => [],
         ];
     }
@@ -66,6 +66,17 @@ class ProductAiAssistTest extends TestCase
             ->assertJsonPath('data.sizes', ['S', 'M', 'L'])
             ->assertJsonStructure(['data', 'raw']);
         Http::assertSentCount(1);
+    }
+
+    public function test_stock_quantity_passes_through(): void
+    {
+        $draft = $this->draft();
+        $draft['stock_quantity'] = '5';
+        Http::fake(['api.anthropic.com/*' => Http::response($this->anthropicResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun, tồn kho 5 mỗi màu'))
+            ->assertOk()
+            ->assertJsonPath('data.stock_quantity', '5');
     }
 
     public function test_active_category_and_brand_names_are_sent_to_the_provider(): void

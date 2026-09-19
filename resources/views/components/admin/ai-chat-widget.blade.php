@@ -54,6 +54,8 @@
                         <dd x-text="draft.seo_title || '—'"></dd>
                         <dt>Giá</dt>
                         <dd x-text="draft.price || '—'"></dd>
+                        <dt>Tồn kho mỗi biến thể</dt>
+                        <dd x-text="draft.stock_quantity || '—'"></dd>
                         <dt>Size</dt>
                         <dd x-text="draft.sizes?.length ? draft.sizes.join(', ') : '—'"></dd>
                         <dt>Màu</dt>

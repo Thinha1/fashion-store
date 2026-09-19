@@ -49,6 +49,7 @@ class ProductDraftPromptBuilder
               "bullets": ["string", "string", "string"],
               "seo_title": "string",
               "price": "string",
+              "stock_quantity": "string (số lượng tồn kho mỗi biến thể nếu nhân viên có nói, hoặc chuỗi rỗng)",
               "sizes": ["string"],
               "colors": ["string"],
               "category": "string (nguyên văn 1 tên trong danh sách danh mục ở trên, hoặc chuỗi rỗng)",
