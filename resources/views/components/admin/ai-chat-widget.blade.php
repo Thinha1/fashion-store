@@ -1,14 +1,21 @@
-<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
-        <x-icon name="robot" x-show="!open" class="size-5" />
-        <x-icon name="close" x-show="open" class="size-5" />
+        <x-icon name="robot" x-show="!open" class="size-4" />
+        <x-icon name="close" x-show="open" class="size-4" />
     </button>
 
-    <div class="ai-chat-panel" x-show="open" x-transition x-on:click.outside="open = false" role="dialog"
-         aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
+    <div class="ai-chat-panel" x-show="open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+         x-on:click.outside="open = false" role="dialog"
+         aria-label="Trợ lý AI">
         <div class="ai-chat-panel-header">
-            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý đăng sản phẩm</h2>
+            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý AI</h2>
             <div class="flex items-center gap-1">
                 <button type="button" class="admin-action-quiet admin-action !min-h-8 !px-2" x-show="messages.length"
                         x-on:click="startNewConversation()" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
@@ -26,8 +33,13 @@
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
             </p>
             <template x-for="(message, index) in messages" :key="index">
-                <div :class="message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant'">
-                    <template x-if="message.role === 'user'">
+                <div :class="message.isRecap
+                    ? 'ai-chat-recap-note'
+                    : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant')">
+                    <template x-if="message.isRecap">
+                        <p x-text="message.blocks[0].text"></p>
+                    </template>
+                    <template x-if="!message.isRecap && message.role === 'user'">
                         <div class="space-y-1">
                             <template x-for="block in message.blocks.filter((b) => b.type === 'image')" :key="block.dataUrl">
                                 <img :src="block.dataUrl" alt="Ảnh đính kèm" class="h-16 w-16 rounded-lg object-cover">
@@ -36,12 +48,24 @@
                         </div>
                     </template>
                     <template x-if="message.role === 'assistant'">
-                        <p>Đã cập nhật nội dung gợi ý bên dưới.</p>
+                        <div>
+                            <p x-text="message.navigateLabel
+                                ? `Đã di chuyển đến trang ${message.navigateLabel}.`
+                                : (message.setFieldsLabel
+                                    ? `Đã điền ${message.setFieldsLabel} vào form.`
+                                    : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
+                            <p class="ai-chat-tool-tag" x-show="message.tools?.length" x-text="'tool: ' + message.tools?.join(', ')"></p>
+                            <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
+                                    x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
+                                    x-on:click="undoLastFormChange()">
+                                Hoàn tác thay đổi vừa rồi
+                            </button>
+                        </div>
                     </template>
                 </div>
             </template>
 
-            <div class="ai-chat-draft-card" x-show="draft">
+            <div class="ai-chat-draft-card" x-show="draft && draftMessageIndex === messages.length - 1">
                 <template x-if="draft">
                     <dl>
                         <dt>Tên sản phẩm</dt>
@@ -70,6 +94,11 @@
                     Điền vào form
                 </button>
             </div>
+
+            <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
+                <span></span><span></span><span></span>
+                <span class="ai-chat-thinking-label" x-text="streamStatus || 'Đang suy nghĩ...'"></span>
+            </div>
         </div>
 
         <div class="ai-chat-composer">
@@ -95,11 +124,10 @@
                 <label for="ai-chat-message-input" class="sr-only">Nội dung gửi trợ lý AI</label>
                 <textarea id="ai-chat-message-input" x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
                           class="field flex-1 resize-none text-sm"
-                          x-on:keydown.enter.exact.prevent="send()"></textarea>
+                          x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); send(); }"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"
                         :disabled="loading || (!input.trim() && !attachedImages.length)" x-on:click="send()" aria-label="Gửi">
-                    <x-icon name="send" class="size-4" x-show="!loading" />
-                    <span x-show="loading" class="text-xs">…</span>
+                    <x-icon name="send" class="size-4" />
                 </button>
             </div>
         </div>

@@ -86,7 +86,20 @@ function groupThousands(amount) {
  */
 function setCurrencyFieldValue(input, priceText) {
     if (!input) return;
-    const amount = parsePriceToInteger(priceText);
+    const canonical = input.closest('.currency-input')?.querySelector('input[type="hidden"]');
+    const trimmed = String(priceText ?? '').trim();
+
+    // An explicit empty value (from `set_fields`, see applySetFields) means
+    // "clear this field", not "nothing to do" — applyFillPlan never passes
+    // an empty string here (it's guarded by `if (plan.price)`), so this only
+    // ever fires for a deliberate clear request.
+    if (!trimmed) {
+        input.value = '';
+        if (canonical) canonical.value = '';
+        return;
+    }
+
+    const amount = parsePriceToInteger(trimmed);
     if (amount === null) return;
 
     // No dispatched events here on purpose (see comment above) — both the
@@ -94,7 +107,6 @@ function setCurrencyFieldValue(input, priceText) {
     // direct write. If the staff member edits the field afterwards, typing
     // reads the live DOM value, so it self-corrects from there.
     input.value = groupThousands(amount);
-    const canonical = input.closest('.currency-input')?.querySelector('input[type="hidden"]');
     if (canonical) canonical.value = String(amount);
 }
 
@@ -107,8 +119,15 @@ function normalizeLabel(text) {
  * and firing `change` is all a real click would do.
  */
 function selectPlainOptionByLabel(select, label) {
-    if (!select || !label) return;
+    if (!select) return;
     const target = normalizeLabel(label);
+    // Explicit clear request (see applySetFields) — applyFillPlan never
+    // calls this with an empty label (guarded by `if (plan.category)`).
+    if (!target) {
+        select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+    }
     const match = [...select.options].find((option) => normalizeLabel(option.textContent) === target);
     if (!match) return;
     select.value = match.value;
@@ -122,11 +141,18 @@ function selectPlainOptionByLabel(select, label) {
  * select, and fires `change`) — reuse it instead of reimplementing it.
  */
 function selectImageOptionByLabel(nativeSelect, label, alpine) {
-    if (!nativeSelect || !label) return;
+    if (!nativeSelect) return;
     const wrapper = nativeSelect.closest('.image-select');
     if (!wrapper) return;
     const component = alpine.$data(wrapper);
     const target = normalizeLabel(label);
+    // Explicit clear request (see applySetFields) — option 0 is always the
+    // component's own placeholder (see image-select.blade.php). applyFillPlan
+    // never calls this with an empty label (guarded by `if (plan.brand)`).
+    if (!target) {
+        component.choose(0);
+        return;
+    }
     const index = component.options.findIndex((option) => normalizeLabel(option.label) === target);
     if (index === -1) return;
     component.choose(index);
@@ -188,16 +214,25 @@ export function buildFillPlan(draft) {
         }
     }
 
+    // Per-variant overrides, applied uniformly to every row built below —
+    // distinct from the product's own base "price" above.
+    const variantPrice = draft.variant_price?.trim() || undefined;
+    const variantStock = draft.variant_stock?.trim() || undefined;
+
     const variantRows = [];
     if (sizes.length && colors.length) {
         outer: for (const size of sizes) {
             for (const color of colors) {
                 if (variantRows.length >= MAX_VARIANT_ROWS) break outer;
-                variantRows.push({ size, color, imageIndex: imageIndexByColor.get(normalizeLabel(color)) });
+                variantRows.push({
+                    size, color, imageIndex: imageIndexByColor.get(normalizeLabel(color)), price: variantPrice, stock: variantStock,
+                });
             }
         }
     } else if (sizes.length) {
-        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) variantRows.push({ size, color: '', imageIndex: undefined });
+        for (const size of sizes.slice(0, MAX_VARIANT_ROWS)) {
+            variantRows.push({ size, color: '', imageIndex: undefined, price: variantPrice, stock: variantStock });
+        }
     }
 
     return {
@@ -212,27 +247,97 @@ export function buildFillPlan(draft) {
 }
 
 /**
- * Applies a fill plan to the real product form. Never submits the form —
- * the staff member reviews and submits it themselves. `gallery` (see
- * `collectImageGallery`) supplies the photos: index 0 always goes to the
- * shared "general photos" input, and any other index referenced by a
- * variant row goes to that row's own per-variant photo input.
+ * Detaches (not deletes) every existing variant row — used by `applySetFields`
+ * before laying out its replacement list. Returns the live nodes so an undo
+ * can put the exact same nodes back, rather than rebuilding them from data:
+ * a manually-attached photo lives on the row's `<input type="file">` as a
+ * live `.files` property that only survives if the original node itself is
+ * reused, never a rebuild from a size/color/price snapshot.
  */
-export function applyFillPlan(plan, form, alpine, gallery = []) {
-    if (plan.name) setFieldValue(form.querySelector('#name'), plan.name);
-    if (plan.description) setFieldValue(form.querySelector('#description'), plan.description);
-    if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
-    if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
-    if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
-    if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
+function detachVariantRows(form) {
+    const list = form.querySelector('#variants-list');
+    if (!list) return [];
 
-    if (!plan.variantRows.length) return;
+    return [...list.querySelectorAll('[data-variant-row]')].map((row) => {
+        list.removeChild(row);
+
+        return row;
+    });
+}
+
+/** Current value of every simple field a fill/set_fields write can touch — captured before the write so it can be restored on undo. */
+function snapshotSimpleFields(form) {
+    const priceCanonical = form.querySelector('#base_price')?.closest('.currency-input')?.querySelector('input[type="hidden"]');
+
+    return {
+        name: form.querySelector('#name')?.value ?? '',
+        description: form.querySelector('#description')?.value ?? '',
+        price: priceCanonical?.value ?? '',
+        category: form.querySelector('#category_id')?.value ?? '',
+        brand: form.querySelector('#brand_id-native')?.value ?? '',
+    };
+}
+
+/** Writes a `snapshotSimpleFields` result back onto the form — the undo half. Restoring an untouched field to its own value is a harmless no-op. */
+function restoreSimpleFields(snapshot, form, alpine) {
+    setFieldValue(form.querySelector('#name'), snapshot.name);
+    setFieldValue(form.querySelector('#description'), snapshot.description);
+    setCurrencyFieldValue(form.querySelector('#base_price'), snapshot.price);
+    restoreNativeSelectValue(form.querySelector('#category_id'), snapshot.category);
+    restoreImageSelectValueById(form.querySelector('#brand_id-native'), snapshot.brand, alpine);
+}
+
+/** Restores a plain `<select>` to a raw option value captured earlier — unlike `selectPlainOptionByLabel`, never matches by label (avoids ambiguity for undo). */
+function restoreNativeSelectValue(select, value) {
+    if (!select) return;
+    select.value = value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/** Restores the `<x-image-select>` brand field to a raw option value captured earlier — see `restoreNativeSelectValue`. */
+function restoreImageSelectValueById(nativeSelect, value, alpine) {
+    if (!nativeSelect) return;
+    const wrapper = nativeSelect.closest('.image-select');
+    if (!wrapper) return;
+    const component = alpine.$data(wrapper);
+    const index = component.options.findIndex((option) => option.value === value);
+    component.choose(index === -1 ? 0 : index);
+}
+
+/**
+ * Writes the per-variant price/stock overrides into one existing row —
+ * used both right after a row is freshly created and when adjusting rows
+ * already on the form (see applySetFields). `price`/`stock` are each either
+ * a non-empty string to set, an explicit "" to clear, or `undefined` to
+ * leave that particular field untouched.
+ */
+function setVariantRowPriceAndStock(row, price, stock) {
+    if (price !== undefined) setCurrencyFieldValue(row.querySelector('.currency-input input[type="text"]'), price);
+    if (stock !== undefined) setFieldValue(row.querySelector('input[name$="[stock_quantity]"]'), stock);
+}
+
+/**
+ * Adds one variant row per entry in `rows` (see `buildFillPlan`'s
+ * `variantRows`) to the live product form. Shared by `applyFillPlan` (a full
+ * composed draft) and `applySetFields` (a standalone "set sizes/colors"
+ * edit), since both boil down to the same size/color cartesian product.
+ */
+function applyVariantRows(rows, form, alpine, gallery = []) {
+    if (!rows.length) return;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color, imageIndex } of plan.variantRows) {
+    for (const { size, color, imageIndex, price, stock } of rows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
+        // The freshly-cloned row's own `x-data="currencyInput(...)"` (its
+        // price field) hasn't run yet — Alpine only discovers and inits new
+        // DOM via a MutationObserver, which fires on a later microtask, so
+        // writing to the price field before this would just get clobbered
+        // once that init runs and renders its own (empty) initial state
+        // over it. `initTree` is a no-op on anything already initialized
+        // (guarded by an internal marker), so this is safe either way.
+        alpine.initTree(row);
         const sizeSelect = row.querySelector('select[name$="[size]"]');
         const colorInput = row.querySelector('input[name$="[color]"]');
         if (sizeSelect) {
@@ -240,13 +345,129 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
         if (color) setFieldValue(colorInput, color);
-        if (plan.stockQuantity !== null) {
-            setFieldValue(row.querySelector('input[name$="[stock_quantity]"]'), String(plan.stockQuantity));
-        }
+        setVariantRowPriceAndStock(row, price, stock);
         if (typeof imageIndex === 'number' && gallery[imageIndex]) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
         }
     }
+}
+
+/**
+ * Applies a fill plan to the real product form. Never submits the form —
+ * the staff member reviews and submits it themselves. `gallery` (see
+ * `collectImageGallery`) supplies the photos: index 0 always goes to the
+ * shared "general photos" input, and any other index referenced by a
+ * variant row goes to that row's own per-variant photo input.
+ *
+ * @return {{restore: () => void}} `restore` undoes this exact call — the
+ *         simple fields go back to what they were, and only the variant
+ *         rows this call itself added get removed (existing rows are never
+ *         touched here, so there's nothing to preserve for them).
+ */
+export function applyFillPlan(plan, form, alpine, gallery = []) {
+    const fieldSnapshot = snapshotSimpleFields(form);
+
+    if (plan.name) setFieldValue(form.querySelector('#name'), plan.name);
+    if (plan.description) setFieldValue(form.querySelector('#description'), plan.description);
+    if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
+    if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
+    if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
+    if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
+
+    const list = form.querySelector('#variants-list');
+    const rowCountBefore = list ? list.querySelectorAll('[data-variant-row]').length : 0;
+    applyVariantRows(plan.variantRows, form, alpine, gallery);
+
+    return {
+        restore: () => {
+            restoreSimpleFields(fieldSnapshot, form, alpine);
+            if (list) [...list.querySelectorAll('[data-variant-row]')].slice(rowCountBefore).forEach((row) => row.remove());
+        },
+    };
+}
+
+const SET_FIELD_LABELS = {
+    name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
+    variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể',
+};
+
+/**
+ * Applies a `set_fields` reply (see ProductDraftPromptBuilder) straight to
+ * the live product form — no draft-card review step, unlike `applyFillPlan`.
+ * Only a small whitelist of simple fields ever reaches here (enforced
+ * server-side by ProductDraftResponseParser), so blindly trusting `field`
+ * here is safe.
+ *
+ * @param  Array<{field: string, value: string|string[]}>  fields
+ * @return {{applied: string[], restore: () => void}} `applied` is the
+ *         Vietnamese labels of the fields actually applied, for the chat
+ *         bubble. `restore` undoes this exact call: simple fields go back to
+ *         their prior value, and any variant rows this call replaced come
+ *         back as the exact same DOM nodes (preserving a manually-attached
+ *         photo — see `detachVariantRows`) rather than being rebuilt.
+ */
+export function applySetFields(fields, form, alpine) {
+    const applied = [];
+    const fieldSnapshot = snapshotSimpleFields(form);
+    let sizes;
+    let colors;
+    let variantPrice;
+    let variantStock;
+    for (const { field, value } of fields) {
+        if (field === 'sizes') sizes = value;
+        else if (field === 'colors') colors = value;
+        else if (field === 'variant_price') variantPrice = value;
+        else if (field === 'variant_stock') variantStock = value;
+        else if (field === 'price') setCurrencyFieldValue(form.querySelector('#base_price'), value);
+        else if (field === 'name') setFieldValue(form.querySelector('#name'), value);
+        else if (field === 'category') selectPlainOptionByLabel(form.querySelector('#category_id'), value);
+        else if (field === 'brand') selectImageOptionByLabel(form.querySelector('#brand_id-native'), value, alpine);
+        else continue;
+        applied.push(SET_FIELD_LABELS[field] ?? field);
+    }
+
+    let restoreVariants = () => {};
+    if (sizes !== undefined || colors !== undefined) {
+        // "sizes"/"colors" replace the whole variant list rather than adding
+        // to it (see ProductDraftPromptBuilder) — including clearing every
+        // row when the resolved list ends up empty ("xoá hết size"). Any
+        // variant_price/variant_stock this same turn applies to the newly
+        // created rows.
+        const removedRows = detachVariantRows(form);
+        applyVariantRows(
+            buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [], variant_price: variantPrice, variant_stock: variantStock }).variantRows,
+            form, alpine,
+        );
+        restoreVariants = () => {
+            const list = form.querySelector('#variants-list');
+            if (!list) return;
+            list.querySelectorAll('[data-variant-row]').forEach((row) => row.remove());
+            removedRows.forEach((row) => list.appendChild(row));
+        };
+    } else if (variantPrice !== undefined || variantStock !== undefined) {
+        // No size/color change this turn, so there's nothing new to lay
+        // out — apply straight to every variant row already on the form
+        // instead (e.g. the staff member just said "tồn kho 20" for
+        // variants created earlier in the conversation).
+        const rows = [...form.querySelectorAll('#variants-list [data-variant-row]')];
+        const rowSnapshots = rows.map((row) => ({
+            row,
+            price: row.querySelector('.currency-input input[type="text"]')?.value ?? '',
+            stock: row.querySelector('input[name$="[stock_quantity]"]')?.value ?? '',
+        }));
+        for (const row of rows) setVariantRowPriceAndStock(row, variantPrice, variantStock);
+        restoreVariants = () => {
+            rowSnapshots.forEach(({ row, price, stock }) => setVariantRowPriceAndStock(row, price, stock));
+        };
+    }
+
+    return {
+        applied,
+        restore: () => {
+            restoreSimpleFields(fieldSnapshot, form, alpine);
+            restoreVariants();
+        },
+    };
 }
 
 const STORAGE_KEY = 'product-ai-chat:v1';
@@ -276,10 +497,124 @@ function persistState(state) {
     }
 }
 
+/**
+ * Splits a raw SSE byte buffer (as accumulated so far from a fetch stream
+ * reader) into complete frames plus whatever incomplete tail remains for
+ * the next chunk. Each frame looks like `event: <name>\ndata: <json>`,
+ * frames separated by a blank line (see
+ * `App\Http\Controllers\Admin\ProductAiAssistStreamController::emit`).
+ * Pure and DOM-free so it's unit-testable on its own, same as
+ * `compactMessages`/`buildFillPlan`.
+ *
+ * @return {{frames: Array<{event: string, data: unknown}>, remainder: string}}
+ */
+export function parseSseFrames(buffer) {
+    const parts = buffer.split('\n\n');
+    const remainder = parts.pop() ?? '';
+    const frames = [];
+    for (const part of parts) {
+        if (!part.trim()) continue;
+        const eventMatch = part.match(/^event: (.+)$/m);
+        const dataMatch = part.match(/^data: (.+)$/m);
+        if (!eventMatch || !dataMatch) continue;
+        try {
+            frames.push({ event: eventMatch[1], data: JSON.parse(dataMatch[1]) });
+        } catch {
+            // A malformed frame is skipped rather than crashing the whole stream.
+        }
+    }
+
+    return { frames, remainder };
+}
+
+// Ordered so the status line reads as a natural sentence of what's been
+// composed so far — checked against the raw JSON text streamed in so far
+// (see describeStreamProgress), not the parsed draft (which doesn't exist
+// until the stream ends).
+const STREAM_PROGRESS_STEPS = [
+    { pattern: /"name"\s*:\s*"[^"]+"/, label: 'đã có tên sản phẩm' },
+    { pattern: /"description"\s*:\s*"[^"]+"/, label: 'đang soạn mô tả' },
+    { pattern: /"price"\s*:\s*"[^"]+"/, label: 'đã có giá' },
+    { pattern: /"(?:sizes|colors)"\s*:\s*\[[^\]]+\]/, label: 'đang liệt kê size/màu' },
+    { pattern: /"(?:category|brand)"\s*:\s*"[^"]+"/, label: 'đang chọn danh mục/thương hiệu' },
+];
+
+/**
+ * Turns the raw JSON text accumulated so far from the stream into a short
+ * Vietnamese status line — never the raw JSON itself (the model's whole
+ * reply IS the JSON object, so showing it live would just flash broken
+ * JSON at the staff member). Cheap regex checks for which fields already
+ * have a non-empty value, in a fixed order, rather than actually parsing
+ * (the text is incomplete JSON until the stream ends).
+ */
+export function describeStreamProgress(rawSoFar) {
+    if (!rawSoFar) return null;
+    const seen = STREAM_PROGRESS_STEPS.filter(({ pattern }) => pattern.test(rawSoFar));
+
+    return seen.length ? seen.map(({ label }) => label).join(', ') + '…' : null;
+}
+
 function toContentBlocks(blocks) {
     return blocks.map((block) => (block.type === 'image'
         ? { type: 'image', media_type: block.mediaType, data: block.data }
         : { type: 'text', text: block.text }));
+}
+
+// Every turn resends the FULL conversation, and the server hard-rejects once
+// it's too long (`services.ai.max_history_messages`, default 24 wire
+// messages) with "Hội thoại quá dài, hãy bắt đầu cuộc trò chuyện mới." —
+// forcing the staff member to lose all context and start over. Compacting
+// well below that (in raw message count, which tracks the wire count 1:1 in
+// normal usage since every turn alternates user/assistant) avoids ever
+// hitting it.
+const MAX_MESSAGES_BEFORE_COMPACT = 16;
+// How many of the most recent raw messages stay untouched after compacting
+// (must be even — every turn is exactly one user + one assistant message).
+const KEEP_RECENT_MESSAGES = 6;
+
+function describeDraftForRecap(draft) {
+    if (!draft?.name?.trim()) {
+        return '(Đã rút gọn các tin nhắn trước đó để hội thoại không quá dài — phần bị rút gọn chưa soạn nội dung sản phẩm nào.)';
+    }
+
+    const summary = [
+        `Tên: ${draft.name}`,
+        `Mô tả: ${draft.description || '—'}`,
+        `Giá: ${draft.price || '—'}`,
+        `Size: ${draft.sizes?.length ? draft.sizes.join(', ') : '—'}`,
+        `Màu: ${draft.colors?.length ? draft.colors.join(', ') : '—'}`,
+        `Danh mục: ${draft.category || '—'}`,
+        `Thương hiệu: ${draft.brand || '—'}`,
+    ].join('; ');
+
+    return `(Đã rút gọn các tin nhắn trước đó để hội thoại không quá dài. Trạng thái sản phẩm hiện đã soạn: ${summary}.)`;
+}
+
+/**
+ * Keeps the conversation from growing without bound. Rather than calling the
+ * AI a second time just to summarize itself, this leans on something
+ * specific to this widget's design: `draft` already IS a running summary of
+ * everything composed so far (see ProductDraftPromptBuilder), so older
+ * purely-text exchanges can be collapsed straight into one synthetic recap
+ * built from it — no extra request, no extra latency.
+ *
+ * Messages carrying a photo are always kept verbatim, in their original
+ * relative order — `collectImageGallery`/`variant_images` reference them by
+ * a stable `imageIndex`, so dropping or renumbering one would silently break
+ * "Ảnh số N" tracking for a fill that hasn't happened yet.
+ */
+export function compactMessages(messages, draft) {
+    if (messages.length <= MAX_MESSAGES_BEFORE_COMPACT) return messages;
+
+    const older = messages.slice(0, messages.length - KEEP_RECENT_MESSAGES);
+    const recent = messages.slice(messages.length - KEEP_RECENT_MESSAGES);
+    const hasImage = (message) => message.blocks.some((block) => block.type === 'image');
+
+    if (!older.some((message) => !hasImage(message))) return messages; // nothing text-only to collapse
+
+    const recap = { role: 'user', blocks: [{ type: 'text', text: describeDraftForRecap(draft) }], isRecap: true };
+
+    return [recap, ...older.filter(hasImage), ...recent];
 }
 
 /**
@@ -302,14 +637,25 @@ export function toWireMessages(messages) {
     return merged;
 }
 
-export default (assistUrl, productCreateUrl) => ({
+// `assistStreamUrl` is a 3rd, optional param (rather than inserted between
+// the existing two) so every existing call site — and every existing test —
+// keeps working unchanged; omitting it simply skips straight to the classic
+// non-streaming request.
+export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
     open: false,
     messages: [],
     input: '',
     attachedImages: [],
     loading: false,
     error: '',
+    // Short Vietnamese status line updated live while a streamed reply is
+    // still coming in (see describeStreamProgress) — never populated on the
+    // classic non-streaming path.
+    streamStatus: '',
     draft: null,
+    // { key, label, url } resolved server-side against the fixed page
+    // directory — never a raw model-provided URL, see AdminPageDirectory.
+    navigate: null,
     requestId: 0,
     // Assigned once per attached photo, for the whole life of the
     // conversation — this is the "Ảnh số N" the AI is told to reference.
@@ -317,6 +663,27 @@ export default (assistUrl, productCreateUrl) => ({
     // Set right before navigating away to go find a product form; consumed
     // once the destination page has loaded, so the fill survives the reload.
     pendingFill: false,
+    // Same idea as `pendingFill`, but for a standalone `set_fields` edit
+    // (e.g. "giá 100k") made while no product form was on the page —
+    // holds the fields themselves (not just a flag) so they survive the jump.
+    pendingSetFields: null,
+    // Index of the assistant message that produced the current `draft` —
+    // the draft card only renders while that's still the LAST message (see
+    // the blade template), so it retires on its own once the conversation
+    // moves on instead of lingering below every later, unrelated turn.
+    draftMessageIndex: null,
+    // Undo for the single most-recent AI-driven form write (a `set_fields`
+    // edit or a draft-card fill) — see applySetFields/applyFillPlan's
+    // `restore`. Only the latest change is kept (no multi-step undo stack),
+    // matching how these writes are framed as small, explicit, easily-undone
+    // edits rather than something needing a full history. Deliberately not
+    // persisted to sessionStorage: `restore` closes over live DOM nodes
+    // (variant rows carrying a real `<input type="file">`), which can't
+    // survive serialization and shouldn't survive a reload anyway.
+    lastFormChange: null,
+    // Ties the undo link to the turn that caused it, retiring the same way
+    // draftMessageIndex does once the conversation moves on.
+    lastFormChangeMessageIndex: null,
 
     init() {
         const saved = loadPersistedState();
@@ -324,12 +691,26 @@ export default (assistUrl, productCreateUrl) => ({
             this.open = saved.open ?? false;
             this.messages = saved.messages ?? [];
             this.draft = saved.draft ?? null;
+            this.navigate = saved.navigate ?? null;
             this.pendingFill = saved.pendingFill ?? false;
+            this.pendingSetFields = saved.pendingSetFields ?? null;
             this.imageCounter = saved.imageCounter ?? 0;
+            this.draftMessageIndex = saved.draftMessageIndex ?? null;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
         this.$watch('draft', () => this.persist());
+        this.$watch('navigate', () => this.persist());
+        // New message, draft card, navigate card, or the "thinking" bubble
+        // appearing should never be hidden below the fold.
+        this.$watch('messages', () => this.scrollToBottom());
+        this.$watch('draft', () => this.scrollToBottom());
+        this.$watch('navigate', () => this.scrollToBottom());
+        this.$watch('loading', () => this.scrollToBottom());
+        // $watch only fires on FUTURE changes, not the restore above — so a
+        // conversation reopened after navigating (or a fresh page load with
+        // a persisted history) would otherwise render scrolled to the top.
+        this.scrollToBottom();
 
         if (this.pendingFill) {
             const form = document.getElementById('product-form');
@@ -338,23 +719,44 @@ export default (assistUrl, productCreateUrl) => ({
                 this.applyDraftToForm(form);
             }
         }
+        if (this.pendingSetFields) {
+            const form = document.getElementById('product-form');
+            if (form) {
+                this.open = true;
+                this.applySetFieldsToForm(form);
+            }
+        }
+    },
+
+    scrollToBottom() {
+        this.$nextTick(() => {
+            const list = this.$refs.messageList;
+            if (list) list.scrollTop = list.scrollHeight;
+        });
     },
 
     persist() {
         persistState({
-            open: this.open, messages: this.messages, draft: this.draft,
-            pendingFill: this.pendingFill, imageCounter: this.imageCounter,
+            open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
+            pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
+            draftMessageIndex: this.draftMessageIndex,
         });
     },
 
     startNewConversation() {
         this.messages = [];
         this.draft = null;
+        this.navigate = null;
         this.error = '';
         this.attachedImages = [];
         this.input = '';
         this.pendingFill = false;
+        this.pendingSetFields = null;
         this.imageCounter = 0;
+        this.draftMessageIndex = null;
+        this.lastFormChange = null;
+        this.lastFormChangeMessageIndex = null;
+        this.streamStatus = '';
     },
 
     toggle() {
@@ -405,48 +807,220 @@ export default (assistUrl, productCreateUrl) => ({
         if (text) blocks.push({ type: 'text', text });
 
         this.messages.push({ role: 'user', blocks });
+        // Keeps every request comfortably under the server's hard history
+        // limit instead of eventually hitting a dead-end "start over" error.
+        this.messages = compactMessages(this.messages, this.draft);
         this.input = '';
         this.attachedImages = [];
         this.error = '';
+        this.streamStatus = '';
         this.loading = true;
         this.requestId++;
         const requestId = this.requestId;
+        const body = JSON.stringify({ messages: toWireMessages(this.messages) });
 
         try {
-            const response = await fetch(assistUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                },
-                body: JSON.stringify({ messages: toWireMessages(this.messages) }),
-            });
-            const payload = await response.json().catch(() => null);
-            if (requestId !== this.requestId) return;
+            if (assistStreamUrl) {
+                try {
+                    await this.sendStreamed(assistStreamUrl, body, requestId);
 
-            if (!response.ok) {
-                this.error = response.status === 429
-                    ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
-                    : payload?.message || 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
-                return;
+                    return;
+                } catch {
+                    // Streaming failed at the transport level — an
+                    // unsupported browser, a proxy that buffers the whole
+                    // response before releasing it, a drop mid-stream —
+                    // rather than an app-level error the server already
+                    // reported (that path returns normally, see
+                    // `sendStreamed`). Falls back once to the plain JSON
+                    // endpoint instead of just failing the turn.
+                    if (requestId !== this.requestId) return;
+                }
             }
-
-            const draft = payload?.data;
-            if (!draft || typeof draft.name !== 'string') {
-                this.error = 'Phản hồi từ AI không hợp lệ.';
-                return;
-            }
-
-            this.draft = draft;
-            this.messages.push({ role: 'assistant', blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }] });
+            await this.sendJson(assistUrl, body, requestId);
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.';
         } finally {
-            if (requestId === this.requestId) this.loading = false;
+            if (requestId === this.requestId) {
+                this.loading = false;
+                this.streamStatus = '';
+            }
         }
+    },
+
+    /** The classic request/response call — also the fallback when streaming itself can't be used. */
+    async sendJson(url, body, requestId) {
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body,
+        });
+        const payload = await response.json().catch(() => null);
+        if (requestId !== this.requestId) return;
+
+        if (!response.ok) {
+            this.error = response.status === 429
+                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
+                : payload?.message || 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
+            return;
+        }
+
+        this.applyAssistPayload(payload);
+    },
+
+    /**
+     * Reads the SSE stream from ProductAiAssistStreamController: `delta`
+     * events update `streamStatus` live, a `done` event carries the exact
+     * same `{data, navigate, raw}` shape `sendJson` gets and is handled the
+     * same way (`applyAssistPayload`), and an `error` event surfaces like
+     * any other app-level failure — none of these throw, so `send()` never
+     * falls back to `sendJson` after a real server response, only when the
+     * stream itself couldn't be read (see the final `throw` below).
+     */
+    async sendStreamed(url, body, requestId) {
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'text/event-stream',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body,
+        });
+        if (requestId !== this.requestId) return;
+
+        if (!response.ok) {
+            this.error = response.status === 429
+                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
+                : 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
+            return;
+        }
+        if (!response.body?.getReader) throw new Error('Streaming is not supported in this browser.');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let rawSoFar = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (requestId !== this.requestId) return;
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const parsed = parseSseFrames(buffer);
+            buffer = parsed.remainder;
+
+            for (const frame of parsed.frames) {
+                if (frame.event === 'delta' && typeof frame.data?.text === 'string') {
+                    rawSoFar += frame.data.text;
+                    this.streamStatus = describeStreamProgress(rawSoFar) ?? '';
+                } else if (frame.event === 'done') {
+                    this.applyAssistPayload(frame.data);
+
+                    return;
+                } else if (frame.event === 'error') {
+                    this.error = frame.data?.message || 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
+
+                    return;
+                }
+            }
+        }
+        // The stream ended (connection closed) without ever sending a
+        // "done"/"error" event — a transport-level failure, not an app-level
+        // one, so this throws to trigger the `sendJson` fallback in `send()`.
+        throw new Error('Stream ended without a result.');
+    },
+
+    /**
+     * Applies a resolved `{data, navigate, raw}` payload — shared by
+     * `sendJson`'s response and `sendStreamed`'s "done" event, so the two
+     * transports can never diverge on what happens once a reply is in hand.
+     */
+    applyAssistPayload(payload) {
+        const draft = payload?.data;
+        if (!draft || typeof draft.name !== 'string') {
+            this.error = 'Phản hồi từ AI không hợp lệ.';
+            return;
+        }
+
+        // Only surface the draft card when the AI actually composed a
+        // product (non-empty name) — otherwise, e.g. the staff member
+        // only asked to navigate somewhere, it would show a useless
+        // empty "form" card every turn. Disabled for now on purpose.
+        this.draft = draft.name.trim() ? draft : null;
+        // Overwrites every turn, including back to null — the prompt
+        // tells the model not to repeat "navigate" unless asked again,
+        // so a stale suggestion from an earlier turn must not linger.
+        this.navigate = payload?.navigate ?? null;
+        const setFields = Array.isArray(draft.set_fields) ? draft.set_fields : [];
+        const setFieldsLabel = setFields.length
+            ? setFields.map(({ field }) => SET_FIELD_LABELS[field] ?? field).join(', ')
+            : null;
+        // Which "tool" this turn actually used — shown as a small tag
+        // under the bubble so it's easy to check at a glance during
+        // testing, without having to open devtools on every reply.
+        const tools = [];
+        if (this.navigate) tools.push('navigate');
+        if (setFields.length) tools.push('set_fields');
+        if (this.draft) tools.push('draft');
+        if (!tools.length) tools.push('none');
+
+        // Carries the resolved page label / edited field names onto the
+        // message itself so the bubble can say exactly what happened,
+        // instead of the generic "updated the draft below" text that
+        // doesn't apply to either of those two turns.
+        this.messages.push({
+            role: 'assistant',
+            blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
+            navigateLabel: this.navigate?.label ?? null,
+            setFieldsLabel,
+            tools,
+        });
+        // Ties the card to this exact turn — see `draftMessageIndex`.
+        this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
+
+        // A quick single/few-field edit ("giá 100k") is applied straight
+        // to the live form — no draft-card review step, since it's a
+        // small, explicit, easily-undone change.
+        if (setFields.length) {
+            const form = document.getElementById('product-form');
+            if (form) {
+                const { restore } = applySetFields(setFields, form, window.Alpine);
+                this.lastFormChange = { restore };
+                this.lastFormChangeMessageIndex = this.messages.length - 1;
+            } else if (productCreateUrl) {
+                // No product form on this page — same fallback as
+                // fillForm(): remember the fields, jump to the "add
+                // product" page, and finish once it has loaded.
+                this.pendingSetFields = setFields;
+                this.persist();
+                window.location.href = productCreateUrl;
+                return;
+            } else {
+                this.error = 'Không tìm thấy form thêm/sửa sản phẩm trên trang này.';
+            }
+        }
+
+        // Navigating is just a page jump (no data write), so it happens
+        // right away instead of waiting for a confirmation click.
+        if (this.navigate) {
+            this.persist();
+            this.goToPage();
+        }
+    },
+
+    /** The URL is already resolved server-side against the fixed page directory — never model-provided. */
+    goToPage() {
+        if (!this.navigate) return;
+        window.location.href = this.navigate.url;
     },
 
     fillForm() {
@@ -469,7 +1043,22 @@ export default (assistUrl, productCreateUrl) => ({
 
     applyDraftToForm(form) {
         const gallery = collectImageGallery(this.messages);
-        applyFillPlan(buildFillPlan(this.draft), form, window.Alpine, gallery);
+        const { restore } = applyFillPlan(buildFillPlan(this.draft), form, window.Alpine, gallery);
         this.pendingFill = false;
+        this.lastFormChange = { restore };
+        this.lastFormChangeMessageIndex = this.draftMessageIndex;
+    },
+
+    applySetFieldsToForm(form) {
+        const { restore } = applySetFields(this.pendingSetFields ?? [], form, window.Alpine);
+        this.pendingSetFields = null;
+        this.lastFormChange = { restore };
+        this.lastFormChangeMessageIndex = this.messages.length - 1;
+    },
+
+    undoLastFormChange() {
+        this.lastFormChange?.restore();
+        this.lastFormChange = null;
+        this.lastFormChangeMessageIndex = null;
     },
 });

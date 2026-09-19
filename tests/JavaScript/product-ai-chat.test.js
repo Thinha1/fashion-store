@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
-    buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery,
+    buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery, compactMessages, applySetFields,
+    parseSseFrames, describeStreamProgress,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -23,11 +24,23 @@ function fakeSessionStorage() {
 
 function withAlpineStubs(chat) {
     chat.$watch = () => {};
+    // init() now calls scrollToBottom() directly (not just via a $watch)
+    // to fix the initial-restore case, so every init()-driven test needs a
+    // working $nextTick even if it never touches scrolling itself.
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = {};
 
     return chat;
 }
 
 const defaultDocument = { querySelector: () => null, getElementById: () => null };
+
+/** A minimal `ReadableStreamDefaultReader`-alike that hands back the whole text in one chunk, then signals done — enough to exercise `sendStreamed`'s read loop without a real ReadableStream. */
+function sseReaderFromText(text) {
+    const chunks = [new TextEncoder().encode(text)];
+
+    return { read: async () => (chunks.length ? { done: false, value: chunks.shift() } : { done: true, value: undefined }) };
+}
 
 const draft = {
     name: 'Áo sơ mi trắng', description: 'Chất liệu thoáng mát.',
@@ -45,15 +58,23 @@ test('buildFillPlan folds bullets and SEO title into the description', () => {
 test('buildFillPlan builds the cartesian product of sizes and colors, capped at 12 rows', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: ['Trắng', 'Đen', 'Xanh', 'Vàng', 'Hồng'] });
     assert.equal(plan.variantRows.length, 12);
-    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng', imageIndex: undefined });
+    assert.deepEqual(plan.variantRows[0], { size: 'S', color: 'Trắng', imageIndex: undefined, price: undefined, stock: undefined });
 });
 
 test('buildFillPlan creates one row per size (empty color) when no colors were suggested', () => {
     const plan = buildFillPlan({ ...draft, sizes: ['S', 'M', 'L'], colors: [] });
     assert.deepEqual(plan.variantRows, [
-        { size: 'S', color: '', imageIndex: undefined },
-        { size: 'M', color: '', imageIndex: undefined },
-        { size: 'L', color: '', imageIndex: undefined },
+        { size: 'S', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+        { size: 'M', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+        { size: 'L', color: '', imageIndex: undefined, price: undefined, stock: undefined },
+    ]);
+});
+
+test('buildFillPlan applies variant_price/variant_stock uniformly to every generated row', () => {
+    const plan = buildFillPlan({ ...draft, sizes: ['S', 'M'], colors: [], variant_price: '120000', variant_stock: '20' });
+    assert.deepEqual(plan.variantRows, [
+        { size: 'S', color: '', imageIndex: undefined, price: '120000', stock: '20' },
+        { size: 'M', color: '', imageIndex: undefined, price: '120000', stock: '20' },
     ]);
 });
 
@@ -97,10 +118,10 @@ test('buildFillPlan attaches the matching image index to every row sharing that 
         variant_images: [{ color: 'Đen', image_index: 2 }, { color: '  trắng  ', image_index: 1 }],
     });
     assert.deepEqual(plan.variantRows, [
-        { size: 'S', color: 'Trắng', imageIndex: 1 },
-        { size: 'S', color: 'Đen', imageIndex: 2 },
-        { size: 'M', color: 'Trắng', imageIndex: 1 },
-        { size: 'M', color: 'Đen', imageIndex: 2 },
+        { size: 'S', color: 'Trắng', imageIndex: 1, price: undefined, stock: undefined },
+        { size: 'S', color: 'Đen', imageIndex: 2, price: undefined, stock: undefined },
+        { size: 'M', color: 'Trắng', imageIndex: 1, price: undefined, stock: undefined },
+        { size: 'M', color: 'Đen', imageIndex: 2, price: undefined, stock: undefined },
     ]);
 });
 
@@ -108,7 +129,7 @@ test('buildFillPlan ignores variant_images entries for colors that are not in th
     const plan = buildFillPlan({
         ...draft, sizes: ['S'], colors: ['Trắng'], variant_images: [{ color: 'Xanh lá', image_index: 3 }],
     });
-    assert.deepEqual(plan.variantRows, [{ size: 'S', color: 'Trắng', imageIndex: undefined }]);
+    assert.deepEqual(plan.variantRows, [{ size: 'S', color: 'Trắng', imageIndex: undefined, price: undefined, stock: undefined }]);
 });
 
 test('collectImageGallery lays out every attached image by its stable index, across all messages', () => {
@@ -141,6 +162,40 @@ test('parsePriceToInteger understands plain digits, grouped VND text, and "k" sh
     assert.equal(parsePriceToInteger('liên hệ'), null);
 });
 
+test('parseSseFrames splits a buffer into complete frames and keeps an incomplete tail as the remainder', () => {
+    const { frames, remainder } = parseSseFrames(
+        'event: delta\ndata: {"text":"a"}\n\nevent: delta\ndata: {"text":"b"}\n\nevent: do',
+    );
+    assert.deepEqual(frames, [
+        { event: 'delta', data: { text: 'a' } },
+        { event: 'delta', data: { text: 'b' } },
+    ]);
+    assert.equal(remainder, 'event: do');
+});
+
+test('parseSseFrames skips a malformed frame instead of throwing', () => {
+    const { frames } = parseSseFrames('event: delta\ndata: not json\n\nevent: delta\ndata: {"text":"ok"}\n\n');
+    assert.deepEqual(frames, [{ event: 'delta', data: { text: 'ok' } }]);
+});
+
+test('parseSseFrames returns everything as the remainder when no complete frame has arrived yet', () => {
+    const { frames, remainder } = parseSseFrames('event: delta\ndata: {"tex');
+    assert.deepEqual(frames, []);
+    assert.equal(remainder, 'event: delta\ndata: {"tex');
+});
+
+test('describeStreamProgress returns null before any known field has appeared', () => {
+    assert.equal(describeStreamProgress(''), null);
+    assert.equal(describeStreamProgress('{"name": "'), null);
+});
+
+test('describeStreamProgress reports fields as they appear, in a fixed reading order', () => {
+    assert.match(describeStreamProgress('{"name": "Áo sơ mi"'), /đã có tên sản phẩm/);
+    const both = describeStreamProgress('{"name": "Áo sơ mi", "description": "Chất liệu mềm"');
+    assert.match(both, /đã có tên sản phẩm/);
+    assert.match(both, /đang soạn mô tả/);
+});
+
 test('toWireMessages merges consecutive same-role turns to keep strict alternation', () => {
     const wire = toWireMessages([
         { role: 'user', blocks: [{ type: 'image', mediaType: 'image/jpeg', data: 'abc' }] },
@@ -158,6 +213,63 @@ test('toWireMessages merges consecutive same-role turns to keep strict alternati
     assert.equal(wire[2].role, 'user');
 });
 
+function textTurn(role, text) {
+    return { role, blocks: [{ type: 'text', text }] };
+}
+
+function imageTurn(imageIndex) {
+    return { role: 'user', blocks: [{ type: 'image', mediaType: 'image/jpeg', data: 'abc', imageIndex }] };
+}
+
+test('compactMessages leaves a short conversation untouched', () => {
+    const messages = Array.from({ length: 10 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    assert.equal(compactMessages(messages, draft), messages);
+});
+
+test('compactMessages collapses older text-only turns into one recap, keeping the last few verbatim', () => {
+    const messages = Array.from({ length: 20 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    const compacted = compactMessages(messages, draft);
+    assert.equal(compacted.length, 7); // 1 recap + last 6 kept verbatim
+    assert.equal(compacted[0].isRecap, true);
+    assert.match(compacted[0].blocks[0].text, /Áo sơ mi trắng/);
+    assert.deepEqual(compacted.slice(1), messages.slice(-6));
+});
+
+test('compactMessages never drops or renumbers a message carrying a photo', () => {
+    const messages = [
+        imageTurn(0), textTurn('assistant', 'a0'),
+        ...Array.from({ length: 16 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`)),
+    ];
+    const compacted = compactMessages(messages, draft);
+    const keptImage = compacted.find((m) => m.blocks.some((b) => b.type === 'image'));
+    assert.deepEqual(keptImage, messages[0]);
+    assert.equal(keptImage.blocks[0].imageIndex, 0);
+});
+
+test('compactMessages falls back to a generic note when nothing was composed yet', () => {
+    const messages = Array.from({ length: 20 }, (_, i) => textTurn(i % 2 ? 'assistant' : 'user', `turn ${i}`));
+    const compacted = compactMessages(messages, null);
+    assert.match(compacted[0].blocks[0].text, /chưa soạn nội dung sản phẩm nào/);
+});
+
+test('compactMessages does nothing once the older portion is entirely photos (nothing to collapse)', () => {
+    const messages = [imageTurn(0), imageTurn(1), ...Array.from({ length: 16 }, (_, i) => imageTurn(i + 2))];
+    assert.equal(compactMessages(messages, draft), messages);
+});
+
+test('send() auto-compacts a long conversation before it can hit the server history limit', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    for (let i = 0; i < 9; i++) {
+        chat.input = `lượt ${i}`;
+        await chat.send();
+    }
+    // 9 turns is 18 raw messages uncompacted — well past MAX_MESSAGES_BEFORE_COMPACT (16),
+    // so compaction must have kicked in partway through instead of growing unbounded.
+    assert.equal(chat.messages.length, 8);
+    assert.equal(chat.messages[0].isRecap, true);
+});
+
 test('send() resends the full conversation history and stores the parsed draft', async t => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => ({
         ok: true, json: async () => ({ data: draft, raw: JSON.stringify(draft) }),
@@ -172,6 +284,26 @@ test('send() resends the full conversation history and stores the parsed draft',
     assert.equal(chat.messages.length, 2);
     assert.equal(chat.loading, false);
     assert.equal(chat.error, '');
+    // Ties the draft card to this exact (last) message so it retires once
+    // the conversation moves on to unrelated turns (see the blade's
+    // `draftMessageIndex === messages.length - 1` guard).
+    assert.equal(chat.draftMessageIndex, 1);
+});
+
+test('send() retires the previous draft card once a later turn composes nothing new', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.equal(chat.draftMessageIndex, 1);
+
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '' }, raw: '{}' }),
+    }));
+    chat.input = 'cảm ơn nhé';
+    await chat.send();
+    assert.equal(chat.draft, null);
+    assert.equal(chat.draftMessageIndex, null);
 });
 
 test('send() surfaces a friendly message on rate limiting and keeps the failed turn for retry', async t => {
@@ -218,6 +350,203 @@ test('send() labels each attached image with its stable index so the AI can refe
     assert.deepEqual(chat.attachedImages, []);
 });
 
+test('send() does not surface a draft card when the AI composed nothing (e.g. the staff member only asked to navigate)', async t => {
+    const emptyDraft = { ...draft, name: '' };
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: emptyDraft, raw: '{}' }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'đưa tôi tới danh sách sản phẩm';
+    await chat.send();
+    assert.equal(chat.draft, null);
+});
+
+test('send() stores the resolved navigate suggestion and navigates there immediately, no confirmation needed', async t => {
+    globalThis.window = { location: { href: '' } };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}', navigate: { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' } }),
+    }));
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.input = 'đưa tôi tới danh sách sản phẩm';
+    await chat.send();
+    assert.deepEqual(chat.navigate, { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' });
+    assert.equal(globalThis.window.location.href, '/admin/san-pham');
+    assert.equal(chat.messages.at(-1).navigateLabel, 'Danh sách sản phẩm');
+});
+
+test('send() clears a previous navigate suggestion when the next reply has none', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}', navigate: null }) }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.navigate, null);
+});
+
+test('send() applies set_fields directly to the live form without a confirmation click', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    // A minimal stand-in for the real product form — just enough (a no-op
+    // `querySelector`) for the field-writing helpers to no-op safely instead
+    // of touching real DOM APIs Node doesn't have. Confirms the surrounding
+    // orchestration (which form it targets, no draft card, the bubble
+    // label) rather than the DOM writes themselves, which get exercised
+    // live in the browser.
+    const fakeForm = { querySelector: () => null };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.equal(chat.draft, null);
+        assert.equal(chat.messages.at(-1).setFieldsLabel, 'giá');
+        assert.equal(chat.error, '');
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() applies variant_price/variant_stock straight to existing variant rows when sizes/colors are not part of the turn', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true,
+        json: async () => ({
+            data: { ...draft, name: '', set_fields: [{ field: 'variant_stock', value: '20' }, { field: 'variant_price', value: '120000' }] },
+            raw: '{}',
+        }),
+    }));
+    const existingRow = { querySelector: () => null };
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [existingRow] };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'tồn kho 20, giá riêng 120k';
+        await chat.send();
+        assert.equal(chat.messages.at(-1).setFieldsLabel, 'tồn kho biến thể, giá biến thể');
+        assert.equal(chat.error, '');
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() tags the message with which tool(s) were used this turn', async t => {
+    globalThis.window = {};
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: draft, raw: '{}' }),
+    }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.deepEqual(chat.messages.at(-1).tools, ['draft']);
+});
+
+test('send() jumps to the product create page and remembers set_fields when no form is on the current page', async t => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.window = { location: { href: '' } };
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.deepEqual(chat.pendingSetFields, [{ field: 'price', value: '100000' }]);
+        assert.equal(globalThis.window.location.href, '/admin/san-pham/tao-moi');
+        const saved = JSON.parse(globalThis.sessionStorage.getItem('product-ai-chat:v1'));
+        assert.deepEqual(saved.pendingSetFields, [{ field: 'price', value: '100000' }]);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() shows an error instead of navigating when set_fields has nowhere to go', async t => {
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.match(chat.error, /Không tìm thấy form/);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('send() ignores an absent or empty set_fields (no error, no redirect)', async t => {
+    globalThis.document = { querySelector: () => null, getElementById: () => null };
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft, raw: '{}' }) }));
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'áo thun';
+        await chat.send();
+        assert.equal(chat.error, '');
+        assert.equal(chat.messages.at(-1).setFieldsLabel, null);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('init() finishes a pending set_fields edit once the product-form page has loaded', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: false, messages: [], pendingSetFields: [{ field: 'price', value: '100000' }],
+    }));
+    const fakeForm = {};
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    try {
+        const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y', '/admin/san-pham/tao-moi'));
+        let appliedWith = null;
+        chat.applySetFieldsToForm = (form) => { appliedWith = form; };
+        chat.init();
+        assert.equal(chat.open, true);
+        assert.equal(appliedWith, fakeForm);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('startNewConversation() also clears a pending set_fields edit', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.init();
+    chat.pendingSetFields = [{ field: 'price', value: '100000' }];
+    chat.startNewConversation();
+    assert.equal(chat.pendingSetFields, null);
+});
+
+test('goToPage() navigates to the server-resolved URL', () => {
+    globalThis.window = { location: { href: '' } };
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
+    chat.goToPage();
+    assert.equal(globalThis.window.location.href, '/admin/san-pham');
+});
+
+test('goToPage() does nothing without a pending suggestion', () => {
+    globalThis.window = { location: { href: '' } };
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.goToPage();
+    assert.equal(globalThis.window.location.href, '');
+});
+
+test('scrollToBottom() scrolls the message list to reveal the newest content', () => {
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = { messageList: { scrollTop: 0, scrollHeight: 480 } };
+    chat.scrollToBottom();
+    assert.equal(chat.$refs.messageList.scrollTop, 480);
+});
+
+test('scrollToBottom() does nothing when the message list ref is not mounted yet', () => {
+    const chat = productAiChat('/admin/san-pham/ai-goi-y');
+    chat.$nextTick = (callback) => callback();
+    chat.$refs = {};
+    assert.doesNotThrow(() => chat.scrollToBottom());
+});
+
 test('send() does nothing without text or an attached image', async t => {
     const fetch = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ data: draft }) }));
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
@@ -228,14 +557,32 @@ test('send() does nothing without text or an attached image', async t => {
 
 test('init() restores a conversation saved before navigating to another admin page', () => {
     globalThis.sessionStorage = fakeSessionStorage();
+    const navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
-        open: true, draft, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
+        open: true, draft, navigate, draftMessageIndex: 0,
+        messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
     }));
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
     assert.equal(chat.open, true);
     assert.deepEqual(chat.draft, draft);
+    assert.deepEqual(chat.navigate, navigate);
     assert.equal(chat.messages.length, 1);
+    assert.equal(chat.draftMessageIndex, 0);
+});
+
+test('init() scrolls a restored conversation to the bottom (e.g. right after an auto-navigate reload)', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({
+        open: true, messages: [{ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] }],
+    }));
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    // $watch never fires for the direct assignment inside init() itself
+    // (only for changes afterward), so without an explicit scroll call the
+    // panel would render stuck at the top of a restored history.
+    chat.$refs = { messageList: { scrollTop: 0, scrollHeight: 480 } };
+    chat.init();
+    assert.equal(chat.$refs.messageList.scrollTop, 480);
 });
 
 test('init() starts empty when nothing was previously saved', () => {
@@ -259,19 +606,23 @@ test('persist() writes the current conversation so it survives the next page loa
     assert.deepEqual(saved.draft, draft);
 });
 
-test('startNewConversation() clears the conversation, draft and any attached images', () => {
+test('startNewConversation() clears the conversation, draft, navigate suggestion and any attached images', () => {
     globalThis.sessionStorage = fakeSessionStorage();
     const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
     chat.init();
     chat.messages.push({ role: 'user', blocks: [{ type: 'text', text: 'áo thun' }] });
     chat.draft = draft;
+    chat.navigate = { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' };
     chat.attachedImages = [{ dataUrl: 'data:image/jpeg;base64,abc', mediaType: 'image/jpeg', data: 'abc', name: 'a.jpg', imageIndex: 0 }];
     chat.imageCounter = 3;
+    chat.draftMessageIndex = 0;
     chat.startNewConversation();
     assert.deepEqual(chat.messages, []);
     assert.equal(chat.draft, null);
+    assert.equal(chat.navigate, null);
     assert.deepEqual(chat.attachedImages, []);
     assert.equal(chat.imageCounter, 0);
+    assert.equal(chat.draftMessageIndex, null);
 });
 
 test('fillForm() jumps to the product create page when no form is on the current page', () => {
@@ -321,6 +672,146 @@ test('init() finishes a pending fill once the product-form page has loaded', () 
     } finally {
         globalThis.document = defaultDocument;
     }
+});
+
+/**
+ * A minimal stand-in for `#variants-list` — plain objects, not real DOM
+ * nodes, since `setFieldValue` et al. reach for real `HTMLInputElement`/
+ * `Event` globals that don't exist under Node's test runner (see the
+ * existing `fakeForm` stubs above: DOM-writing paths are only exercised
+ * live in the browser). This is enough to prove `applySetFields`'s undo
+ * puts back the *exact same* row objects it removed, which is the whole
+ * point of detaching rather than deleting them — a real DOM node carries a
+ * `<input type="file">`'s live `.files`, which only survives reusing the
+ * same node, never rebuilding one from a data snapshot.
+ */
+function fakeVariantList(initialRows) {
+    let children = [...initialRows];
+
+    return {
+        querySelectorAll: (selector) => (selector === '[data-variant-row]' ? [...children] : []),
+        removeChild: (row) => { children = children.filter((r) => r !== row); return row; },
+        appendChild: (row) => { children.push(row); return row; },
+        get rows() { return children; },
+    };
+}
+
+test('applySetFields returns a restore that undoes a simple field edit', () => {
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [] };
+    const { applied, restore } = applySetFields([{ field: 'price', value: '100000' }], fakeForm, {});
+    assert.deepEqual(applied, ['giá']);
+    assert.doesNotThrow(() => restore());
+});
+
+test('applySetFields undo restores the exact same variant row nodes a sizes/colors clear removed', () => {
+    const row = { querySelector: () => null };
+    const list = fakeVariantList([row]);
+    const form = { querySelector: (selector) => (selector === '#variants-list' ? list : null), querySelectorAll: () => [] };
+
+    const { restore } = applySetFields([{ field: 'sizes', value: [] }], form, {});
+    assert.deepEqual(list.rows, []); // "xoá hết size" clears every row
+
+    restore();
+    assert.deepEqual(list.rows, [row]); // undo brings back the exact same node, not a rebuilt one
+});
+
+test('applySetFields undo restores prior variant price/stock text when only those were overwritten', () => {
+    // Already-grouped display text, as the real `<x-currency-input>` shows it
+    // (see setCurrencyFieldValue) — restoring round-trips through the same
+    // parse/group formatting, so the snapshot must start in that shape too.
+    const priceInput = { value: '120.000', closest: () => null };
+    const row = {
+        querySelector: (selector) => {
+            if (selector === '.currency-input input[type="text"]') return priceInput;
+            if (selector === 'input[name$="[stock_quantity]"]') return null; // exercised live in the browser, see setFieldValue note above
+            return null;
+        },
+    };
+    const form = { querySelector: () => null, querySelectorAll: (selector) => (selector === '#variants-list [data-variant-row]' ? [row] : []) };
+
+    const { restore } = applySetFields([{ field: 'variant_price', value: '150000' }], form, {});
+    assert.equal(priceInput.value, '150.000');
+
+    restore();
+    assert.equal(priceInput.value, '120.000');
+});
+
+test('send() uses the streaming endpoint when configured, applying the payload from the "done" event', async t => {
+    const sse = `event: delta\ndata: ${JSON.stringify({ text: '{"name":' })}\n\n`
+        + `event: done\ndata: ${JSON.stringify({ data: draft, raw: '{}' })}\n\n`;
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.deepEqual(chat.draft, draft);
+    assert.equal(chat.streamStatus, '');
+    assert.equal(chat.loading, false);
+    assert.equal(chat.error, '');
+});
+
+test('send() falls back to the JSON endpoint when the browser cannot read the stream body', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async (url) => (
+        url === '/admin/san-pham/ai-goi-y/stream'
+            ? { ok: true, status: 200, body: {} } // no getReader — simulates an unsupported browser/proxy
+            : { ok: true, json: async () => ({ data: draft, raw: '{}' }) }
+    ));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(fetchMock.mock.calls.length, 2);
+    assert.deepEqual(chat.draft, draft);
+});
+
+test('send() surfaces a stream "error" event directly, without retrying via the JSON endpoint', async t => {
+    const sse = `event: error\ndata: ${JSON.stringify({ message: 'AI lỗi rồi' })}\n\n`;
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.error, 'AI lỗi rồi');
+    assert.equal(fetchMock.mock.calls.length, 1);
+});
+
+test('send() surfaces a rate-limit error from the stream endpoint without retrying via the JSON endpoint', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: false, status: 429 }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.match(chat.error, /quá nhanh/);
+    assert.equal(fetchMock.mock.calls.length, 1);
+});
+
+test('send() sets and clears lastFormChange around a set_fields turn, tied to that turn', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [] };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.ok(chat.lastFormChange);
+        assert.equal(chat.lastFormChangeMessageIndex, chat.messages.length - 1);
+
+        chat.undoLastFormChange();
+        assert.equal(chat.lastFormChange, null);
+        assert.equal(chat.lastFormChangeMessageIndex, null);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('startNewConversation() also clears any pending undo', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.init();
+    chat.lastFormChange = { restore: () => {} };
+    chat.lastFormChangeMessageIndex = 0;
+    chat.startNewConversation();
+    assert.equal(chat.lastFormChange, null);
+    assert.equal(chat.lastFormChangeMessageIndex, null);
 });
 
 test('init() leaves the fill pending when the destination page still has no form', () => {
