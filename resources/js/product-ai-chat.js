@@ -1,4 +1,4 @@
-import { createSessionStore, requestJson, requestStream } from './ai-chat-transport.js';
+import { createSessionStore, sendAssistTurn } from './ai-chat-transport.js';
 
 const MAX_VARIANT_ROWS = 12;
 const MAX_IMAGES_PER_SELECTION = 6;
@@ -823,45 +823,21 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         const requestId = this.requestId;
         const body = JSON.stringify({ messages: toWireMessages(this.messages) });
 
-        const isCurrent = (id) => id === this.requestId;
-        const rateLimitMessage = 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
-        const failureMessage = 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
-        const setError = (message) => { this.error = message; };
-
-        try {
-            if (assistStreamUrl) {
-                try {
-                    // `done`/`error` frames resolve normally (see
-                    // `applyAssistPayload`/`setError` above) — only a
-                    // transport-level failure (unsupported browser, a
-                    // buffering proxy, a drop mid-stream) throws here, so
-                    // this never falls back after a real server response.
-                    await requestStream(assistStreamUrl, body, {
-                        requestId,
-                        isCurrent,
-                        rateLimitMessage,
-                        failureMessage,
-                        onDeltaText: (rawSoFar) => { this.streamStatus = describeStreamProgress(rawSoFar) ?? ''; },
-                        onDone: (payload) => this.applyAssistPayload(payload),
-                        setError,
-                    });
-
-                    return;
-                } catch {
-                    if (requestId !== this.requestId) return;
-                }
-            }
-            await requestJson(assistUrl, body, {
-                requestId, isCurrent, rateLimitMessage, failureMessage, onPayload: (payload) => this.applyAssistPayload(payload), setError,
-            });
-        } catch {
-            if (requestId === this.requestId) this.error = 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.';
-        } finally {
-            if (requestId === this.requestId) {
-                this.loading = false;
-                this.streamStatus = '';
-            }
-        }
+        await sendAssistTurn({
+            jsonUrl: assistUrl,
+            streamUrl: assistStreamUrl,
+            body,
+            requestId,
+            isCurrent: (id) => id === this.requestId,
+            rateLimitMessage: 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.',
+            failureMessage: 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.',
+            connectionErrorMessage: 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.',
+            onDeltaText: (rawSoFar) => { this.streamStatus = describeStreamProgress(rawSoFar) ?? ''; },
+            onPayload: (payload) => this.applyAssistPayload(payload),
+            setError: (message) => { this.error = message; },
+            setLoading: (loading) => { this.loading = loading; },
+            setStreamStatus: (status) => { this.streamStatus = status; },
+        });
     },
 
     /**

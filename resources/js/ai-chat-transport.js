@@ -166,3 +166,43 @@ export async function requestStream(url, body, {
     // trigger the `requestJson` fallback in the caller's `send()`.
     throw new Error('Stream ended without a result.');
 }
+
+/**
+ * Orchestrates one full assist turn for both widgets' `send()`: try SSE
+ * streaming first when a stream URL is configured, falling back once to the
+ * plain JSON endpoint only on a transport-level failure — `done`/`error`
+ * frames from `requestStream` already resolve normally and never reach this
+ * fallback (see `requestStream`). Also owns the turn's loading/error/status
+ * bookkeeping via the passed setters, so neither widget has to repeat the
+ * try/catch/finally dance itself.
+ *
+ * @param {{jsonUrl: string, streamUrl?: string|null, body: string, requestId: number, isCurrent: (id: number) => boolean, rateLimitMessage: string, failureMessage: string, connectionErrorMessage: string, onDeltaText: (rawSoFar: string) => void, onPayload: (payload: unknown) => void, setError: (message: string) => void, setLoading: (loading: boolean) => void, setStreamStatus: (status: string) => void}} options
+ */
+export async function sendAssistTurn({
+    jsonUrl, streamUrl, body, requestId, isCurrent, rateLimitMessage, failureMessage, connectionErrorMessage,
+    onDeltaText, onPayload, setError, setLoading, setStreamStatus,
+}) {
+    try {
+        if (streamUrl) {
+            try {
+                await requestStream(streamUrl, body, {
+                    requestId, isCurrent, rateLimitMessage, failureMessage, onDeltaText, onDone: onPayload, setError,
+                });
+
+                return;
+            } catch {
+                if (!isCurrent(requestId)) return;
+            }
+        }
+        await requestJson(jsonUrl, body, {
+            requestId, isCurrent, rateLimitMessage, failureMessage, onPayload, setError,
+        });
+    } catch {
+        if (isCurrent(requestId)) setError(connectionErrorMessage);
+    } finally {
+        if (isCurrent(requestId)) {
+            setLoading(false);
+            setStreamStatus('');
+        }
+    }
+}
