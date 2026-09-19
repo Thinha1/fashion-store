@@ -126,7 +126,16 @@ class ProductDraftResponseParser
                 if (! is_string($item['value'] ?? null)) {
                     continue;
                 }
-                $entries[] = ['field' => $field, 'value' => trim($item['value'])];
+                $fieldValue = trim($item['value']);
+                // "status" directly flips a product's storefront visibility —
+                // unlike the other string fields, a hallucinated value here
+                // (e.g. "deleted") must never pass through silently, so it's
+                // restricted to exactly the two real values instead of just
+                // trusting whatever string the model sent.
+                if ($field === 'status' && ! in_array($fieldValue, ['active', 'archived'], true)) {
+                    continue;
+                }
+                $entries[] = ['field' => $field, 'value' => $fieldValue];
             }
         }
 

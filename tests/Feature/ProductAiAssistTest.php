@@ -249,6 +249,24 @@ class ProductAiAssistTest extends TestCase
             ]);
     }
 
+    public function test_status_values_outside_active_or_archived_are_dropped(): void
+    {
+        // "status" directly flips storefront visibility, so a hallucinated
+        // value must never pass through — only the two real values are kept.
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'status', 'value' => 'deleted'],
+            ['field' => 'status', 'value' => 'Active'],
+            ['field' => 'status', 'value' => ''],
+            ['field' => 'name', 'value' => 'Áo test'],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('xoá sản phẩm này'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [['field' => 'name', 'value' => 'Áo test']]);
+    }
+
     public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void
     {
         $draft = $this->draft();
