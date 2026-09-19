@@ -100,11 +100,12 @@ class ProductDraftResponseParser
 
         // "sizes"/"colors" edit the variant rows (a list), everything else
         // is a single form field (a string). Deliberately excludes
-        // description/bullets/seo_title/variant_images — those are long or
-        // photo-dependent enough that they should stay behind the draft
-        // card's review step instead of silently overwriting the form.
+        // bullets/seo_title/variant_images — those only ever exist as part
+        // of a full composed draft (no dedicated form field of their own to
+        // write straight into), so they stay behind the draft card's review
+        // step instead.
         $listFields = ['sizes', 'colors'];
-        $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock'];
+        $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock', 'description', 'status'];
 
         $entries = [];
         foreach ($value as $item) {
