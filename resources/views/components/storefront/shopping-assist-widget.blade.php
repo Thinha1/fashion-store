@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="shoppingAssistChat('{{ route('products.assist') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="shoppingAssistChat('{{ route('products.assist') }}', '{{ route('products.assist-stream') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý gợi ý sản phẩm">
         <x-icon name="robot" x-show="!open" class="size-4" />
@@ -28,10 +28,18 @@
         </div>
 
         <div class="ai-chat-messages" x-ref="messageList">
-            <p class="text-xs text-gray-500" x-show="!messages.length">
-                Cho mình biết bạn đang tìm gì (loại trang phục, giá, size, màu, dịp mặc...), mình sẽ gợi ý sản phẩm
-                phù hợp trong shop. Bấm vào sản phẩm mình gợi ý để xem chi tiết và tự thêm vào giỏ nhé.
-            </p>
+            <div x-show="!messages.length">
+                <p class="text-xs text-gray-500">
+                    Cho mình biết bạn đang tìm gì (loại trang phục, giá, size, màu, dịp mặc...), mình sẽ gợi ý sản phẩm
+                    phù hợp trong shop. Bấm vào sản phẩm mình gợi ý để xem chi tiết và tự thêm vào giỏ nhé.
+                </p>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                    <template x-for="prompt in quickPrompts" :key="prompt">
+                        <button type="button" class="rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:border-brand hover:text-brand"
+                                x-on:click="sendQuickReply(prompt)" x-text="prompt"></button>
+                    </template>
+                </div>
+            </div>
             <template x-for="(message, index) in messages" :key="index">
                 <div :class="message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant'">
                     <template x-if="message.role === 'user'">
@@ -53,6 +61,12 @@
                                     </a>
                                 </template>
                             </div>
+                            <div class="mt-2 flex flex-wrap gap-1.5" x-show="index === messages.length - 1">
+                                <template x-for="prompt in refinePrompts" :key="prompt">
+                                    <button type="button" class="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] text-gray-600 hover:border-brand hover:text-brand"
+                                            x-on:click="sendQuickReply(prompt)" x-text="prompt"></button>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -60,7 +74,7 @@
 
             <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
                 <span></span><span></span><span></span>
-                <span class="ai-chat-thinking-label">Đang tìm sản phẩm...</span>
+                <span class="ai-chat-thinking-label" x-text="streamStatus || 'Đang tìm sản phẩm...'"></span>
             </div>
         </div>
 

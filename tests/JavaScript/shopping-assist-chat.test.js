@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import shoppingAssistChat, { trimHistory, toWireMessages } from '../../resources/js/shopping-assist-chat.js';
+import shoppingAssistChat, {
+    trimHistory, toWireMessages, QUICK_PROMPTS, REFINE_PROMPTS, parseSseFrames, describeStreamProgress,
+} from '../../resources/js/shopping-assist-chat.js';
 
 // send() reads `document` for the CSRF token, which doesn't exist under
 // Node's test runner. A minimal stub is enough to exercise the
@@ -14,6 +16,13 @@ function fakeSessionStorage() {
         getItem: (key) => (store.has(key) ? store.get(key) : null),
         setItem: (key, value) => store.set(key, value),
     };
+}
+
+/** A minimal `ReadableStreamDefaultReader`-alike that hands back the whole text in one chunk, then signals done. */
+function sseReaderFromText(text) {
+    const chunks = [new TextEncoder().encode(text)];
+
+    return { read: async () => (chunks.length ? { done: false, value: chunks.shift() } : { done: true, value: undefined }) };
 }
 
 function withAlpineStubs(chat) {
@@ -154,6 +163,113 @@ test('startNewConversation() clears the conversation and any error', () => {
     chat.startNewConversation();
     assert.deepEqual(chat.messages, []);
     assert.equal(chat.error, '');
+});
+
+test('sendQuickReply() fills the input with the chip text and sends it immediately', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ reply: 'ok', products: [], raw: '{}' }),
+    }));
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai');
+    await chat.sendQuickReply(QUICK_PROMPTS[0]);
+
+    assert.equal(fetchMock.mock.calls.length, 1);
+    const body = JSON.parse(fetchMock.mock.calls[0].arguments[1].body);
+    assert.deepEqual(body.messages, [{ role: 'user', content: QUICK_PROMPTS[0] }]);
+});
+
+test('exposes the quick-reply prompts for the empty-state chips', () => {
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai');
+    assert.deepEqual(chat.quickPrompts, QUICK_PROMPTS);
+});
+
+test('exposes the refine prompts for chips under the latest reply', () => {
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai');
+    assert.deepEqual(chat.refinePrompts, REFINE_PROMPTS);
+});
+
+test('init() reads the current product id from the page and sends it with every turn', async t => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.document = { querySelector: () => null, body: { dataset: { currentProductId: '42' } } };
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ reply: 'ok', products: [], raw: '{}' }) }));
+    try {
+        const chat = withAlpineStubs(shoppingAssistChat('/san-pham/goi-y-ai'));
+        chat.init();
+        assert.equal(chat.contextProductId, 42);
+
+        chat.input = 'áo thun';
+        await chat.send();
+        const body = JSON.parse(fetchMock.mock.calls[0].arguments[1].body);
+        assert.equal(body.context_product_id, 42);
+    } finally {
+        globalThis.document = { querySelector: () => null };
+    }
+});
+
+test('contextProductId stays null when there is no current-product page context', () => {
+    globalThis.document = { querySelector: () => null, body: { dataset: {} } };
+    try {
+        const chat = withAlpineStubs(shoppingAssistChat('/san-pham/goi-y-ai'));
+        chat.init();
+        assert.equal(chat.contextProductId, null);
+    } finally {
+        globalThis.document = { querySelector: () => null };
+    }
+});
+
+test('parseSseFrames splits a buffer into complete frames and keeps an incomplete tail as the remainder', () => {
+    const { frames, remainder } = parseSseFrames(
+        'event: delta\ndata: {"text":"a"}\n\nevent: delta\ndata: {"text":"b"}\n\nevent: do',
+    );
+    assert.deepEqual(frames, [
+        { event: 'delta', data: { text: 'a' } },
+        { event: 'delta', data: { text: 'b' } },
+    ]);
+    assert.equal(remainder, 'event: do');
+});
+
+test('describeStreamProgress returns null before any known field has appeared', () => {
+    assert.equal(describeStreamProgress(''), null);
+    assert.equal(describeStreamProgress('{"category": "'), null);
+});
+
+test('describeStreamProgress reports fields as they appear', () => {
+    assert.match(describeStreamProgress('{"category": "Áo thun"'), /đã chọn danh mục/);
+});
+
+test('send() uses the streaming endpoint when configured, applying the payload from the "done" event', async t => {
+    const sse = `event: delta\ndata: ${JSON.stringify({ text: '{"category":' })}\n\n`
+        + `event: done\ndata: ${JSON.stringify({ reply: 'ok', products: [], raw: '{}' })}\n\n`;
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai', '/san-pham/goi-y-ai/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.messages.length, 2);
+    assert.equal(chat.messages[1].reply, 'ok');
+    assert.equal(chat.streamStatus, '');
+    assert.equal(chat.loading, false);
+});
+
+test('send() falls back to the JSON endpoint when the browser cannot read the stream body', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async (url) => (
+        url === '/san-pham/goi-y-ai/stream'
+            ? { ok: true, status: 200, body: {} }
+            : { ok: true, json: async () => ({ reply: 'ok', products: [], raw: '{}' }) }
+    ));
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai', '/san-pham/goi-y-ai/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(fetchMock.mock.calls.length, 2);
+    assert.equal(chat.messages.length, 2);
+});
+
+test('send() surfaces a stream "error" event directly, without retrying via the JSON endpoint', async t => {
+    const sse = `event: error\ndata: ${JSON.stringify({ message: 'AI lỗi rồi' })}\n\n`;
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = shoppingAssistChat('/san-pham/goi-y-ai', '/san-pham/goi-y-ai/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.error, 'AI lỗi rồi');
+    assert.equal(fetchMock.mock.calls.length, 1);
 });
 
 test('toggle() flips the open state', () => {

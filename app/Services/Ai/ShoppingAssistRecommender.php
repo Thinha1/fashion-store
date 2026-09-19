@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -25,7 +26,7 @@ class ShoppingAssistRecommender
         $sizes = $filter['sizes'];
         $colors = $filter['colors'];
 
-        return Product::query()
+        $query = Product::query()
             ->where('status', 'active')
             ->when($filter['category'], fn ($query) => $query->whereHas(
                 'category', fn ($query) => $query->where('name', $filter['category'])
@@ -47,12 +48,48 @@ class ShoppingAssistRecommender
                     $escaped = addcslashes($keyword, '%_\\');
                     $query->orWhere('name', 'like', "%{$escaped}%")->orWhere('description', 'like', "%{$escaped}%");
                 }
-            }))
-            ->with(['brand', 'category', 'images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
-            ->withSum(['variants as stock_total' => fn ($query) => $query->where('is_active', true)], 'stock_quantity')
-            ->orderByDesc('is_featured')
-            ->latest('id')
-            ->limit(self::MAX_RESULTS)
-            ->get();
+            }));
+
+        $this->withCardData($query);
+
+        return $query->orderByDesc('is_featured')->latest('id')->limit(self::MAX_RESULTS)->get();
+    }
+
+    /**
+     * A small set of products to suggest when `search()` comes up empty, so
+     * the conversation never just dead-ends on "not found" — still real,
+     * active products, never anything the AI itself picked. Keeps the
+     * category (still a meaningful, deliberate signal from the customer)
+     * but drops price/size/color/keywords, since those are what most likely
+     * over-constrained the original search; falls back further to simply
+     * the most popular active products if even that comes up empty (e.g.
+     * the category itself has nothing in stock).
+     *
+     * @param  array{category: string, price_min: int|null, price_max: int|null, sizes: array<int, string>, colors: array<int, string>, keywords: array<int, string>}  $filter
+     * @return Collection<int, Product>
+     */
+    public function fallback(array $filter): Collection
+    {
+        $byCategory = Product::query()->where('status', 'active')
+            ->when($filter['category'], fn ($query) => $query->whereHas(
+                'category', fn ($query) => $query->where('name', $filter['category'])
+            ));
+        $this->withCardData($byCategory);
+        $withCategory = $byCategory->orderByDesc('is_featured')->latest('id')->limit(self::MAX_RESULTS)->get();
+
+        if ($withCategory->isNotEmpty()) {
+            return $withCategory;
+        }
+
+        $anyActive = Product::query()->where('status', 'active');
+        $this->withCardData($anyActive);
+
+        return $anyActive->orderByDesc('is_featured')->latest('id')->limit(self::MAX_RESULTS)->get();
+    }
+
+    private function withCardData(Builder $query): void
+    {
+        $query->with(['brand', 'category', 'images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
+            ->withSum(['variants as stock_total' => fn ($query) => $query->where('is_active', true)], 'stock_quantity');
     }
 }

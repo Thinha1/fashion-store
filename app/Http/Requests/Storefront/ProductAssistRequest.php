@@ -29,6 +29,11 @@ class ProductAssistRequest extends FormRequest
             'messages' => ['required', 'array', 'min:1', 'max:'.$maxMessages],
             'messages.*.role' => ['required', Rule::in(['user', 'assistant'])],
             'messages.*.content' => ['required', 'string', 'max:500'],
+            // Sent automatically by the widget when the customer opens chat
+            // on a product detail page (see layouts/app.blade.php's
+            // `data-current-product-id`) — just an id to look up server-side
+            // for prompt context, never trusted content itself.
+            'context_product_id' => ['nullable', 'integer'],
         ];
     }
 

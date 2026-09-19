@@ -16,11 +16,22 @@ class ShoppingAssistPromptBuilder
      * @param  array<int, string>  $categories  active category names, exactly as stored — the model must
      *                                          pick one verbatim or leave the field blank, never invent a new one.
      * @param  array<int, string>  $sizes  the fixed set of sizes the catalog uses (ProductVariant::SIZES).
+     * @param  string  $currentProductContext  a short "khách đang xem: ..." line built server-side from a real,
+     *                                         active product (see ProductAssistController) — never model-provided,
+     *                                         so referencing it back is safe. Empty when the customer isn't
+     *                                         currently on a product page.
      */
-    public function build(array $categories, array $sizes): string
+    public function build(array $categories, array $sizes, string $currentProductContext = ''): string
     {
         $categoryList = $categories === [] ? '(chưa có danh mục nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $categories));
         $sizeList = implode(', ', $sizes);
+        $contextBlock = $currentProductContext === '' ? '' : <<<CONTEXT
+
+
+            Khách hiện đang xem trang sản phẩm này trên site (chỉ để bạn tham khảo khi trả lời, ví dụ so sánh —
+            KHÔNG lặp lại thông tin này vào các field bộ lọc trừ khi khách thật sự đang hỏi về nó):
+            {$currentProductContext}
+            CONTEXT;
 
         return <<<PROMPT
             Bạn là trợ lý mua sắm cho một shop thời trang online tại Việt Nam. Khách hàng mô tả nhu cầu bằng
@@ -40,6 +51,7 @@ class ShoppingAssistPromptBuilder
 
             Size hợp lệ trong hệ thống: {$sizeList} — chỉ chọn trong danh sách này, để mảng rỗng nếu khách không
             nói tới size.
+            {$contextBlock}
 
             CHỈ trả lời bằng một object JSON DUY NHẤT, không kèm giải thích, không bọc trong markdown code fence,
             đúng hình dạng sau (điền chuỗi rỗng "" hoặc mảng rỗng [] cho phần chưa xác định được, không bỏ field):

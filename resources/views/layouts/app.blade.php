@@ -10,7 +10,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased">
+@php($currentProduct = request()->route('product'))
+<body class="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased"
+      data-current-product-id="{{ $currentProduct instanceof \App\Models\Product ? $currentProduct->id : '' }}">
     <a href="#main-content" class="skip-link">Đến nội dung chính</a>
     <div class="bg-brand px-4 py-2 text-center text-xs tracking-wide text-white">Một chút cảm hứng. Một phong cách của
         riêng bạn.</div>
