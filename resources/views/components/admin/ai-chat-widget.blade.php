@@ -122,7 +122,7 @@
                     <x-icon name="paperclip" class="size-4" />
                 </button>
                 <label for="ai-chat-message-input" class="sr-only">Nội dung gửi trợ lý AI</label>
-                <textarea id="ai-chat-message-input" x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
+                <textarea id="ai-chat-message-input" x-ref="messageInput" x-model="input" rows="2" placeholder="VD: áo sơ mi này giá 350k, có size S M L, màu trắng"
                           class="field flex-1 resize-none text-sm"
                           x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); send(); }"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"

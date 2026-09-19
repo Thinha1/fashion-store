@@ -672,18 +672,10 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
     // the blade template), so it retires on its own once the conversation
     // moves on instead of lingering below every later, unrelated turn.
     draftMessageIndex: null,
-    // Undo for the single most-recent AI-driven form write (a `set_fields`
-    // edit or a draft-card fill) — see applySetFields/applyFillPlan's
-    // `restore`. Only the latest change is kept (no multi-step undo stack),
-    // matching how these writes are framed as small, explicit, easily-undone
-    // edits rather than something needing a full history. Deliberately not
-    // persisted to sessionStorage: `restore` closes over live DOM nodes
-    // (variant rows carrying a real `<input type="file">`), which can't
-    // survive serialization and shouldn't survive a reload anyway.
-    lastFormChange: null,
-    // Ties the undo link to the turn that caused it, retiring the same way
-    // draftMessageIndex does once the conversation moves on.
-    lastFormChangeMessageIndex: null,
+    // Set right before an auto-navigate reload; consumed once the
+    // destination page has loaded, so the staff member can keep typing
+    // right away instead of having to click back into the chat box.
+    pendingFocus: false,
 
     init() {
         const saved = loadPersistedState();
@@ -696,6 +688,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
             this.pendingSetFields = saved.pendingSetFields ?? null;
             this.imageCounter = saved.imageCounter ?? 0;
             this.draftMessageIndex = saved.draftMessageIndex ?? null;
+            this.pendingFocus = saved.pendingFocus ?? false;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
@@ -726,6 +719,11 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
                 this.applySetFieldsToForm(form);
             }
         }
+        if (this.pendingFocus) {
+            this.pendingFocus = false;
+            this.persist();
+            this.$nextTick(() => this.$refs.messageInput?.focus());
+        }
     },
 
     scrollToBottom() {
@@ -739,7 +737,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         persistState({
             open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
             pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
-            draftMessageIndex: this.draftMessageIndex,
+            draftMessageIndex: this.draftMessageIndex, pendingFocus: this.pendingFocus,
         });
     },
 
@@ -754,9 +752,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.pendingSetFields = null;
         this.imageCounter = 0;
         this.draftMessageIndex = null;
-        this.lastFormChange = null;
-        this.lastFormChangeMessageIndex = null;
-        this.streamStatus = '';
+        this.pendingFocus = false;
     },
 
     toggle() {
@@ -987,20 +983,13 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         // Ties the card to this exact turn — see `draftMessageIndex`.
         this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
 
-        // A quick single/few-field edit ("giá 100k") is applied straight
-        // to the live form — no draft-card review step, since it's a
-        // small, explicit, easily-undone change.
-        if (setFields.length) {
-            const form = document.getElementById('product-form');
-            if (form) {
-                const { restore } = applySetFields(setFields, form, window.Alpine);
-                this.lastFormChange = { restore };
-                this.lastFormChangeMessageIndex = this.messages.length - 1;
-            } else if (productCreateUrl) {
-                // No product form on this page — same fallback as
-                // fillForm(): remember the fields, jump to the "add
-                // product" page, and finish once it has loaded.
-                this.pendingSetFields = setFields;
+            // Navigating is just a page jump (no data write), so it happens
+            // right away instead of waiting for a confirmation click.
+            if (this.navigate) {
+                // Consumed by init() on the destination page, so the staff
+                // member can keep typing right away instead of having to
+                // click back into the chat box after landing there.
+                this.pendingFocus = true;
                 this.persist();
                 window.location.href = productCreateUrl;
                 return;
