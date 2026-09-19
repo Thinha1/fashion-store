@@ -500,6 +500,10 @@ export default (assistUrl, productCreateUrl) => ({
     // the blade template), so it retires on its own once the conversation
     // moves on instead of lingering below every later, unrelated turn.
     draftMessageIndex: null,
+    // Set right before an auto-navigate reload; consumed once the
+    // destination page has loaded, so the staff member can keep typing
+    // right away instead of having to click back into the chat box.
+    pendingFocus: false,
 
     init() {
         const saved = loadPersistedState();
@@ -512,6 +516,7 @@ export default (assistUrl, productCreateUrl) => ({
             this.pendingSetFields = saved.pendingSetFields ?? null;
             this.imageCounter = saved.imageCounter ?? 0;
             this.draftMessageIndex = saved.draftMessageIndex ?? null;
+            this.pendingFocus = saved.pendingFocus ?? false;
         }
         this.$watch('open', () => this.persist());
         this.$watch('messages', () => this.persist());
@@ -542,6 +547,11 @@ export default (assistUrl, productCreateUrl) => ({
                 this.applySetFieldsToForm(form);
             }
         }
+        if (this.pendingFocus) {
+            this.pendingFocus = false;
+            this.persist();
+            this.$nextTick(() => this.$refs.messageInput?.focus());
+        }
     },
 
     scrollToBottom() {
@@ -555,7 +565,7 @@ export default (assistUrl, productCreateUrl) => ({
         persistState({
             open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
             pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
-            draftMessageIndex: this.draftMessageIndex,
+            draftMessageIndex: this.draftMessageIndex, pendingFocus: this.pendingFocus,
         });
     },
 
@@ -570,6 +580,7 @@ export default (assistUrl, productCreateUrl) => ({
         this.pendingSetFields = null;
         this.imageCounter = 0;
         this.draftMessageIndex = null;
+        this.pendingFocus = false;
     },
 
     toggle() {
@@ -717,6 +728,10 @@ export default (assistUrl, productCreateUrl) => ({
             // Navigating is just a page jump (no data write), so it happens
             // right away instead of waiting for a confirmation click.
             if (this.navigate) {
+                // Consumed by init() on the destination page, so the staff
+                // member can keep typing right away instead of having to
+                // click back into the chat box after landing there.
+                this.pendingFocus = true;
                 this.persist();
                 this.goToPage();
             }
