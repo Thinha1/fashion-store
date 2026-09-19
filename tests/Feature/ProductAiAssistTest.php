@@ -184,7 +184,7 @@ class ProductAiAssistTest extends TestCase
         $draft = $this->draft();
         $draft['set_fields'] = [
             ['field' => 'price', 'value' => '100000'],
-            ['field' => 'description', 'value' => 'không được phép ghi đè mô tả'],
+            ['field' => 'bullets', 'value' => 'không được phép ghi đè điểm nổi bật'],
             // A "value" key that's missing entirely (as opposed to present
             // but empty) has nothing usable to apply, so it's dropped.
             ['field' => 'price'],
@@ -230,6 +230,41 @@ class ProductAiAssistTest extends TestCase
             ->assertJsonPath('data.variant_price', '120000')
             ->assertJsonPath('data.variant_stock', '20')
             ->assertJsonPath('data.set_fields', [['field' => 'variant_stock', 'value' => '20']]);
+    }
+
+    public function test_description_and_status_pass_through_in_set_fields(): void
+    {
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'description', 'value' => 'Chất liệu cotton, thoáng mát cả ngày.'],
+            ['field' => 'status', 'value' => 'archived'],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('sửa mô tả và ngừng bán sản phẩm này'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [
+                ['field' => 'description', 'value' => 'Chất liệu cotton, thoáng mát cả ngày.'],
+                ['field' => 'status', 'value' => 'archived'],
+            ]);
+    }
+
+    public function test_status_values_outside_active_or_archived_are_dropped(): void
+    {
+        // "status" directly flips storefront visibility, so a hallucinated
+        // value must never pass through — only the two real values are kept.
+        $draft = $this->draft();
+        $draft['set_fields'] = [
+            ['field' => 'status', 'value' => 'deleted'],
+            ['field' => 'status', 'value' => 'Active'],
+            ['field' => 'status', 'value' => ''],
+            ['field' => 'name', 'value' => 'Áo test'],
+        ];
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($draft))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('xoá sản phẩm này'))
+            ->assertOk()
+            ->assertJsonPath('data.set_fields', [['field' => 'name', 'value' => 'Áo test']]);
     }
 
     public function test_malformed_variant_image_entries_are_dropped_instead_of_failing(): void
