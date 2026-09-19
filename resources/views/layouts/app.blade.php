@@ -5,11 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#175b60">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Fashion Store'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased">
+@php($currentProduct = request()->route('product'))
+<body class="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased"
+      data-current-product-id="{{ $currentProduct instanceof \App\Models\Product ? $currentProduct->id : '' }}">
     <a href="#main-content" class="skip-link">Đến nội dung chính</a>
     <div class="bg-brand px-4 py-2 text-center text-xs tracking-wide text-white">Một chút cảm hứng. Một phong cách của
         riêng bạn.</div>
@@ -149,6 +152,7 @@
                     {{ config('app.name', 'Fashion Store') }}</span></div>
         </div>
     </footer>
+    <x-storefront.shopping-assist-widget />
 </body>
 
 </html>

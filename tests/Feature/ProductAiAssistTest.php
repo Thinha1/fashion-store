@@ -85,6 +85,14 @@ class ProductAiAssistTest extends TestCase
         Http::assertSent(fn ($request) => $request->url() === 'https://internal-ai.example.test/v1/chat/completions');
     }
 
+    public function test_request_asks_for_json_object_response_format(): void
+    {
+        Http::fake(['internal-ai.example.test/*' => Http::response($this->chatCompletionResponse($this->draft()))]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson($this->url(), $this->textMessage('áo thun'))->assertOk();
+        Http::assertSent(fn ($request) => $request['response_format'] === ['type' => 'json_object']);
+    }
+
     public function test_active_category_and_brand_names_are_sent_to_the_provider(): void
     {
         Category::factory()->create(['name' => 'Áo thun', 'is_active' => true]);

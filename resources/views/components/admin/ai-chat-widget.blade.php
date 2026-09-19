@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
         <x-icon name="robot" x-show="!open" class="size-4" />
@@ -55,6 +55,11 @@
                                     ? `Đã điền ${message.setFieldsLabel} vào form.`
                                     : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                             <p class="ai-chat-tool-tag" x-show="message.tools?.length" x-text="'tool: ' + message.tools?.join(', ')"></p>
+                            <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
+                                    x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
+                                    x-on:click="undoLastFormChange()">
+                                Hoàn tác thay đổi vừa rồi
+                            </button>
                         </div>
                     </template>
                 </div>
@@ -73,6 +78,8 @@
                         <dd x-text="draft.seo_title || '—'"></dd>
                         <dt>Giá</dt>
                         <dd x-text="draft.price || '—'"></dd>
+                        <dt>Tồn kho mỗi biến thể</dt>
+                        <dd x-text="draft.stock_quantity || '—'"></dd>
                         <dt>Size</dt>
                         <dd x-text="draft.sizes?.length ? draft.sizes.join(', ') : '—'"></dd>
                         <dt>Màu</dt>
@@ -90,7 +97,7 @@
 
             <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
                 <span></span><span></span><span></span>
-                <span class="ai-chat-thinking-label">Đang suy nghĩ...</span>
+                <span class="ai-chat-thinking-label" x-text="streamStatus || 'Đang suy nghĩ...'"></span>
             </div>
         </div>
 

@@ -50,6 +50,13 @@ class AppServiceProvider extends ServiceProvider
             max(1, (int) config('services.ai.requests_per_minute'))
         )->by((string) $request->user()->id));
 
+        // Guest-callable (see ProductAssistController), so — unlike every
+        // other limiter above — this can't key by an authenticated user id
+        // alone; falls back to IP for anonymous shoppers.
+        RateLimiter::for('shopping-assist', fn ($request): Limit => Limit::perMinute(
+            max(1, (int) config('services.ai.shopping_assist_requests_per_minute'))
+        )->by($request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip()));
+
         // The storefront header renders a 3-level mega-menu (top category ->
         // garment type -> a handful of specific styles). A garment type with
         // no further styles (e.g. "Balo") falls back to listing its own
