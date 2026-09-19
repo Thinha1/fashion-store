@@ -1,4 +1,7 @@
+import { createSessionStore, requestJson, requestStream } from './ai-chat-transport.js';
+
 const STORAGE_KEY = 'shopping-assist-chat:v1';
+const sessionStore = createSessionStore(STORAGE_KEY);
 
 // Shown as one-tap chips before the shopper has typed anything — solves the
 // "blank screen, don't know what to ask" problem a free-text-only box has.
@@ -29,30 +32,6 @@ export const REFINE_PROMPTS = [
 const MAX_MESSAGES = 20;
 
 /**
- * This is a normal server-rendered, multi-page storefront — sessionStorage
- * survives navigation within the same tab, so a shopper can keep chatting
- * while browsing from page to page (same idea as the admin widget's own
- * persistence).
- */
-function loadPersistedState() {
-    try {
-        const raw = sessionStorage.getItem(STORAGE_KEY);
-
-        return raw ? JSON.parse(raw) : null;
-    } catch {
-        return null;
-    }
-}
-
-function persistState(state) {
-    try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-        // Storage full or unavailable (e.g. private browsing) — the conversation just won't survive navigation.
-    }
-}
-
-/**
  * Keeps the conversation from growing without bound. Unlike the admin
  * widget's `compactMessages`, there are no photos to preserve and no draft
  * worth summarizing — this domain's turns are short filter requests, so a
@@ -76,34 +55,10 @@ export function toWireMessages(messages) {
     }));
 }
 
-/**
- * Splits a raw SSE byte buffer (as accumulated so far from a fetch stream
- * reader) into complete frames plus whatever incomplete tail remains for
- * the next chunk. Each frame looks like `event: <name>\ndata: <json>`,
- * frames separated by a blank line (see
- * `App\Http\Controllers\Storefront\ProductAssistStreamController::emit`).
- * Pure and DOM-free so it's unit-testable on its own.
- *
- * @return {{frames: Array<{event: string, data: unknown}>, remainder: string}}
- */
-export function parseSseFrames(buffer) {
-    const parts = buffer.split('\n\n');
-    const remainder = parts.pop() ?? '';
-    const frames = [];
-    for (const part of parts) {
-        if (!part.trim()) continue;
-        const eventMatch = part.match(/^event: (.+)$/m);
-        const dataMatch = part.match(/^data: (.+)$/m);
-        if (!eventMatch || !dataMatch) continue;
-        try {
-            frames.push({ event: eventMatch[1], data: JSON.parse(dataMatch[1]) });
-        } catch {
-            // A malformed frame is skipped rather than crashing the whole stream.
-        }
-    }
-
-    return { frames, remainder };
-}
+// Re-exported for backward compatibility — existing tests import it from
+// this module; the implementation now lives in ai-chat-transport.js since
+// it's shared verbatim with the admin widget.
+export { parseSseFrames } from './ai-chat-transport.js';
 
 // Ordered so the status line reads as a natural sentence of what's been
 // figured out so far — checked against the raw JSON text streamed in so
@@ -149,7 +104,7 @@ export default (assistUrl, assistStreamUrl) => ({
     contextProductId: null,
 
     init() {
-        const saved = loadPersistedState();
+        const saved = sessionStore.load();
         if (saved) {
             this.open = saved.open ?? false;
             this.messages = saved.messages ?? [];
@@ -175,7 +130,7 @@ export default (assistUrl, assistStreamUrl) => ({
     },
 
     persist() {
-        persistState({ open: this.open, messages: this.messages });
+        sessionStore.save({ open: this.open, messages: this.messages });
     },
 
     startNewConversation() {
@@ -211,22 +166,38 @@ export default (assistUrl, assistStreamUrl) => ({
         const requestId = this.requestId;
         const body = JSON.stringify({ messages: toWireMessages(this.messages), context_product_id: this.contextProductId });
 
+        const isCurrent = (id) => id === this.requestId;
+        const rateLimitMessage = 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
+        const failureMessage = 'Chưa thể gợi ý lúc này. Vui lòng thử lại.';
+        const setError = (message) => { this.error = message; };
+
         try {
             if (assistStreamUrl) {
                 try {
-                    await this.sendStreamed(assistStreamUrl, body, requestId);
+                    // `done`/`error` frames resolve normally (see
+                    // `applyAssistPayload`/`setError` above) — only a
+                    // transport-level failure (unsupported browser, a
+                    // buffering proxy, a drop mid-stream) throws here, so
+                    // this never masks a real server error, only falls back
+                    // once to the plain JSON call.
+                    await requestStream(assistStreamUrl, body, {
+                        requestId,
+                        isCurrent,
+                        rateLimitMessage,
+                        failureMessage,
+                        onDeltaText: (rawSoFar) => { this.streamStatus = describeStreamProgress(rawSoFar) ?? ''; },
+                        onDone: (payload) => this.applyAssistPayload(payload),
+                        setError,
+                    });
 
                     return;
                 } catch {
-                    // Streaming failed at the transport level (unsupported
-                    // browser, a buffering proxy, a drop mid-stream) — an
-                    // app-level error/response returns normally instead (see
-                    // `sendStreamed`), so this never masks a real server
-                    // error, only falls back once to the plain JSON call.
                     if (requestId !== this.requestId) return;
                 }
             }
-            await this.sendJson(assistUrl, body, requestId);
+            await requestJson(assistUrl, body, {
+                requestId, isCurrent, rateLimitMessage, failureMessage, onPayload: (payload) => this.applyAssistPayload(payload), setError,
+            });
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được tới trợ lý. Vui lòng thử lại.';
         } finally {
@@ -237,97 +208,7 @@ export default (assistUrl, assistStreamUrl) => ({
         }
     },
 
-    /** The classic request/response call — also the fallback when streaming itself can't be used. */
-    async sendJson(url, body, requestId) {
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body,
-        });
-        const payload = await response.json().catch(() => null);
-        if (requestId !== this.requestId) return;
-
-        if (!response.ok) {
-            this.error = response.status === 429
-                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
-                : payload?.message || 'Chưa thể gợi ý lúc này. Vui lòng thử lại.';
-            return;
-        }
-
-        this.applyAssistPayload(payload);
-    },
-
-    /**
-     * Reads the SSE stream from ProductAssistStreamController: `delta`
-     * events update `streamStatus` live, a `done` event carries the exact
-     * same `{reply, products, raw}` shape `sendJson` gets and is handled
-     * the same way (`applyAssistPayload`), and an `error` event surfaces
-     * like any other app-level failure.
-     */
-    async sendStreamed(url, body, requestId) {
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'text/event-stream',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body,
-        });
-        if (requestId !== this.requestId) return;
-
-        if (!response.ok) {
-            this.error = response.status === 429
-                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
-                : 'Chưa thể gợi ý lúc này. Vui lòng thử lại.';
-            return;
-        }
-        if (!response.body?.getReader) throw new Error('Streaming is not supported in this browser.');
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let rawSoFar = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (requestId !== this.requestId) return;
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const parsed = parseSseFrames(buffer);
-            buffer = parsed.remainder;
-
-            for (const frame of parsed.frames) {
-                if (frame.event === 'delta' && typeof frame.data?.text === 'string') {
-                    rawSoFar += frame.data.text;
-                    this.streamStatus = describeStreamProgress(rawSoFar) ?? '';
-                } else if (frame.event === 'done') {
-                    this.applyAssistPayload(frame.data);
-
-                    return;
-                } else if (frame.event === 'error') {
-                    this.error = frame.data?.message || 'Chưa thể gợi ý lúc này. Vui lòng thử lại.';
-
-                    return;
-                }
-            }
-        }
-        // The stream ended (connection closed) without ever sending a
-        // "done"/"error" event — a transport-level failure, so this throws
-        // to trigger the `sendJson` fallback in `send()`.
-        throw new Error('Stream ended without a result.');
-    },
-
-    /** Applies a resolved `{reply, products, raw}` payload — shared by `sendJson` and `sendStreamed`'s "done" event. */
+    /** Applies a resolved `{reply, products, raw}` payload — shared by the JSON response and the stream's "done" event. */
     applyAssistPayload(payload) {
         this.messages.push({
             role: 'assistant',

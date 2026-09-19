@@ -1,3 +1,5 @@
+import { createSessionStore, requestJson, requestStream } from './ai-chat-transport.js';
+
 const MAX_VARIANT_ROWS = 12;
 const MAX_IMAGES_PER_SELECTION = 6;
 
@@ -511,61 +513,12 @@ export function applySetFields(fields, form, alpine) {
 }
 
 const STORAGE_KEY = 'product-ai-chat:v1';
+const sessionStore = createSessionStore(STORAGE_KEY);
 
-/**
- * This is a multi-page (server-rendered) app — every navigation between
- * admin pages is a full reload that would otherwise wipe the widget's
- * conversation. sessionStorage survives navigation within the same browser
- * tab (and is cleared when the tab closes), so staff can start a chat on
- * one page and finish filling the form on another without losing it.
- */
-function loadPersistedState() {
-    try {
-        const raw = sessionStorage.getItem(STORAGE_KEY);
-
-        return raw ? JSON.parse(raw) : null;
-    } catch {
-        return null;
-    }
-}
-
-function persistState(state) {
-    try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-        // Storage full or unavailable (e.g. private browsing) — the conversation just won't survive navigation.
-    }
-}
-
-/**
- * Splits a raw SSE byte buffer (as accumulated so far from a fetch stream
- * reader) into complete frames plus whatever incomplete tail remains for
- * the next chunk. Each frame looks like `event: <name>\ndata: <json>`,
- * frames separated by a blank line (see
- * `App\Http\Controllers\Admin\ProductAiAssistStreamController::emit`).
- * Pure and DOM-free so it's unit-testable on its own, same as
- * `compactMessages`/`buildFillPlan`.
- *
- * @return {{frames: Array<{event: string, data: unknown}>, remainder: string}}
- */
-export function parseSseFrames(buffer) {
-    const parts = buffer.split('\n\n');
-    const remainder = parts.pop() ?? '';
-    const frames = [];
-    for (const part of parts) {
-        if (!part.trim()) continue;
-        const eventMatch = part.match(/^event: (.+)$/m);
-        const dataMatch = part.match(/^data: (.+)$/m);
-        if (!eventMatch || !dataMatch) continue;
-        try {
-            frames.push({ event: eventMatch[1], data: JSON.parse(dataMatch[1]) });
-        } catch {
-            // A malformed frame is skipped rather than crashing the whole stream.
-        }
-    }
-
-    return { frames, remainder };
-}
+// Re-exported for backward compatibility — existing tests import it from
+// this module; the implementation now lives in ai-chat-transport.js since
+// it's shared verbatim with the storefront widget.
+export { parseSseFrames } from './ai-chat-transport.js';
 
 // Ordered so the status line reads as a natural sentence of what's been
 // composed so far — checked against the raw JSON text streamed in so far
@@ -730,7 +683,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
     lastFormChangeMessageIndex: null,
 
     init() {
-        const saved = loadPersistedState();
+        const saved = sessionStore.load();
         if (saved) {
             this.open = saved.open ?? false;
             this.messages = saved.messages ?? [];
@@ -786,7 +739,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
     },
 
     persist() {
-        persistState({
+        sessionStore.save({
             open: this.open, messages: this.messages, draft: this.draft, navigate: this.navigate,
             pendingFill: this.pendingFill, pendingSetFields: this.pendingSetFields, imageCounter: this.imageCounter,
             draftMessageIndex: this.draftMessageIndex, pendingFocus: this.pendingFocus,
@@ -870,24 +823,37 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         const requestId = this.requestId;
         const body = JSON.stringify({ messages: toWireMessages(this.messages) });
 
+        const isCurrent = (id) => id === this.requestId;
+        const rateLimitMessage = 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
+        const failureMessage = 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
+        const setError = (message) => { this.error = message; };
+
         try {
             if (assistStreamUrl) {
                 try {
-                    await this.sendStreamed(assistStreamUrl, body, requestId);
+                    // `done`/`error` frames resolve normally (see
+                    // `applyAssistPayload`/`setError` above) — only a
+                    // transport-level failure (unsupported browser, a
+                    // buffering proxy, a drop mid-stream) throws here, so
+                    // this never falls back after a real server response.
+                    await requestStream(assistStreamUrl, body, {
+                        requestId,
+                        isCurrent,
+                        rateLimitMessage,
+                        failureMessage,
+                        onDeltaText: (rawSoFar) => { this.streamStatus = describeStreamProgress(rawSoFar) ?? ''; },
+                        onDone: (payload) => this.applyAssistPayload(payload),
+                        setError,
+                    });
 
                     return;
                 } catch {
-                    // Streaming failed at the transport level — an
-                    // unsupported browser, a proxy that buffers the whole
-                    // response before releasing it, a drop mid-stream —
-                    // rather than an app-level error the server already
-                    // reported (that path returns normally, see
-                    // `sendStreamed`). Falls back once to the plain JSON
-                    // endpoint instead of just failing the turn.
                     if (requestId !== this.requestId) return;
                 }
             }
-            await this.sendJson(assistUrl, body, requestId);
+            await requestJson(assistUrl, body, {
+                requestId, isCurrent, rateLimitMessage, failureMessage, onPayload: (payload) => this.applyAssistPayload(payload), setError,
+            });
         } catch {
             if (requestId === this.requestId) this.error = 'Không kết nối được tới dịch vụ AI. Vui lòng thử lại.';
         } finally {
@@ -898,101 +864,9 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         }
     },
 
-    /** The classic request/response call — also the fallback when streaming itself can't be used. */
-    async sendJson(url, body, requestId) {
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body,
-        });
-        const payload = await response.json().catch(() => null);
-        if (requestId !== this.requestId) return;
-
-        if (!response.ok) {
-            this.error = response.status === 429
-                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
-                : payload?.message || 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
-            return;
-        }
-
-        this.applyAssistPayload(payload);
-    },
-
     /**
-     * Reads the SSE stream from ProductAiAssistStreamController: `delta`
-     * events update `streamStatus` live, a `done` event carries the exact
-     * same `{data, navigate, raw}` shape `sendJson` gets and is handled the
-     * same way (`applyAssistPayload`), and an `error` event surfaces like
-     * any other app-level failure — none of these throw, so `send()` never
-     * falls back to `sendJson` after a real server response, only when the
-     * stream itself couldn't be read (see the final `throw` below).
-     */
-    async sendStreamed(url, body, requestId) {
-        const response = await fetch(url, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'text/event-stream',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body,
-        });
-        if (requestId !== this.requestId) return;
-
-        if (!response.ok) {
-            this.error = response.status === 429
-                ? 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.'
-                : 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
-            return;
-        }
-        if (!response.body?.getReader) throw new Error('Streaming is not supported in this browser.');
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let rawSoFar = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (requestId !== this.requestId) return;
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const parsed = parseSseFrames(buffer);
-            buffer = parsed.remainder;
-
-            for (const frame of parsed.frames) {
-                if (frame.event === 'delta' && typeof frame.data?.text === 'string') {
-                    rawSoFar += frame.data.text;
-                    this.streamStatus = describeStreamProgress(rawSoFar) ?? '';
-                } else if (frame.event === 'done') {
-                    this.applyAssistPayload(frame.data);
-
-                    return;
-                } else if (frame.event === 'error') {
-                    this.error = frame.data?.message || 'Chưa thể tạo nội dung gợi ý. Vui lòng thử lại.';
-
-                    return;
-                }
-            }
-        }
-        // The stream ended (connection closed) without ever sending a
-        // "done"/"error" event — a transport-level failure, not an app-level
-        // one, so this throws to trigger the `sendJson` fallback in `send()`.
-        throw new Error('Stream ended without a result.');
-    },
-
-    /**
-     * Applies a resolved `{data, navigate, raw}` payload — shared by
-     * `sendJson`'s response and `sendStreamed`'s "done" event, so the two
+     * Applies a resolved `{data, navigate, raw}` payload — shared by the
+     * plain JSON response and the stream's "done" event, so the two
      * transports can never diverge on what happens once a reply is in hand.
      */
     applyAssistPayload(payload) {

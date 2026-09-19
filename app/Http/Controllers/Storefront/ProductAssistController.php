@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Storefront;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\ProductAssistRequest;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\Ai\AiProviderContract;
+use App\Services\Ai\CurrentProductContextDescriber;
 use App\Services\Ai\InvalidAiResponseException;
 use App\Services\Ai\ShoppingAssistPromptBuilder;
 use App\Services\Ai\ShoppingAssistResolver;
@@ -34,13 +34,14 @@ class ProductAssistController extends Controller
         AiProviderContract $provider,
         ShoppingAssistPromptBuilder $promptBuilder,
         ShoppingAssistResolver $resolver,
+        CurrentProductContextDescriber $contextDescriber,
     ): JsonResponse {
         $messages = $request->validated('messages');
 
         // Same reasoning as the admin assistant: the model can only pick a
         // category that actually exists, by being shown the real list.
         $categories = Category::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
-        $systemPrompt = $promptBuilder->build($categories, ProductVariant::SIZES, $this->currentProductContext($request));
+        $systemPrompt = $promptBuilder->build($categories, ProductVariant::SIZES, $contextDescriber->describe($request->validated('context_product_id')));
 
         $wireMessages = array_map(fn (array $message): array => [
             'role' => $message['role'],
@@ -64,33 +65,5 @@ class ProductAssistController extends Controller
         }
 
         return response()->json($payload);
-    }
-
-    /**
-     * A short "khách đang xem: ..." line built from a real, active product —
-     * only ever the widget's own current-page id (see the `data-current-
-     * product-id` attribute in layouts/app.blade.php), never anything the
-     * model itself supplies, so referencing it back to the model is safe.
-     */
-    private function currentProductContext(ProductAssistRequest $request): string
-    {
-        $productId = $request->validated('context_product_id');
-
-        if (! $productId) {
-            return '';
-        }
-
-        $product = Product::query()->where('status', 'active')->with('category')->find($productId);
-
-        if (! $product) {
-            return '';
-        }
-
-        return sprintf(
-            '%s (danh mục: %s, giá: %s đ)',
-            $product->name,
-            $product->category?->name ?? 'chưa phân loại',
-            number_format((float) $product->base_price, 0, ',', '.'),
-        );
     }
 }
