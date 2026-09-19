@@ -310,6 +310,7 @@ function snapshotSimpleFields(form) {
         price: priceCanonical?.value ?? '',
         category: form.querySelector('#category_id')?.value ?? '',
         brand: form.querySelector('#brand_id-native')?.value ?? '',
+        status: form.querySelector('#status')?.checked ?? false,
     };
 }
 
@@ -320,6 +321,7 @@ function restoreSimpleFields(snapshot, form, alpine) {
     setCurrencyFieldValue(form.querySelector('#base_price'), snapshot.price);
     restoreNativeSelectValue(form.querySelector('#category_id'), snapshot.category);
     restoreImageSelectValueById(form.querySelector('#brand_id-native'), snapshot.brand, alpine);
+    setCheckboxChecked(form.querySelector('#status'), snapshot.status);
 }
 
 /** Restores a plain `<select>` to a raw option value captured earlier — unlike `selectPlainOptionByLabel`, never matches by label (avoids ambiguity for undo). */

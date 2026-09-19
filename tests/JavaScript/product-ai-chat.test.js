@@ -773,7 +773,12 @@ test('applySetFields undo restores prior variant price/stock text when only thos
     // Already-grouped display text, as the real `<x-currency-input>` shows it
     // (see setCurrencyFieldValue) — restoring round-trips through the same
     // parse/group formatting, so the snapshot must start in that shape too.
-    const priceInput = { value: '120.000', closest: () => null };
+    const priceInput = {
+        value: '120.000', closest: () => null,
+        // `setCurrencyFieldValue` flashes the field it just wrote — a no-op
+        // stub is enough since this test only cares about the value.
+        classList: { add: () => {}, remove: () => {} }, addEventListener: () => {},
+    };
     const row = {
         querySelector: (selector) => {
             if (selector === '.currency-input input[type="text"]') return priceInput;
