@@ -311,6 +311,31 @@ test('send() stores the resolved navigate suggestion and navigates there immedia
     assert.deepEqual(chat.navigate, { key: 'products.index', label: 'Danh sách sản phẩm', url: '/admin/san-pham' });
     assert.equal(globalThis.window.location.href, '/admin/san-pham');
     assert.equal(chat.messages.at(-1).navigateLabel, 'Danh sách sản phẩm');
+    // Consumed by init() on the destination page to focus the chat box —
+    // see the dedicated init() test below.
+    assert.equal(chat.pendingFocus, true);
+});
+
+test('init() focuses the chat box and clears pendingFocus after an auto-navigate reload', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    globalThis.sessionStorage.setItem('product-ai-chat:v1', JSON.stringify({ open: true, messages: [], pendingFocus: true }));
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    let focused = false;
+    chat.$refs.messageInput = { focus: () => { focused = true; } };
+    chat.init();
+    assert.equal(focused, true);
+    assert.equal(chat.pendingFocus, false);
+    const saved = JSON.parse(globalThis.sessionStorage.getItem('product-ai-chat:v1'));
+    assert.equal(saved.pendingFocus, false);
+});
+
+test('init() does not touch focus when there is no pending navigate', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    let focused = false;
+    chat.$refs.messageInput = { focus: () => { focused = true; } };
+    chat.init();
+    assert.equal(focused, false);
 });
 
 test('send() clears a previous navigate suggestion when the next reply has none', async t => {
