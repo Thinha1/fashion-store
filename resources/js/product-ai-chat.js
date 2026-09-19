@@ -676,6 +676,18 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
     // destination page has loaded, so the staff member can keep typing
     // right away instead of having to click back into the chat box.
     pendingFocus: false,
+    // Undo for the single most-recent AI-driven form write (a `set_fields`
+    // edit or a draft-card fill) — see applySetFields/applyFillPlan's
+    // `restore`. Only the latest change is kept (no multi-step undo stack),
+    // matching how these writes are framed as small, explicit, easily-undone
+    // edits rather than something needing a full history. Deliberately not
+    // persisted to sessionStorage: `restore` closes over live DOM nodes
+    // (variant rows carrying a real `<input type="file">`), which can't
+    // survive serialization and shouldn't survive a reload anyway.
+    lastFormChange: null,
+    // Ties the undo link to the turn that caused it, retiring the same way
+    // draftMessageIndex does once the conversation moves on.
+    lastFormChangeMessageIndex: null,
 
     init() {
         const saved = loadPersistedState();
@@ -753,6 +765,9 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.imageCounter = 0;
         this.draftMessageIndex = null;
         this.pendingFocus = false;
+        this.lastFormChange = null;
+        this.lastFormChangeMessageIndex = null;
+        this.streamStatus = '';
     },
 
     toggle() {
@@ -983,13 +998,20 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         // Ties the card to this exact turn — see `draftMessageIndex`.
         this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
 
-            // Navigating is just a page jump (no data write), so it happens
-            // right away instead of waiting for a confirmation click.
-            if (this.navigate) {
-                // Consumed by init() on the destination page, so the staff
-                // member can keep typing right away instead of having to
-                // click back into the chat box after landing there.
-                this.pendingFocus = true;
+        // A quick single/few-field edit ("giá 100k") is applied straight
+        // to the live form — no draft-card review step, since it's a
+        // small, explicit, easily-undone change.
+        if (setFields.length) {
+            const form = document.getElementById('product-form');
+            if (form) {
+                const { restore } = applySetFields(setFields, form, window.Alpine);
+                this.lastFormChange = { restore };
+                this.lastFormChangeMessageIndex = this.messages.length - 1;
+            } else if (productCreateUrl) {
+                // No product form on this page — same fallback as
+                // fillForm(): remember the fields, jump to the "add
+                // product" page, and finish once it has loaded.
+                this.pendingSetFields = setFields;
                 this.persist();
                 window.location.href = productCreateUrl;
                 return;
@@ -1001,6 +1023,10 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         // Navigating is just a page jump (no data write), so it happens
         // right away instead of waiting for a confirmation click.
         if (this.navigate) {
+            // Consumed by init() on the destination page, so the staff
+            // member can keep typing right away instead of having to
+            // click back into the chat box after landing there.
+            this.pendingFocus = true;
             this.persist();
             this.goToPage();
         }
