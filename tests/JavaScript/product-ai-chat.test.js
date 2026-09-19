@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
-    buildFillPlan, toWireMessages, parsePriceToInteger, collectImageGallery, compactMessages,
+    buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery, compactMessages, applySetFields,
+    parseSseFrames, describeStreamProgress,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -33,6 +34,13 @@ function withAlpineStubs(chat) {
 }
 
 const defaultDocument = { querySelector: () => null, getElementById: () => null };
+
+/** A minimal `ReadableStreamDefaultReader`-alike that hands back the whole text in one chunk, then signals done — enough to exercise `sendStreamed`'s read loop without a real ReadableStream. */
+function sseReaderFromText(text) {
+    const chunks = [new TextEncoder().encode(text)];
+
+    return { read: async () => (chunks.length ? { done: false, value: chunks.shift() } : { done: true, value: undefined }) };
+}
 
 const draft = {
     name: 'Áo sơ mi trắng', description: 'Chất liệu thoáng mát.',
@@ -73,6 +81,23 @@ test('buildFillPlan applies variant_price/variant_stock uniformly to every gener
 test('buildFillPlan creates no variant rows when only colors were suggested (size is required)', () => {
     const plan = buildFillPlan({ ...draft, sizes: [], colors: ['Trắng'] });
     assert.deepEqual(plan.variantRows, []);
+});
+
+test('parseStockQuantity extracts the plain count from free-form text', () => {
+    assert.equal(parseStockQuantity('5'), 5);
+    assert.equal(parseStockQuantity('còn 5 cái mỗi màu'), 5);
+    assert.equal(parseStockQuantity(''), null);
+    assert.equal(parseStockQuantity(undefined), null);
+});
+
+test('buildFillPlan carries the parsed stock quantity for every variant row to share', () => {
+    const plan = buildFillPlan({ ...draft, stock_quantity: '5' });
+    assert.equal(plan.stockQuantity, 5);
+});
+
+test('buildFillPlan defaults stock quantity to null when the AI left it blank', () => {
+    const plan = buildFillPlan(draft);
+    assert.equal(plan.stockQuantity, null);
 });
 
 test('buildFillPlan passes category and brand through untouched (DOM matching happens later)', () => {
@@ -135,6 +160,40 @@ test('parsePriceToInteger understands plain digits, grouped VND text, and "k" sh
     assert.equal(parsePriceToInteger('12.5k'), 12500);
     assert.equal(parsePriceToInteger(''), null);
     assert.equal(parsePriceToInteger('liên hệ'), null);
+});
+
+test('parseSseFrames splits a buffer into complete frames and keeps an incomplete tail as the remainder', () => {
+    const { frames, remainder } = parseSseFrames(
+        'event: delta\ndata: {"text":"a"}\n\nevent: delta\ndata: {"text":"b"}\n\nevent: do',
+    );
+    assert.deepEqual(frames, [
+        { event: 'delta', data: { text: 'a' } },
+        { event: 'delta', data: { text: 'b' } },
+    ]);
+    assert.equal(remainder, 'event: do');
+});
+
+test('parseSseFrames skips a malformed frame instead of throwing', () => {
+    const { frames } = parseSseFrames('event: delta\ndata: not json\n\nevent: delta\ndata: {"text":"ok"}\n\n');
+    assert.deepEqual(frames, [{ event: 'delta', data: { text: 'ok' } }]);
+});
+
+test('parseSseFrames returns everything as the remainder when no complete frame has arrived yet', () => {
+    const { frames, remainder } = parseSseFrames('event: delta\ndata: {"tex');
+    assert.deepEqual(frames, []);
+    assert.equal(remainder, 'event: delta\ndata: {"tex');
+});
+
+test('describeStreamProgress returns null before any known field has appeared', () => {
+    assert.equal(describeStreamProgress(''), null);
+    assert.equal(describeStreamProgress('{"name": "'), null);
+});
+
+test('describeStreamProgress reports fields as they appear, in a fixed reading order', () => {
+    assert.match(describeStreamProgress('{"name": "Áo sơ mi"'), /đã có tên sản phẩm/);
+    const both = describeStreamProgress('{"name": "Áo sơ mi", "description": "Chất liệu mềm"');
+    assert.match(both, /đã có tên sản phẩm/);
+    assert.match(both, /đang soạn mô tả/);
 });
 
 test('toWireMessages merges consecutive same-role turns to keep strict alternation', () => {
@@ -667,6 +726,151 @@ test('init() finishes a pending fill once the product-form page has loaded', () 
     } finally {
         globalThis.document = defaultDocument;
     }
+});
+
+/**
+ * A minimal stand-in for `#variants-list` — plain objects, not real DOM
+ * nodes, since `setFieldValue` et al. reach for real `HTMLInputElement`/
+ * `Event` globals that don't exist under Node's test runner (see the
+ * existing `fakeForm` stubs above: DOM-writing paths are only exercised
+ * live in the browser). This is enough to prove `applySetFields`'s undo
+ * puts back the *exact same* row objects it removed, which is the whole
+ * point of detaching rather than deleting them — a real DOM node carries a
+ * `<input type="file">`'s live `.files`, which only survives reusing the
+ * same node, never rebuilding one from a data snapshot.
+ */
+function fakeVariantList(initialRows) {
+    let children = [...initialRows];
+
+    return {
+        querySelectorAll: (selector) => (selector === '[data-variant-row]' ? [...children] : []),
+        removeChild: (row) => { children = children.filter((r) => r !== row); return row; },
+        appendChild: (row) => { children.push(row); return row; },
+        get rows() { return children; },
+    };
+}
+
+test('applySetFields returns a restore that undoes a simple field edit', () => {
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [] };
+    const { applied, restore } = applySetFields([{ field: 'price', value: '100000' }], fakeForm, {});
+    assert.deepEqual(applied, ['giá']);
+    assert.doesNotThrow(() => restore());
+});
+
+test('applySetFields undo restores the exact same variant row nodes a sizes/colors clear removed', () => {
+    const row = { querySelector: () => null };
+    const list = fakeVariantList([row]);
+    const form = { querySelector: (selector) => (selector === '#variants-list' ? list : null), querySelectorAll: () => [] };
+
+    const { restore } = applySetFields([{ field: 'sizes', value: [] }], form, {});
+    assert.deepEqual(list.rows, []); // "xoá hết size" clears every row
+
+    restore();
+    assert.deepEqual(list.rows, [row]); // undo brings back the exact same node, not a rebuilt one
+});
+
+test('applySetFields undo restores prior variant price/stock text when only those were overwritten', () => {
+    // Already-grouped display text, as the real `<x-currency-input>` shows it
+    // (see setCurrencyFieldValue) — restoring round-trips through the same
+    // parse/group formatting, so the snapshot must start in that shape too.
+    const priceInput = {
+        value: '120.000', closest: () => null,
+        // `setCurrencyFieldValue` flashes the field it just wrote — a no-op
+        // stub is enough since this test only cares about the value.
+        classList: { add: () => {}, remove: () => {} }, addEventListener: () => {},
+    };
+    const row = {
+        querySelector: (selector) => {
+            if (selector === '.currency-input input[type="text"]') return priceInput;
+            if (selector === 'input[name$="[stock_quantity]"]') return null; // exercised live in the browser, see setFieldValue note above
+            return null;
+        },
+    };
+    const form = { querySelector: () => null, querySelectorAll: (selector) => (selector === '#variants-list [data-variant-row]' ? [row] : []) };
+
+    const { restore } = applySetFields([{ field: 'variant_price', value: '150000' }], form, {});
+    assert.equal(priceInput.value, '150.000');
+
+    restore();
+    assert.equal(priceInput.value, '120.000');
+});
+
+test('send() uses the streaming endpoint when configured, applying the payload from the "done" event', async t => {
+    const sse = `event: delta\ndata: ${JSON.stringify({ text: '{"name":' })}\n\n`
+        + `event: done\ndata: ${JSON.stringify({ data: draft, raw: '{}' })}\n\n`;
+    t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo sơ mi trắng giá 350k';
+    await chat.send();
+    assert.deepEqual(chat.draft, draft);
+    assert.equal(chat.streamStatus, '');
+    assert.equal(chat.loading, false);
+    assert.equal(chat.error, '');
+});
+
+test('send() falls back to the JSON endpoint when the browser cannot read the stream body', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async (url) => (
+        url === '/admin/san-pham/ai-goi-y/stream'
+            ? { ok: true, status: 200, body: {} } // no getReader — simulates an unsupported browser/proxy
+            : { ok: true, json: async () => ({ data: draft, raw: '{}' }) }
+    ));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(fetchMock.mock.calls.length, 2);
+    assert.deepEqual(chat.draft, draft);
+});
+
+test('send() surfaces a stream "error" event directly, without retrying via the JSON endpoint', async t => {
+    const sse = `event: error\ndata: ${JSON.stringify({ message: 'AI lỗi rồi' })}\n\n`;
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, body: { getReader: () => sseReaderFromText(sse) } }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.equal(chat.error, 'AI lỗi rồi');
+    assert.equal(fetchMock.mock.calls.length, 1);
+});
+
+test('send() surfaces a rate-limit error from the stream endpoint without retrying via the JSON endpoint', async t => {
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => ({ ok: false, status: 429 }));
+    const chat = productAiChat('/admin/san-pham/ai-goi-y', undefined, '/admin/san-pham/ai-goi-y/stream');
+    chat.input = 'áo thun';
+    await chat.send();
+    assert.match(chat.error, /quá nhanh/);
+    assert.equal(fetchMock.mock.calls.length, 1);
+});
+
+test('send() sets and clears lastFormChange around a set_fields turn, tied to that turn', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true, json: async () => ({ data: { ...draft, name: '', set_fields: [{ field: 'price', value: '100000' }] }, raw: '{}' }),
+    }));
+    const fakeForm = { querySelector: () => null, querySelectorAll: () => [] };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'giá 100k';
+        await chat.send();
+        assert.ok(chat.lastFormChange);
+        assert.equal(chat.lastFormChangeMessageIndex, chat.messages.length - 1);
+
+        chat.undoLastFormChange();
+        assert.equal(chat.lastFormChange, null);
+        assert.equal(chat.lastFormChangeMessageIndex, null);
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
+test('startNewConversation() also clears any pending undo', () => {
+    globalThis.sessionStorage = fakeSessionStorage();
+    const chat = withAlpineStubs(productAiChat('/admin/san-pham/ai-goi-y'));
+    chat.init();
+    chat.lastFormChange = { restore: () => {} };
+    chat.lastFormChangeMessageIndex = 0;
+    chat.startNewConversation();
+    assert.equal(chat.lastFormChange, null);
+    assert.equal(chat.lastFormChangeMessageIndex, null);
 });
 
 test('init() leaves the fill pending when the destination page still has no form', () => {
