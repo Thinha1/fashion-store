@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#175b60">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Fashion Store'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -149,6 +150,7 @@
                     {{ config('app.name', 'Fashion Store') }}</span></div>
         </div>
     </footer>
+    <x-storefront.shopping-assist-widget />
 </body>
 
 </html>
