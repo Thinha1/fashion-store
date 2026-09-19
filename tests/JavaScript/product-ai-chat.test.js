@@ -431,6 +431,35 @@ test('send() applies set_fields directly to the live form without a confirmation
     }
 });
 
+test('send() applies description and status (đang kinh doanh) set_fields directly to the form', async t => {
+    t.mock.method(globalThis, 'fetch', async () => ({
+        ok: true,
+        json: async () => ({
+            data: {
+                ...draft, name: '',
+                set_fields: [
+                    { field: 'description', value: 'Chất liệu cotton, thoáng mát.' },
+                    { field: 'status', value: 'archived' },
+                ],
+            },
+            raw: '{}',
+        }),
+    }));
+    const fakeForm = { querySelector: () => null };
+    globalThis.document = { querySelector: () => null, getElementById: () => fakeForm };
+    globalThis.window = {};
+    try {
+        const chat = productAiChat('/admin/san-pham/ai-goi-y');
+        chat.input = 'sửa mô tả và ngừng bán sản phẩm này';
+        await chat.send();
+        assert.equal(chat.draft, null);
+        assert.equal(chat.messages.at(-1).setFieldsLabel, 'mô tả, trạng thái kinh doanh');
+        assert.equal(chat.error, '');
+    } finally {
+        globalThis.document = defaultDocument;
+    }
+});
+
 test('send() applies variant_price/variant_stock straight to existing variant rows when sizes/colors are not part of the turn', async t => {
     t.mock.method(globalThis, 'fetch', async () => ({
         ok: true,

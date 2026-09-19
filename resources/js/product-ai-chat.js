@@ -18,6 +18,21 @@ function dataUrlToFile(dataUrl, filename) {
 }
 
 /**
+ * Briefly highlights a field the AI just wrote into, so the staff member can
+ * see at a glance what changed without having to scan the whole form — pure
+ * CSS (a fading ring/background via `.ai-chat-field-flash`, see admin.css),
+ * never `.focus()`, since keyboard focus should stay in the chat box so
+ * they can keep typing right away.
+ */
+function flashField(el) {
+    if (!el) return;
+    el.classList.remove('ai-chat-field-flash');
+    void el.offsetWidth; // forces a reflow so re-triggering the animation on the same element restarts it
+    el.classList.add('ai-chat-field-flash');
+    el.addEventListener('animationend', () => el.classList.remove('ai-chat-field-flash'), { once: true });
+}
+
+/**
  * Sets a form field's value through its native setter (not just `.value =`)
  * so frameworks/plugins hooking the native input event — Alpine's x-model,
  * the currency mask plugin — see the change, then fires input+change for
@@ -30,6 +45,17 @@ function setFieldValue(el, value) {
     Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
+    flashField(el);
+}
+
+/** Sets a checkbox's checked state (e.g. the "Đang kinh doanh" status toggle) through its native setter. */
+function setCheckboxChecked(el, checked) {
+    if (!el) return;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked').set.call(el, checked);
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    // The checkbox itself is tiny — flash its whole label so the change is
+    // actually noticeable ("Đang kinh doanh" text + box together).
+    flashField(el.closest('label') ?? el);
 }
 
 /**
@@ -96,6 +122,7 @@ function setCurrencyFieldValue(input, priceText) {
     if (!trimmed) {
         input.value = '';
         if (canonical) canonical.value = '';
+        flashField(input);
         return;
     }
 
@@ -108,6 +135,7 @@ function setCurrencyFieldValue(input, priceText) {
     // reads the live DOM value, so it self-corrects from there.
     input.value = groupThousands(amount);
     if (canonical) canonical.value = String(amount);
+    flashField(input);
 }
 
 function normalizeLabel(text) {
@@ -126,12 +154,14 @@ function selectPlainOptionByLabel(select, label) {
     if (!target) {
         select.value = '';
         select.dispatchEvent(new Event('change', { bubbles: true }));
+        flashField(select);
         return;
     }
     const match = [...select.options].find((option) => normalizeLabel(option.textContent) === target);
     if (!match) return;
     select.value = match.value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
+    flashField(select);
 }
 
 /**
@@ -151,11 +181,16 @@ function selectImageOptionByLabel(nativeSelect, label, alpine) {
     // never calls this with an empty label (guarded by `if (plan.brand)`).
     if (!target) {
         component.choose(0);
+        flashField(wrapper.querySelector('.image-select-trigger'));
         return;
     }
     const index = component.options.findIndex((option) => normalizeLabel(option.label) === target);
     if (index === -1) return;
     component.choose(index);
+    // Flashes the visible custom trigger button, not the hidden native
+    // <select> `choose()` also updates — that's what the staff member
+    // actually looks at.
+    flashField(wrapper.querySelector('.image-select-trigger'));
 }
 
 /** Moves a photo from the chat into a file input via DataTransfer, firing `change` so any preview listener picks it up. */
@@ -343,6 +378,7 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
         if (sizeSelect) {
             sizeSelect.value = size;
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            flashField(sizeSelect);
         }
         if (color) setFieldValue(colorInput, color);
         setVariantRowPriceAndStock(row, price, stock);
@@ -388,7 +424,7 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
 
 const SET_FIELD_LABELS = {
     name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
-    variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể',
+    variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể', description: 'mô tả', status: 'trạng thái kinh doanh',
 };
 
 /**
@@ -420,6 +456,8 @@ export function applySetFields(fields, form, alpine) {
         else if (field === 'variant_stock') variantStock = value;
         else if (field === 'price') setCurrencyFieldValue(form.querySelector('#base_price'), value);
         else if (field === 'name') setFieldValue(form.querySelector('#name'), value);
+        else if (field === 'description') setFieldValue(form.querySelector('#description'), value);
+        else if (field === 'status') setCheckboxChecked(form.querySelector('#status'), value === 'active');
         else if (field === 'category') selectPlainOptionByLabel(form.querySelector('#category_id'), value);
         else if (field === 'brand') selectImageOptionByLabel(form.querySelector('#brand_id-native'), value, alpine);
         else continue;

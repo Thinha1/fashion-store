@@ -40,7 +40,7 @@ class ProductController extends Controller
     public function create(): View
     {
         return view('admin.products.create', [
-            'product' => new Product(['status' => 'archived', 'base_price' => 0, 'is_featured' => false]),
+            'product' => new Product(['status' => 'active', 'base_price' => 0, 'is_featured' => false]),
             'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
             'variants' => collect(),

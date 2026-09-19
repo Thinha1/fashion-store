@@ -100,11 +100,12 @@ class ProductDraftResponseParser
 
         // "sizes"/"colors" edit the variant rows (a list), everything else
         // is a single form field (a string). Deliberately excludes
-        // description/bullets/seo_title/variant_images — those are long or
-        // photo-dependent enough that they should stay behind the draft
-        // card's review step instead of silently overwriting the form.
+        // bullets/seo_title/variant_images — those only ever exist as part
+        // of a full composed draft (no dedicated form field of their own to
+        // write straight into), so they stay behind the draft card's review
+        // step instead.
         $listFields = ['sizes', 'colors'];
-        $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock'];
+        $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock', 'description', 'status'];
 
         $entries = [];
         foreach ($value as $item) {
@@ -125,7 +126,16 @@ class ProductDraftResponseParser
                 if (! is_string($item['value'] ?? null)) {
                     continue;
                 }
-                $entries[] = ['field' => $field, 'value' => trim($item['value'])];
+                $fieldValue = trim($item['value']);
+                // "status" directly flips a product's storefront visibility —
+                // unlike the other string fields, a hallucinated value here
+                // (e.g. "deleted") must never pass through silently, so it's
+                // restricted to exactly the two real values instead of just
+                // trusting whatever string the model sent.
+                if ($field === 'status' && ! in_array($fieldValue, ['active', 'archived'], true)) {
+                    continue;
+                }
+                $entries[] = ['field' => $field, 'value' => $fieldValue];
             }
         }
 

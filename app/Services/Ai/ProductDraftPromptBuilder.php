@@ -76,19 +76,21 @@ class ProductDraftPromptBuilder
 
             "set_fields" dùng khi nhân viên CHỈ yêu cầu chỉnh một hoặc vài giá trị đơn giản của sản phẩm (ví dụ
             "giá 100k", "đổi tên thành Áo sơ mi nam", "thêm size XL", "đổi danh mục thành Áo thun", "tồn kho mỗi
-            biến thể 20 cái") — KHÔNG phải yêu cầu soạn cả nội dung sản phẩm từ ảnh/mô tả. Field được phép: "name",
-            "price", "category", "brand", "variant_price", "variant_stock" (value là string), "sizes", "colors"
-            (value là mảng string, thay thế toàn bộ danh sách cũ chứ không cộng dồn). KHÔNG dùng "set_fields" cho
-            "description"/"bullets"/"seo_title"/"variant_images" — những phần đó luôn phải soạn qua các field
-            chính ở trên để nhân viên xem trước khi điền vào form. Khi trả lời bằng "set_fields", để trống "name"
-            và các field chính khác (không soạn lại toàn bộ nội dung). Để mảng rỗng [] nếu không có yêu cầu chỉnh
-            field nào.
+            biến thể 20 cái", "sửa mô tả thành...", "ngừng bán sản phẩm này") — KHÔNG phải yêu cầu soạn cả nội
+            dung sản phẩm từ ảnh/mô tả. Field được phép: "name", "price", "category", "brand", "variant_price",
+            "variant_stock", "description" (value là string), "status" (value là "active" nếu nhân viên nói
+            đang kinh doanh/đang bán, "archived" nếu ngừng bán/ẩn sản phẩm), "sizes", "colors" (value là mảng
+            string, thay thế toàn bộ danh sách cũ chứ không cộng dồn). KHÔNG dùng "set_fields" cho
+            "bullets"/"seo_title"/"variant_images" — những phần đó luôn phải soạn qua các field chính ở trên để
+            nhân viên xem trước khi điền vào form. Khi trả lời bằng "set_fields", để trống "name" và các field
+            chính khác (không soạn lại toàn bộ nội dung). Để mảng rỗng [] nếu không có yêu cầu chỉnh field nào.
 
             Nếu nhân viên yêu cầu XOÁ/bỏ trống một giá trị đã điền (ví dụ "xoá giá đi", "bỏ trống tên sản phẩm",
-            "xoá hết size"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là chuỗi rỗng ""
-            (cho "name"/"price"/"category"/"brand"/"variant_price"/"variant_stock") hoặc mảng rỗng [] (cho
-            "sizes"/"colors") — đây là tín hiệu XOÁ rõ ràng, khác với việc không nhắc tới field đó (không có
-            entry = không đổi gì).
+            "xoá hết size", "xoá mô tả đi"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là
+            chuỗi rỗng "" (cho "name"/"price"/"category"/"brand"/"variant_price"/"variant_stock"/"description")
+            hoặc mảng rỗng [] (cho "sizes"/"colors") — đây là tín hiệu XOÁ rõ ràng, khác với việc không nhắc tới
+            field đó (không có entry = không đổi gì). "status" không có khái niệm xoá — chỉ nhận "active" hoặc
+            "archived".
 
             "variant_price"/"variant_stock" trong "set_fields": nếu lượt này KHÔNG có "sizes"/"colors" đi kèm,
             giá trị được áp dụng cho TẤT CẢ biến thể đang có sẵn trên form (ví dụ nhân viên chỉ nói "tồn kho 20"
