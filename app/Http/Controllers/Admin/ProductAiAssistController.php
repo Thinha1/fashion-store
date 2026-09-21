@@ -10,7 +10,7 @@ use App\Services\Ai\AdminPageDirectory;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\InvalidAiResponseException;
 use App\Services\Ai\ProductDraftPromptBuilder;
-use App\Services\Ai\ProductDraftResponseParser;
+use App\Services\Ai\ProductDraftResolver;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +25,7 @@ class ProductAiAssistController extends Controller
         ProductAiAssistRequest $request,
         AiProviderContract $provider,
         ProductDraftPromptBuilder $promptBuilder,
-        ProductDraftResponseParser $responseParser,
+        ProductDraftResolver $resolver,
         AdminPageDirectory $pages,
     ): JsonResponse {
         $messages = $request->validated('messages');
@@ -44,7 +44,7 @@ class ProductAiAssistController extends Controller
         }
 
         try {
-            $draft = $responseParser->parse($reply);
+            $payload = $resolver->resolve($reply);
         } catch (InvalidAiResponseException $exception) {
             // The raw reply is the only way to diagnose *why* a model
             // response didn't parse (a genuinely malformed core field vs.
@@ -57,14 +57,6 @@ class ProductAiAssistController extends Controller
             abort(502, 'AI trả về nội dung không đúng định dạng. Vui lòng thử lại hoặc diễn đạt lại yêu cầu.');
         }
 
-        // A hallucinated/unknown key just silently resolves to null — never
-        // sent to the browser as if it were a real destination.
-        $navigate = $pages->resolve($draft['navigate']);
-        unset($draft['navigate']);
-
-        // "raw" is echoed back so the widget can push the AI's own words into
-        // its local conversation history — the next turn must resend exactly
-        // what the model said, not our normalized re-encoding of it.
-        return response()->json(['data' => $draft, 'navigate' => $navigate, 'raw' => $reply]);
+        return response()->json($payload);
     }
 }
