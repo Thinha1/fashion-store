@@ -50,7 +50,7 @@ class ShoppingAssistResolver
         };
 
         return [
-            'reply' => trim($filter['reply']." \n".$resultLine),
+            'reply' => trim($filter['reply']."\n".$resultLine),
             'products' => $products->map($this->toCard(...))->all(),
             'raw' => $reply,
         ];

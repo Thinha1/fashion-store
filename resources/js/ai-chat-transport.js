@@ -140,9 +140,14 @@ export async function requestStream(url, body, {
     while (true) {
         const { done, value } = await reader.read();
         if (!isCurrent(requestId)) return;
-        if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
+        // `{ stream: true }` withholds a trailing incomplete multi-byte
+        // sequence, expecting more bytes next call — on the final read there
+        // is no "next call", so this flushes whatever's left (a no-op when
+        // the last chunk ended cleanly) rather than silently truncating the
+        // last frame (this stream is Vietnamese text, so multi-byte
+        // characters are the common case, not an edge case).
+        buffer += decoder.decode(value, { stream: !done });
         const parsed = parseSseFrames(buffer);
         buffer = parsed.remainder;
 
@@ -160,6 +165,8 @@ export async function requestStream(url, body, {
                 return;
             }
         }
+
+        if (done) break;
     }
     // The stream ended (connection closed) without ever sending a
     // "done"/"error" event — a transport-level failure, so this throws to

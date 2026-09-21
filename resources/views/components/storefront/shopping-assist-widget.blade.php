@@ -51,7 +51,9 @@
                             <div class="mt-2 space-y-2" x-show="message.products?.length">
                                 <template x-for="product in message.products" :key="product.id">
                                     <a :href="product.url" class="shop-chat-card">
-                                        <img :src="product.image_url" :alt="product.name" class="shop-chat-card-image" x-show="product.image_url">
+                                        <template x-if="product.image_url">
+                                            <img :src="product.image_url" :alt="product.name" class="shop-chat-card-image">
+                                        </template>
                                         <div class="shop-chat-card-body">
                                             <p class="shop-chat-card-brand" x-text="product.brand ?? 'Fashion Store'"></p>
                                             <p class="shop-chat-card-name" x-text="product.name"></p>

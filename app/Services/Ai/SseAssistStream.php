@@ -83,8 +83,15 @@ class SseAssistStream
             return;
         }
 
+        // json_encode() can return false (e.g. invalid UTF-8 slipping in
+        // from somewhere upstream) — echoing that literal "false" as the
+        // frame body would silently hand the client a bogus payload instead
+        // of a clear failure, so this substitutes invalid bytes rather than
+        // ever letting encoding fail outright.
+        $json = json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE) ?: json_encode(['message' => 'Không thể tạo phản hồi.']);
+
         echo "event: {$event}\n";
-        echo 'data: '.json_encode($data)."\n\n";
+        echo "data: {$json}\n\n";
 
         if (ob_get_level() > 0) {
             ob_flush();

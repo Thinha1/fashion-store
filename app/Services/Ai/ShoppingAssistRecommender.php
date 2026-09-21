@@ -40,13 +40,17 @@ class ShoppingAssistRecommender
                     ->when($colors, fn ($query) => $query->whereIn('color', $colors));
             }))
             ->when($filter['keywords'], fn ($query) => $query->where(function ($query) use ($filter) {
+                // Each keyword must match SOMEWHERE (name OR description) —
+                // but the keywords themselves are AND-ed together (a nested
+                // ->where() per keyword, not ->orWhere()), so "váy đỏ" needs
+                // both "váy" and "đỏ" rather than matching on either alone.
                 foreach ($filter['keywords'] as $keyword) {
                     // Escapes the SQL LIKE wildcards `%`/`_` themselves (not a SQL
                     // injection concern — the value is still parameter-bound —
                     // just so a keyword containing a literal "%" or "_" doesn't
                     // silently match everything/one extra character).
                     $escaped = addcslashes($keyword, '%_\\');
-                    $query->orWhere('name', 'like', "%{$escaped}%")->orWhere('description', 'like', "%{$escaped}%");
+                    $query->where(fn ($query) => $query->where('name', 'like', "%{$escaped}%")->orWhere('description', 'like', "%{$escaped}%"));
                 }
             }));
 

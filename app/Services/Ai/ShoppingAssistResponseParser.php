@@ -39,10 +39,22 @@ class ShoppingAssistResponseParser
 
         $stringField = fn (mixed $value): string => is_string($value) ? trim($value) : '';
 
+        $priceMin = $this->toPositiveInt($decoded['price_min']);
+        $priceMax = $this->toPositiveInt($decoded['price_max']);
+
+        // A hallucinated/inconsistent range (min above max) would otherwise
+        // silently query to an empty result with no feedback to the
+        // customer — swapping them is the only sensible recovery, since
+        // both values genuinely came from the same "budget" the customer
+        // described.
+        if ($priceMin !== null && $priceMax !== null && $priceMin > $priceMax) {
+            [$priceMin, $priceMax] = [$priceMax, $priceMin];
+        }
+
         return [
             'category' => $stringField($decoded['category']),
-            'price_min' => $this->toPositiveInt($decoded['price_min']),
-            'price_max' => $this->toPositiveInt($decoded['price_max']),
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
             'sizes' => $this->allowedSizes($decoded['sizes']),
             'colors' => $this->stringList($decoded['colors'], 5),
             // A hallucinated/overlong keyword list is trimmed rather than
