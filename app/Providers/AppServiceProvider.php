@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\Ai\AiProviderContract;
+use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
         // for a fake, and so a second provider can be added later without
         // touching the controller, widget, or prompt/parsing logic.
         $this->app->bind(AiProviderContract::class, OpenAiCompatibleProvider::class);
+
+        // Resolved fresh per request (not a singleton) so a save on
+        // /admin/cai-dat/ai takes effect on the very next AI call, without
+        // needing to restart the app/queue workers.
+        $this->app->bind(AiSettings::class, fn () => AiSettings::current());
     }
 
     /**

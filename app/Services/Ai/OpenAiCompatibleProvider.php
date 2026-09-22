@@ -14,6 +14,8 @@ use RuntimeException;
  */
 class OpenAiCompatibleProvider implements AiProviderContract
 {
+    public function __construct(private readonly AiSettings $settings) {}
+
     public function complete(array $messages, string $systemPrompt): string
     {
         $response = $this->newRequest()->post($this->endpoint().'/chat/completions', $this->payload($messages, $systemPrompt));
@@ -80,7 +82,7 @@ class OpenAiCompatibleProvider implements AiProviderContract
 
     private function newRequest(): PendingRequest
     {
-        return Http::withToken((string) config('services.ai.openai_compatible.key'))
+        return Http::withToken($this->settings->apiKey())
             ->acceptJson()
             ->connectTimeout(5)
             ->timeout(60);
@@ -94,7 +96,7 @@ class OpenAiCompatibleProvider implements AiProviderContract
      */
     private function endpoint(): string
     {
-        return rtrim((string) config('services.ai.openai_compatible.endpoint'), '/');
+        return rtrim($this->settings->endpoint(), '/');
     }
 
     /**
@@ -104,8 +106,8 @@ class OpenAiCompatibleProvider implements AiProviderContract
     private function payload(array $messages, string $systemPrompt): array
     {
         return [
-            'model' => config('services.ai.openai_compatible.model'),
-            'max_tokens' => config('services.ai.max_tokens'),
+            'model' => $this->settings->model(),
+            'max_tokens' => $this->settings->maxTokens(),
             // Hard constraint at the API level so a reply isn't malformed
             // JSON just because the model drifted from the prompt's
             // instructions — most OpenAI-compatible servers support or
