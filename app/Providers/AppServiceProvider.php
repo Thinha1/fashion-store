@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\Ai\AiProviderContract;
+use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
         // for a fake, and so a second provider can be added later without
         // touching the controller, widget, or prompt/parsing logic.
         $this->app->bind(AiProviderContract::class, OpenAiCompatibleProvider::class);
+
+        // Resolved fresh per request (not a singleton) so a save on
+        // /admin/cai-dat/ai takes effect on the very next AI call, without
+        // needing to restart the app/queue workers.
+        $this->app->bind(AiSettings::class, fn () => AiSettings::current());
     }
 
     /**
@@ -49,6 +55,13 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('product-ai-assist', fn ($request): Limit => Limit::perMinute(
             max(1, (int) config('services.ai.requests_per_minute'))
         )->by((string) $request->user()->id));
+
+        // Guest-callable (see ProductAssistController), so — unlike every
+        // other limiter above — this can't key by an authenticated user id
+        // alone; falls back to IP for anonymous shoppers.
+        RateLimiter::for('shopping-assist', fn ($request): Limit => Limit::perMinute(
+            max(1, (int) config('services.ai.shopping_assist_requests_per_minute'))
+        )->by($request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip()));
 
         // The storefront header renders a 3-level mega-menu (top category ->
         // garment type -> a handful of specific styles). A garment type with

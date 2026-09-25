@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\AdminExcel;
+use App\Http\Controllers\Admin\AiSettingController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -133,4 +134,16 @@ Route::prefix('admin')
             ->put('giam-gia/{discount}', [DiscountController::class, 'update'])->name('discounts.update');
         Route::middleware('permission:products.manage')
             ->delete('giam-gia/{discount}', [DiscountController::class, 'destroy'])->name('discounts.destroy');
+
+        // Settings — which self-hosted AI backend both chat agents call.
+        // Its own "settings.manage" permission (not products.manage): an API
+        // key is a different trust tier than catalog editing.
+        Route::prefix('cai-dat')->name('settings.')
+            ->middleware('permission:settings.manage')
+            ->group(function (): void {
+                Route::get('ai', [AiSettingController::class, 'edit'])->name('ai.edit');
+                Route::put('ai', [AiSettingController::class, 'update'])->name('ai.update');
+                Route::post('ai/kiem-tra', [AiSettingController::class, 'test'])
+                    ->middleware('throttle:6,1')->name('ai.test');
+            });
     });

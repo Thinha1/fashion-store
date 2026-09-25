@@ -23,6 +23,11 @@ return [
         'requests_per_minute' => (int) env('AI_REQUESTS_PER_MINUTE', 6),
         'max_image_kb' => (int) env('AI_MAX_IMAGE_KB', 4096),
         'max_history_messages' => (int) env('AI_MAX_HISTORY_MESSAGES', 24),
+        // Customer-facing shopping-assist widget (guest-callable, public
+        // traffic) — a separate, higher budget than the admin assistant
+        // above, which only a handful of trusted staff ever call.
+        'shopping_assist_requests_per_minute' => (int) env('AI_SHOPPING_REQUESTS_PER_MINUTE', 15),
+        'shopping_assist_max_history_messages' => (int) env('AI_SHOPPING_MAX_HISTORY_MESSAGES', 20),
         // Reasoning models (e.g. Qwen-thinking style) spend a large share of
         // this budget on hidden reasoning before emitting the actual JSON
         // reply, so the default is well above a typical non-reasoning model.

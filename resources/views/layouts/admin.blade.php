@@ -28,6 +28,11 @@
                     @if (auth()->user()->hasPermission('inventory.manage')) <a href="{{ route('admin.goods-receipts.index') }}" class="sidebar-link" @if(request()->routeIs('admin.goods-receipts.*')) aria-current="page" @endif><x-icon name="box" /> Phiếu nhập hàng</a> @endif
                 </div>
             @endif
+            @if (auth()->user()->hasPermission('settings.manage'))
+                <div><p class="sidebar-label">Hệ thống</p>
+                    <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a>
+                </div>
+            @endif
             <div><p class="sidebar-label">Cửa hàng</p><a href="{{ route('home') }}" class="sidebar-link"><x-icon name="home" /> Xem trang cửa hàng <x-icon class="ml-auto size-4" /></a></div>
         </nav>
         <div class="mx-4 mb-4 flex items-center gap-3 border-t border-white/10 pt-4"><span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{{ mb_substr(auth()->user()->name, 0, 1) }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ auth()->user()->name }}</p><p class="text-xs text-slate-300">Quản trị cửa hàng</p></div></div>
