@@ -5,6 +5,8 @@
  * so a wrong endpoint/model/key is caught before Save, not after.
  */
 export default (initial, testUrl) => ({
+    settingId: initial.settingId ?? null,
+    name: initial.name ?? '',
     endpoint: initial.endpoint ?? '',
     model: initial.model ?? '',
     maxTokens: initial.maxTokens ?? '',
@@ -33,7 +35,7 @@ export default (initial, testUrl) => ({
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                 },
                 body: JSON.stringify({
-                    endpoint: this.endpoint, model: this.model, max_tokens: this.maxTokens || null, api_key: this.apiKey,
+                    setting_id: this.settingId, endpoint: this.endpoint, model: this.model, max_tokens: this.maxTokens || null, api_key: this.apiKey,
                 }),
             });
             const payload = await response.json().catch(() => null);

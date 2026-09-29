@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
-class UpdateAiSettingRequest extends BaseAdminRequest
+/**
+ * Shared by creating and editing one saved AI configuration.
+ */
+class SaveAiSettingRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
@@ -15,6 +18,7 @@ class UpdateAiSettingRequest extends BaseAdminRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:100'],
             'endpoint' => ['nullable', 'string', 'max:255', 'url'],
             'model' => ['nullable', 'string', 'max:255'],
             'max_tokens' => ['nullable', 'integer', 'min:1', 'max:1000000'],

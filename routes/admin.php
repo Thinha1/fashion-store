@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
-use App\Http\Controllers\Admin\SupplierTaxLookupController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -67,7 +66,7 @@ Route::prefix('admin')
         Route::prefix('nha-cong-cap')->name('suppliers.')
             ->middleware('permission:suppliers.manage')
             ->group(function (): void {
-                Route::get('tra-cuu-ma-so-thue', SupplierTaxLookupController::class)
+                Route::get('tra-cuu-ma-so-thue', [SupplierController::class, 'taxLookup'])
                     ->middleware('throttle:supplier-tax-lookup')->name('tax-lookup');
                 Route::get('/', [SupplierController::class, 'index'])->name('index');
                 Route::get('tao-moi', [SupplierController::class, 'create'])->name('create');
@@ -142,8 +141,11 @@ Route::prefix('admin')
             ->middleware('permission:settings.manage')
             ->group(function (): void {
                 Route::get('ai', [AiSettingController::class, 'edit'])->name('ai.edit');
-                Route::put('ai', [AiSettingController::class, 'update'])->name('ai.update');
+                Route::post('ai', [AiSettingController::class, 'store'])->name('ai.store');
                 Route::post('ai/kiem-tra', [AiSettingController::class, 'test'])
                     ->middleware('throttle:6,1')->name('ai.test');
+                Route::put('ai/{aiSetting}', [AiSettingController::class, 'update'])->name('ai.update');
+                Route::post('ai/{aiSetting}/chinh', [AiSettingController::class, 'makePrimary'])->name('ai.primary');
+                Route::delete('ai/{aiSetting}', [AiSettingController::class, 'destroy'])->name('ai.destroy');
             });
     });
