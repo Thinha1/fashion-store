@@ -5,14 +5,17 @@ namespace App\Services\Ai;
 use App\Models\AiSetting;
 
 /**
- * Resolves which self-hosted AI backend to call: a field set by an admin via
- * /admin/cai-dat/ai (see Admin\AiSettingController) always wins, an empty
+ * Resolves which self-hosted AI backend to call: a field set on the PRIMARY
+ * configuration an admin picked via /admin/cai-dat/ai (see
+ * Admin\AiSettingController) always wins, an empty
  * field falls back to the .env-backed config('services.ai.*') default — so
  * an environment where nobody has opened the settings screen yet (a fresh
  * `docker compose up`, CI) keeps working exactly as before this existed.
  *
- * Constructed either from the persisted row (the normal app path, see the
- * binding in AppServiceProvider) or from an in-memory, unsaved AiSetting
+ * With no primary configuration at all, everything comes from .env.
+ *
+ * Constructed either from the persisted primary row (the normal app path, see
+ * the binding in AppServiceProvider) or from an in-memory, unsaved AiSetting
  * built from a settings form's current (not-yet-submitted) input — see
  * Admin\AiSettingController::test() — so "Kiểm tra kết nối" can verify
  * values before they're saved.
@@ -23,7 +26,7 @@ class AiSettings
 
     public static function current(): self
     {
-        return new self(AiSetting::query()->first());
+        return new self(AiSetting::query()->where('is_primary', true)->first());
     }
 
     public function endpoint(): string

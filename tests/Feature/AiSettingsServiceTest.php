@@ -34,7 +34,7 @@ class AiSettingsServiceTest extends TestCase
 
     public function test_falls_back_to_config_per_field_when_the_row_only_sets_some(): void
     {
-        AiSetting::query()->create(['endpoint' => 'https://custom.example.test/v1']);
+        AiSetting::query()->create(['endpoint' => 'https://custom.example.test/v1', 'is_primary' => true]);
 
         $settings = AiSettings::current();
 
@@ -51,6 +51,7 @@ class AiSettingsServiceTest extends TestCase
             'api_key' => 'custom-key',
             'model' => 'custom-model',
             'max_tokens' => 4096,
+            'is_primary' => true,
         ]);
 
         $settings = AiSettings::current();
@@ -59,5 +60,26 @@ class AiSettingsServiceTest extends TestCase
         $this->assertSame('custom-key', $settings->apiKey());
         $this->assertSame('custom-model', $settings->model());
         $this->assertSame(4096, $settings->maxTokens());
+    }
+
+    public function test_only_the_primary_configuration_is_used(): void
+    {
+        AiSetting::query()->create(['name' => 'Không dùng', 'endpoint' => 'https://spare.example.test/v1', 'model' => 'spare-model']);
+        AiSetting::query()->create(['name' => 'Chính', 'endpoint' => 'https://primary.example.test/v1', 'model' => 'primary-model', 'is_primary' => true]);
+
+        $settings = AiSettings::current();
+
+        $this->assertSame('https://primary.example.test/v1', $settings->endpoint());
+        $this->assertSame('primary-model', $settings->model());
+    }
+
+    public function test_falls_back_to_config_when_saved_configurations_exist_but_none_is_primary(): void
+    {
+        AiSetting::query()->create(['name' => 'Chưa chọn', 'endpoint' => 'https://spare.example.test/v1', 'model' => 'spare-model']);
+
+        $settings = AiSettings::current();
+
+        $this->assertSame('https://fallback.example.test/v1', $settings->endpoint());
+        $this->assertSame('fallback-model', $settings->model());
     }
 }
