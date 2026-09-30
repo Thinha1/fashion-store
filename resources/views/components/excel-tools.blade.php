@@ -14,7 +14,7 @@
                 <x-button type="button" variant="secondary" class="shrink-0 px-3" x-on:click="closeDialog()" x-bind:disabled="busy" aria-label="Đóng dialog nhập Excel"><x-icon name="close" /></x-button>
             </div>
 
-            <p id="excel-import-help-{{ $resource }}" class="mt-5 text-sm leading-6 text-gray-600">Tải file mẫu, điền dữ liệu rồi chọn file để nhập. Để trống ID để thêm mới, hoặc điền ID để cập nhật.</p>
+            <p id="excel-import-help-{{ $resource }}" class="mt-5 text-sm leading-6 text-gray-600">Tải file mẫu, điền dữ liệu rồi chọn file để nhập. @if ($resource === 'suppliers')Không cần ID: nhà cung cấp trùng tên với bản ghi có sẵn sẽ được cập nhật, tên mới sẽ được thêm mới.@else Để trống ID để thêm mới, hoặc điền ID để cập nhật.@endif</p>
             <a href="{{ route('admin.excel.template', $resource) }}" class="btn btn-secondary mt-3"><i class="fa-solid fa-download" aria-hidden="true"></i> Tải file mẫu</a>
 
             <form method="POST" action="{{ route('admin.excel.import', $resource) }}" enctype="multipart/form-data" class="mt-5" x-on:submit="busy = true">

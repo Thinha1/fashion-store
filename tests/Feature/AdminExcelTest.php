@@ -34,6 +34,12 @@ class AdminExcelTest extends TestCase
         ));
     }
 
+    /** Resources whose rows are matched by the ID column (suppliers have none, see supplier tests below). */
+    public static function resourcesWithIdColumn(): array
+    {
+        return array_diff_key(self::resources(), ['suppliers' => true]);
+    }
+
     public static function productBusinessStatuses(): array
     {
         return [
@@ -85,7 +91,12 @@ class AdminExcelTest extends TestCase
         $response->assertDownload();
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         $book = $this->readBytes($response->streamedContent());
-        $this->assertSame($model->id, $book->getSheetByName('Dữ liệu')->getCell('A2')->getValue());
+        if ($resource === 'suppliers') {
+            $this->assertSame('Tên nhà cung cấp', $book->getSheetByName('Dữ liệu')->getCell('A1')->getValue());
+            $this->assertSame($model->name, $book->getSheetByName('Dữ liệu')->getCell('A2')->getValue());
+        } else {
+            $this->assertSame($model->id, $book->getSheetByName('Dữ liệu')->getCell('A2')->getValue());
+        }
         $this->assertNotNull($book->getSheetByName('Hướng dẫn'));
         if ($resource === 'products') {
             $this->assertSame('Tên danh mục', $book->getSheetByName('Dữ liệu')->getCell('D1')->getValue());
@@ -98,8 +109,8 @@ class AdminExcelTest extends TestCase
             $this->assertSame('TEST-SKU', $book->getSheetByName('Dòng hàng')->getCell('B2')->getValue());
             $this->assertSame(3, $book->getSheetByName('Dòng hàng')->getCell('C2')->getValue());
         } elseif ($resource === 'suppliers') {
-            $this->assertSame('0901234567', $book->getSheetByName('Dữ liệu')->getCell('C2')->getValue());
-            $this->assertSame(DataType::TYPE_STRING, $book->getSheetByName('Dữ liệu')->getCell('C2')->getDataType());
+            $this->assertSame('0901234567', $book->getSheetByName('Dữ liệu')->getCell('B2')->getValue());
+            $this->assertSame(DataType::TYPE_STRING, $book->getSheetByName('Dữ liệu')->getCell('B2')->getDataType());
         }
         $book->disconnectWorksheets();
     }
@@ -115,12 +126,14 @@ class AdminExcelTest extends TestCase
         $source = $this->actingAs($admin)->get(route('admin.excel.export', $resource));
         $export = $this->readBytes($source->streamedContent());
         $book->getSheetByName('Dữ liệu')->fromArray($export->getSheetByName('Dữ liệu')->toArray(null, false, false)[1], null, 'A2', true);
-        $book->getSheetByName('Dữ liệu')->setCellValue('A2', null);
-        if (in_array($resource, ['brands', 'categories', 'suppliers'], true)) {
-            $book->getSheetByName('Dữ liệu')->setCellValue('B2', 'Tên mới tiếng Việt');
-        }
         if ($resource === 'suppliers') {
-            $book->getSheetByName('Dữ liệu')->setCellValue('F2', null);
+            $book->getSheetByName('Dữ liệu')->setCellValue('A2', 'Tên mới tiếng Việt');
+            $book->getSheetByName('Dữ liệu')->setCellValue('E2', null);
+        } else {
+            $book->getSheetByName('Dữ liệu')->setCellValue('A2', null);
+        }
+        if (in_array($resource, ['brands', 'categories'], true)) {
+            $book->getSheetByName('Dữ liệu')->setCellValue('B2', 'Tên mới tiếng Việt');
         }
         if ($resource === 'products') {
             $this->assertSame('Tên danh mục', $book->getSheetByName('Dữ liệu')->getCell('D1')->getValue());
@@ -146,7 +159,7 @@ class AdminExcelTest extends TestCase
         $export->disconnectWorksheets();
     }
 
-    #[DataProvider('resources')]
+    #[DataProvider('resourcesWithIdColumn')]
     public function test_exported_records_can_be_updated_by_id_without_creating_duplicates(string $resource): void
     {
         $model = $this->record($resource);
@@ -468,6 +481,65 @@ class AdminExcelTest extends TestCase
         $book = $this->readBytes($this->actingAs($admin)->get(route('admin.excel.export', 'discounts'))->streamedContent());
         $this->assertSame('TEST-SKU', $book->getActiveSheet()->getCell('B2')->getValue());
         $book->disconnectWorksheets();
+    }
+
+    public function test_supplier_import_updates_the_supplier_with_the_same_name_instead_of_creating_a_new_one(): void
+    {
+        $existing = Supplier::factory()->create(['name' => 'Công ty Áo Đẹp', 'phone' => '0901234567', 'tax_code' => null]);
+        $book = $this->supplierBook([['  công ty  ÁO đẹp ', '0987654321', null, 'Địa chỉ mới', null, 1]]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->post(route('admin.excel.import', 'suppliers'), ['file' => $this->upload($book)]);
+
+        $response->assertSessionHasNoErrors()->assertSessionHas('status', 'Nhập Excel thành công: 0 bản ghi mới, 1 bản ghi cập nhật.');
+        $this->assertDatabaseCount('suppliers', 1);
+        $this->assertSame('0987654321', $existing->fresh()->phone);
+        $this->assertSame('Địa chỉ mới', $existing->fresh()->address);
+    }
+
+    public function test_supplier_import_creates_new_suppliers_with_auto_incremented_ids_and_treats_repeated_names_as_one(): void
+    {
+        $book = $this->supplierBook([
+            ['Nhà cung cấp A', '0901111111', null, 'Hà Nội', null, 1],
+            ['Nhà cung cấp B', '0902222222', null, 'Đà Nẵng', null, 1],
+            ['nhà cung cấp a', '0903333333', null, 'Hà Nội 2', null, 1],
+        ]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->post(route('admin.excel.import', 'suppliers'), ['file' => $this->upload($book)]);
+
+        $response->assertSessionHasNoErrors()->assertSessionHas('status', 'Nhập Excel thành công: 2 bản ghi mới, 1 bản ghi cập nhật.');
+        $this->assertDatabaseCount('suppliers', 2);
+        $this->assertDatabaseHas('suppliers', ['name' => 'nhà cung cấp a', 'phone' => '0903333333', 'address' => 'Hà Nội 2']);
+        $this->assertDatabaseMissing('suppliers', ['phone' => '0901111111']);
+    }
+
+    public function test_supplier_import_does_not_merge_names_that_differ_only_by_accents(): void
+    {
+        Supplier::factory()->create(['name' => 'Cong ty Ao Dep']);
+        $book = $this->supplierBook([['Công ty Áo Đẹp', '0901234567', null, 'Hà Nội', null, 1]]);
+
+        $this->actingAs(User::factory()->admin()->create())->post(route('admin.excel.import', 'suppliers'), ['file' => $this->upload($book)])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('suppliers', 2);
+    }
+
+    public function test_supplier_template_has_no_id_column(): void
+    {
+        $response = $this->actingAs(User::factory()->admin()->create())->get(route('admin.excel.template', 'suppliers'));
+        $book = $this->readBytes($response->streamedContent());
+
+        $this->assertSame(['Tên nhà cung cấp', 'Điện thoại', 'Email', 'Địa chỉ', 'Mã số thuế', 'Hoạt động (1/0)'], array_slice($book->getSheetByName('Dữ liệu')->toArray(null, false, false)[0], 0, 6));
+    }
+
+    private function supplierBook(array $rows): Spreadsheet
+    {
+        $book = new Spreadsheet;
+        $book->getActiveSheet()->setTitle('Dữ liệu')->fromArray([
+            ['Tên nhà cung cấp', 'Điện thoại', 'Email', 'Địa chỉ', 'Mã số thuế', 'Hoạt động (1/0)'],
+            ...$rows,
+        ]);
+
+        return $book;
     }
 
     private function record(string $resource): Model
