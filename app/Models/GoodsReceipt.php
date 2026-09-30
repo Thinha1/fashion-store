@@ -16,6 +16,21 @@ class GoodsReceipt extends Model
 {
     use HasFactory;
 
+    /**
+     * The number needs the auto-increment id, so it can only be written once the row exists.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (GoodsReceipt $receipt): void {
+            $receipt->forceFill(['receipt_number' => self::numberFor($receipt->id)])->saveQuietly();
+        });
+    }
+
+    public static function numberFor(int $id): string
+    {
+        return 'PN-'.str_pad((string) $id, 4, '0', STR_PAD_LEFT);
+    }
+
     protected function casts(): array
     {
         return [

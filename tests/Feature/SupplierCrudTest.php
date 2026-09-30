@@ -96,4 +96,35 @@ class SupplierCrudTest extends TestCase
         $response->assertRedirect(route('admin.suppliers.index'));
         $this->assertDatabaseMissing('suppliers', ['id' => $supplier->id]);
     }
+
+    public function test_every_new_supplier_gets_a_padded_ncc_code_from_its_id(): void
+    {
+        $this->actingAs($this->admin())->post(route('admin.suppliers.store'), [
+            'name' => 'Nhà cung cấp mới',
+            'phone' => '0901234567',
+            'address' => '1 Lê Lợi',
+        ])->assertRedirect(route('admin.suppliers.index'));
+
+        $supplier = Supplier::query()->where('name', 'Nhà cung cấp mới')->firstOrFail();
+        $this->assertSame('NCC-'.str_pad((string) $supplier->id, 4, '0', STR_PAD_LEFT), $supplier->code);
+        $this->assertSame('NCC-0007', Supplier::codeFor(7));
+        $this->assertSame('NCC-12345', Supplier::codeFor(12345));
+    }
+
+    public function test_supplier_code_is_shown_in_the_list_and_on_the_edit_page_and_unchanged_by_edits(): void
+    {
+        $supplier = Supplier::factory()->create(['name' => 'ABC Trading']);
+        $code = $supplier->fresh()->code;
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get(route('admin.suppliers.index'))->assertSee($code);
+        $this->actingAs($admin)->get(route('admin.suppliers.edit', $supplier))->assertSee("Mã nhà cung cấp: {$code}");
+
+        $this->actingAs($admin)->put(route('admin.suppliers.update', $supplier), [
+            'name' => 'ABC Trading đổi tên',
+            'phone' => $supplier->phone,
+            'address' => $supplier->address,
+        ]);
+        $this->assertSame($code, $supplier->fresh()->code);
+    }
 }
