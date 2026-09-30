@@ -26,7 +26,7 @@ class AiSettings
 
     public static function current(): self
     {
-        return new self(AiSetting::query()->where('is_primary', true)->first());
+        return new self(AiSetting::query()->primary()->first());
     }
 
     public function endpoint(): string
