@@ -5,13 +5,12 @@ import aiSettingsForm from '../../resources/js/ai-settings-form.js';
 // test() reads `document` for the CSRF token, which doesn't exist under Node's test runner.
 globalThis.document ??= { querySelector: () => null };
 
-const initial = { settingId: 7, name: 'DeepSeek', endpoint: 'https://ai.example.test/v1', model: 'qwen', maxTokens: 2048 };
+const initial = { settingId: 7, endpoint: 'https://ai.example.test/v1', model: 'qwen', maxTokens: 2048 };
 
 test('seeds its fields from the form\'s initial values, not the AI response', async t => {
     t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => ({ ok: true, message: 'Kết nối thành công.' }) }));
     const form = aiSettingsForm(initial, '/test');
     assert.strictEqual(form.settingId, 7);
-    assert.strictEqual(form.name, 'DeepSeek');
     assert.strictEqual(form.endpoint, initial.endpoint);
     assert.strictEqual(form.model, initial.model);
     assert.strictEqual(form.maxTokens, initial.maxTokens);

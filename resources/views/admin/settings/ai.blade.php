@@ -21,7 +21,6 @@
     @php
         $initial = [
             'settingId' => $editing?->id,
-            'name' => old('name', $editing?->name ?? ''),
             'endpoint' => old('endpoint', $editing?->endpoint ?? ''),
             'model' => old('model', $editing?->model ?? ''),
             'maxTokens' => old('max_tokens', $editing?->max_tokens ?? ''),
@@ -43,7 +42,7 @@
 
         <div>
             <x-label for="name">Tên cấu hình</x-label>
-            <x-input id="name" name="name" x-model="name" placeholder="VD: DeepSeek, Qwen nội bộ" required maxlength="100" class="mt-1" />
+            <x-input id="name" name="name" value="{{ old('name', $editing?->name) }}" placeholder="VD: DeepSeek, Qwen nội bộ" required maxlength="100" class="mt-1" />
             <x-input-error :messages="$errors->get('name')" />
         </div>
 

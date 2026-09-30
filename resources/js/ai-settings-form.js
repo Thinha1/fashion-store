@@ -6,7 +6,6 @@
  */
 export default (initial, testUrl) => ({
     settingId: initial.settingId ?? null,
-    name: initial.name ?? '',
     endpoint: initial.endpoint ?? '',
     model: initial.model ?? '',
     maxTokens: initial.maxTokens ?? '',
