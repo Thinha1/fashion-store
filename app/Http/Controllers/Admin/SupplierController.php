@@ -22,7 +22,7 @@ class SupplierController extends Controller
     public function index(Request $request): View
     {
         $sorting = new AdminSorting($request, [
-            'name' => 'name', 'phone' => 'phone', 'email' => 'email', 'tax_code' => 'tax_code',
+            'code' => 'code', 'name' => 'name', 'phone' => 'phone', 'email' => 'email', 'tax_code' => 'tax_code',
             'goods_receipts_count' => 'goods_receipts_count', 'is_active' => 'is_active',
         ]);
         $suppliers = $sorting->apply(Supplier::query()->withCount('goodsReceipts')->orderBy('name')->orderBy('id'))
