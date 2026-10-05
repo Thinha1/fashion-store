@@ -21,7 +21,12 @@ class ProductController extends Controller
      */
     public function index(Request $request): View
     {
-        $activeBrand = $request->string('brand')->toString();
+        // `brand` may be a single slug (older links, collection pages) or a list.
+        $activeBrands = $this->stringList($request->input('brand'));
+        $activeColors = $this->stringList($request->input('color'));
+        $activeSizes = array_values(array_intersect($this->stringList($request->input('size')), ProductVariant::SIZES));
+        $priceMin = $this->positiveInt($request->input('price_min'));
+        $priceMax = $this->positiveInt($request->input('price_max'));
         $activeCategory = $request->string('category')->toString();
         $sort = in_array($request->string('sort')->toString(), self::SORTS, true)
             ? $request->string('sort')->toString()
@@ -35,12 +40,20 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->where('status', 'active')
-            ->when($activeBrand, fn ($query) => $query->whereHas('brand', fn ($q) => $q->where('slug', $activeBrand)))
+            ->when($activeBrands, fn ($query) => $query->whereHas('brand', fn ($q) => $q->whereIn('slug', $activeBrands)))
             ->when($categoryIds, fn ($query) => $query->whereIn('category_id', $categoryIds))
+            ->when($priceMin, fn ($query) => $query->where('base_price', '>=', $priceMin))
+            ->when($priceMax, fn ($query) => $query->where('base_price', '<=', $priceMax))
+            ->when($activeSizes || $activeColors, fn ($query) => $query->whereHas('variants', function ($q) use ($activeSizes, $activeColors) {
+                $q->where('is_active', true)
+                    ->when($activeSizes, fn ($q) => $q->whereIn('size', $activeSizes))
+                    ->when($activeColors, fn ($q) => $q->whereIn('color', $activeColors));
+            }))
             ->with([
                 'category',
                 'brand',
                 'images' => fn ($query) => $query->where('is_primary', true)->limit(1),
+                'variants' => fn ($query) => $query->where('is_active', true)->select(['id', 'product_id', 'color']),
             ])
             ->withSum(['variants as stock_total' => fn ($query) => $query->where('is_active', true)], 'stock_quantity')
             ->when($sort === 'gia-tang', fn ($query) => $query->orderBy('base_price'))
@@ -49,9 +62,28 @@ class ProductController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $activeVariants = ProductVariant::query()
+            ->where('is_active', true)
+            ->whereHas('product', fn ($query) => $query->where('status', 'active'));
+
         return view('storefront.products.index', [
             'products' => $products,
-            'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
+            'brands' => Brand::query()
+                ->where('is_active', true)
+                ->withCount(['products as active_products_count' => fn ($query) => $query->where('status', 'active')])
+                ->orderByDesc('active_products_count')
+                ->orderBy('name')
+                ->get(),
+            'colorOptions' => (clone $activeVariants)->whereNotNull('color')->distinct()->orderBy('color')->limit(12)->pluck('color'),
+            'sizeOptions' => array_values(array_intersect(
+                ProductVariant::SIZES,
+                (clone $activeVariants)->distinct()->pluck('size')->all(),
+            )),
+            'activeBrands' => $activeBrands,
+            'activeColors' => $activeColors,
+            'activeSizes' => $activeSizes,
+            'priceMin' => $priceMin,
+            'priceMax' => $priceMax,
             'categories' => Category::with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')->with([
                 'children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
             ])])
@@ -59,10 +91,27 @@ class ProductController extends Controller
                 ->where('is_active', true)
                 ->orderBy('sort_order')
                 ->get(),
-            'activeBrand' => $activeBrand,
             'activeCategory' => $activeCategory,
             'sort' => $sort,
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringList(mixed $value): array
+    {
+        return array_values(array_filter(
+            (array) $value,
+            fn ($item) => is_string($item) && $item !== '',
+        ));
+    }
+
+    private function positiveInt(mixed $value): ?int
+    {
+        $digits = is_scalar($value) ? preg_replace('/\D/', '', (string) $value) : '';
+
+        return $digits !== '' && (int) $digits > 0 ? (int) $digits : null;
     }
 
     /**

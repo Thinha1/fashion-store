@@ -16,101 +16,75 @@
             'variantId' => $image->product_variant_id,
             'color' => $image->variant?->color,
         ])->values();
-        $colorSwatches = [
-            'Đen' => '#17343a',
-            'Xám đậm' => '#4b5563',
-            'Xanh navy' => '#1f2a44',
-            'Xanh dương' => '#2563eb',
-            'Trắng' => '#ffffff',
-            'Nâu' => '#5c4033',
-            'Đỏ' => '#dc2626',
-        ];
         $sizeOrder = array_flip(\App\Models\ProductVariant::SIZES);
         $sizes = $product->variants->pluck('size')->unique()->sortBy(fn ($size) => $sizeOrder[$size] ?? count($sizeOrder))->values();
         $colors = $product->variants->pluck('color')->unique()->values();
+        $priceExpression = '(variant ? variant.price : '.(float) $product->base_price.').toLocaleString(\'vi-VN\') + \' ₫\'';
     @endphp
 
-    <nav aria-label="Breadcrumb" class="mb-6 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-        <a href="{{ route('home') }}" class="hover:text-brand">Trang chủ</a>
-        <x-icon name="arrow" class="size-2.5 rotate-0" />
-        <a href="{{ route('products.index') }}" class="hover:text-brand">Sản phẩm</a>
-        <x-icon name="arrow" class="size-2.5 rotate-0" />
-        <span class="text-gray-900">{{ $product->name }}</span>
+    <nav aria-label="Đường dẫn" class="mb-5 flex flex-wrap items-center gap-2 text-[13px] text-gray-600">
+        <a href="{{ route('home') }}" class="py-1.5 hover:text-brand">Trang chủ</a>
+        <x-icon name="chevron-right" class="size-2.5 text-gray-400" />
+        <a href="{{ route('products.index') }}" class="py-1.5 hover:text-brand">Sản phẩm</a>
+        <x-icon name="chevron-right" class="size-2.5 text-gray-400" />
+        <span class="text-gray-900" aria-current="page">{{ \Illuminate\Support\Str::limit($product->name, 40) }}</span>
     </nav>
 
-    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"
+    <div class="pd-grid"
          x-data="productDetail({ variants: {{ Js::from($variantsForJs->values()) }}, images: {{ Js::from($imagesForJs) }} })">
         {{-- Gallery --}}
-        <div class="flex flex-col gap-3 sm:flex-row">
-            <div class="flex gap-3 overflow-x-auto sm:w-16 sm:shrink-0 sm:flex-col sm:overflow-visible" x-show="images.length">
-                <template x-for="(image, index) in images" :key="image.id">
-                    <button type="button" class="gallery-thumb w-16 shrink-0" :aria-current="activeImage === index"
-                            x-on:click="activeImage = index" aria-label="Xem ảnh">
-                        <img :src="image.url" alt="">
-                    </button>
-                </template>
-            </div>
-
-            <div class="product-card-media relative min-w-0 rounded-2xl" style="width: 635px; max-width: 100%; aspect-ratio: 1 / 1;">
+        <div class="pd-gallery">
+            <div class="pd-main">
                 <template x-if="images.length">
-                    <img :src="images[activeImage]?.url"
-                         :alt="images[activeImage]?.alt" class="size-full object-cover"
+                    <img :src="images[activeImage]?.url" :alt="images[activeImage]?.alt"
                          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
                          x-transition:enter-end="opacity-100" :key="activeImage">
                 </template>
                 <template x-if="!images.length">
-                    <x-icon name="shirt" class="size-16" />
+                    <div class="pd-noimg"><x-icon name="shirt" /><p>Chưa có ảnh cho sản phẩm này</p></div>
                 </template>
 
                 <template x-if="images.length > 1">
-                    <button type="button" x-on:click="prevImage()" aria-label="Ảnh trước"
-                            class="absolute top-1/2 left-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-brand">
-                        <x-icon name="arrow" class="size-3.5 rotate-180" />
+                    <button type="button" x-on:click="prevImage()" aria-label="Ảnh trước" class="pd-arrow left-3">
+                        <x-icon name="chevron-left" class="size-3.5" />
                     </button>
                 </template>
                 <template x-if="images.length > 1">
-                    <button type="button" x-on:click="nextImage()" aria-label="Ảnh sau"
-                            class="absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-brand">
-                        <x-icon name="arrow" class="size-3.5" />
+                    <button type="button" x-on:click="nextImage()" aria-label="Ảnh sau" class="pd-arrow right-3">
+                        <x-icon name="chevron-right" class="size-3.5" />
+                    </button>
+                </template>
+            </div>
+
+            <div class="pd-thumbs" x-show="images.length > 1" x-cloak>
+                <template x-for="(image, index) in images.slice(0, 6)" :key="image.id">
+                    <button type="button" class="gallery-thumb" :aria-current="activeImage === index"
+                            x-on:click="activeImage = index" :aria-label="'Xem ảnh ' + (index + 1)">
+                        <img :src="image.url" alt="">
                     </button>
                 </template>
             </div>
         </div>
 
-        {{-- Info --}}
-        <div>
-            <h1 class="text-xl font-semibold text-gray-900">{{ $product->name }}</h1>
-            <p class="mt-1.5 flex items-center gap-1.5 text-sm text-gray-500">
-                <x-icon name="tag" class="size-3.5 text-gray-400" />
-                Thương hiệu
+        {{-- Buy panel --}}
+        <div class="pd-buy">
+            <div>
                 @if ($product->brand)
-                    <a href="{{ route('collections.show', $product->brand) }}" class="font-medium text-gray-900 hover:text-brand hover:underline">{{ $product->brand->name }}</a>
+                    <a href="{{ route('collections.show', $product->brand) }}" class="inline-block py-1 text-[11px] font-semibold tracking-[0.12em] text-gray-600 uppercase hover:text-brand">{{ $product->brand->name }}</a>
                 @else
-                    <span class="font-medium text-gray-900">Fashion Store</span>
+                    <span class="inline-block text-[11px] font-semibold tracking-[0.12em] text-gray-600 uppercase">Fashion Store</span>
                 @endif
-            </p>
+                <h1>{{ $product->name }}</h1>
+            </div>
 
-            <p class="mt-4 text-2xl font-semibold text-gray-900"
-               x-text="(variant ? variant.price : {{ (float) $product->base_price }}).toLocaleString('vi-VN') + ' ₫'"></p>
-
-            @if ($product->description)
-                @if (mb_strlen($product->description) > 220)
-                    <div class="mt-4 max-w-md" x-data="{ expanded: false }">
-                        <p class="text-sm leading-7 text-gray-600" :class="expanded ? '' : 'line-clamp-4'">{{ $product->description }}</p>
-                        <button type="button" class="mt-1.5 text-xs font-medium text-brand hover:underline"
-                                x-on:click="expanded = !expanded" x-text="expanded ? 'Thu gọn' : 'Xem thêm'"></button>
-                    </div>
-                @else
-                    <p class="mt-4 max-w-md text-sm leading-7 text-gray-600">{{ $product->description }}</p>
-                @endif
-            @endif
+            <p class="pd-price" x-text="{{ $priceExpression }}">{{ number_format((float) $product->base_price, 0, ',', '.') }} ₫</p>
 
             @if ($colors->isNotEmpty())
-                <div class="mt-7">
-                    <p class="text-sm font-medium text-gray-900">Màu <span class="font-normal text-gray-500" x-text="selectedColor"></span></p>
-                    <div class="mt-2.5 flex flex-wrap gap-2.5">
+                <div>
+                    <p class="pd-opt-head"><span>Màu <span class="font-normal text-gray-600" x-text="selectedColor"></span></span></p>
+                    <div class="flex flex-wrap gap-2.5">
                         @foreach ($colors as $color)
-                            <button type="button" class="color-swatch" style="--swatch-color: {{ $colorSwatches[$color] ?? '#e5e7eb' }}"
+                            <button type="button" class="color-swatch !size-8" style="--swatch-color: {{ \App\Support\ColorSwatches::hex($color) }}"
                                     x-on:click="pickColor({{ Js::from($color) }})"
                                     :aria-pressed="selectedColor === {{ Js::from($color) }}"
                                     aria-label="Màu {{ $color }}"></button>
@@ -120,12 +94,12 @@
             @endif
 
             @if ($sizes->isNotEmpty())
-                <div class="mt-6">
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm font-medium text-gray-900">Size</p>
-                        <a href="#" class="text-xs text-brand hover:underline" x-on:click.prevent="$dispatch('notify', 'Bảng size đang được cập nhật.')">Xem hướng dẫn chọn size</a>
+                <div>
+                    <div class="pd-opt-head">
+                        <span>Size</span>
+                        <a href="#" class="-my-1.5 py-1.5" x-on:click.prevent="$dispatch('notify', 'Bảng size đang được cập nhật.')">Hướng dẫn chọn size</a>
                     </div>
-                    <div class="mt-2.5 flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2">
                         @foreach ($sizes as $size)
                             <button type="button" class="variant-option"
                                     x-on:click="pickSize({{ Js::from($size) }})"
@@ -135,57 +109,64 @@
                             </button>
                         @endforeach
                     </div>
+                    <p class="mt-2.5 text-[13px] font-semibold" :class="!inStock ? 'text-gray-600' : (maxQty < 20 ? 'text-amber-700' : 'text-green-700')"
+                       x-text="!inStock ? 'Tạm hết hàng với lựa chọn này' : (maxQty < 20 ? 'Chỉ còn ' + maxQty + ' sản phẩm' : 'Còn hàng')"></p>
                 </div>
             @endif
 
-            <div class="mt-3 text-xs font-medium" :class="inStock ? 'text-green-700' : 'text-gray-400'"
-                 x-text="inStock ? 'Còn ' + maxQty + ' sản phẩm' : 'Hết hàng với lựa chọn này'"></div>
-
-            <div class="mt-6 flex items-center gap-4">
-                <div class="inline-flex items-center rounded-xl border border-gray-200">
-                    <button type="button" class="flex size-11 items-center justify-center text-gray-500 hover:text-brand" x-on:click="dec()" aria-label="Giảm số lượng">−</button>
-                    <span class="w-10 text-center text-sm font-semibold" x-text="qty"></span>
-                    <button type="button" class="flex size-11 items-center justify-center text-gray-500 hover:text-brand" x-on:click="inc()" aria-label="Tăng số lượng">+</button>
+            <div class="flex gap-3">
+                <div class="pd-qty">
+                    <button type="button" class="flex size-11 items-center justify-center text-lg text-gray-700 hover:text-brand" x-on:click="dec()" aria-label="Giảm số lượng">−</button>
+                    <span class="min-w-7 text-center text-sm font-bold" x-text="qty" aria-live="polite"></span>
+                    <button type="button" class="flex size-11 items-center justify-center text-lg text-gray-700 hover:text-brand" x-on:click="inc()" aria-label="Tăng số lượng">+</button>
                 </div>
-                <button type="button" class="btn btn-primary flex-1" :disabled="!inStock"
+                {{-- Giỏ hàng chưa có: bấm chỉ hiện thông báo, để bạn nối logic thêm vào giỏ ở đây. --}}
+                <button type="button" class="btn btn-primary min-h-12 flex-1" :disabled="!inStock"
                         x-on:click="$dispatch('notify', 'Giỏ hàng sẽ sớm ra mắt — cảm ơn bạn đã quan tâm!')">
-                    <x-icon name="box" class="size-4" /> Thêm vào giỏ
+                    <x-icon name="bag" class="size-4" /> <span x-text="inStock ? 'Thêm vào giỏ' : 'Hết hàng'">Thêm vào giỏ</span>
                 </button>
             </div>
-            <p class="mt-3 flex items-center gap-1.5 text-xs text-gray-500"
-               x-data="{ msg: '', timer: null }"
-               x-on:notify.window="msg = $event.detail; clearTimeout(timer); timer = setTimeout(() => msg = '', 3500)"
-               x-show="msg" x-transition x-text="msg" x-cloak></p>
 
-            <dl class="mt-8 space-y-2 border-t border-gray-100 pt-6 text-sm">
-                <div class="flex justify-between"><dt class="text-gray-500">Danh mục</dt><dd class="text-gray-900">{{ $product->category?->name ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-gray-500">Thương hiệu</dt><dd class="text-gray-900">{{ $product->brand?->name ?? '—' }}</dd></div>
-            </dl>
+            <button type="button" class="pd-ask" x-on:click="$dispatch('open-assistant')">
+                <span class="pd-avatar"><x-icon name="robot" /></span>
+                <span><b class="block font-bold">Hỏi trợ lý về sản phẩm này</b><small class="mt-0.5 block text-xs text-gray-600">VD: size nào hợp 1m65, 55kg? Phối với quần gì?</small></span>
+            </button>
+
+            <div class="pd-acc">
+                @if ($product->description)
+                    <details open>
+                        <summary>Mô tả <x-icon name="chevron-down" /></summary>
+                        <div class="pb-[18px] text-sm leading-[1.7] whitespace-pre-line text-gray-700">{{ $product->description }}</div>
+                    </details>
+                @endif
+                <details @if (! $product->description) open @endif>
+                    <summary>Thông tin <x-icon name="chevron-down" /></summary>
+                    <dl class="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 pb-[18px] text-sm text-gray-700">
+                        <dt class="text-gray-600">Danh mục</dt><dd>{{ $product->category?->name ?? '—' }}</dd>
+                        <dt class="text-gray-600">Thương hiệu</dt><dd>{{ $product->brand?->name ?? '—' }}</dd>
+                    </dl>
+                </details>
+            </div>
+        </div>
+
+        <div class="pd-sticky-buy" aria-label="Mua nhanh">
+            <div class="min-w-0">
+                <p class="truncate text-xs text-gray-600">{{ \Illuminate\Support\Str::limit($product->name, 28) }}</p>
+                <p class="text-[17px] font-bold" x-text="{{ $priceExpression }}">{{ number_format((float) $product->base_price, 0, ',', '.') }} ₫</p>
+            </div>
+            <button type="button" class="btn btn-primary min-h-12 flex-1" :disabled="!inStock"
+                    x-on:click="$dispatch('notify', 'Giỏ hàng sẽ sớm ra mắt — cảm ơn bạn đã quan tâm!')"
+                    x-text="inStock ? 'Thêm vào giỏ' : 'Hết hàng'">Thêm vào giỏ</button>
         </div>
     </div>
+    <div class="h-16 sm:hidden" aria-hidden="true"></div>
 
     @if ($related->isNotEmpty())
         <section class="mt-16" aria-labelledby="related-title">
             <h2 id="related-title" class="display-title mb-5 text-2xl">Cùng thương hiệu {{ $product->brand?->name }}</h2>
-            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="catalog-grid">
                 @foreach ($related as $item)
-                    @php($image = $item->images->first())
-                    <a href="{{ route('products.show', $item) }}" class="product-card group">
-                        <div class="product-card-media">
-                            @if ($image)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}" alt="{{ $item->name }}" loading="lazy">
-                            @else
-                                <x-icon name="shirt" class="size-10" />
-                            @endif
-                        </div>
-                        <div class="product-card-body">
-                            <p class="product-card-eyebrow">{{ $item->brand?->name }}</p>
-                            <h3>{{ $item->name }}</h3>
-                            <div class="product-card-price">
-                                <span class="font-semibold text-brand">{{ number_format((float) $item->base_price, 0) }} ₫</span>
-                            </div>
-                        </div>
-                    </a>
+                    <x-storefront.product-card :product="$item" />
                 @endforeach
             </div>
         </section>

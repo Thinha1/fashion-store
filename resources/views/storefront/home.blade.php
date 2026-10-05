@@ -24,29 +24,11 @@
                     <p class="eyebrow">Được yêu thích nhất</p>
                     <h2 id="featured-title" class="display-title mt-3 text-3xl sm:text-4xl">Sản phẩm nổi bật</h2>
                 </div>
-                <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">Xem tất cả sản phẩm <x-icon name="arrow" class="size-3.5" /></a>
+                <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 py-2 text-sm font-medium text-brand hover:underline">Xem tất cả sản phẩm <x-icon name="arrow" class="size-3.5" /></a>
             </div>
-            <div class="grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3 lg:grid-cols-4">
+            <div class="catalog-grid">
                 @foreach ($featured as $product)
-                    @php($image = $product->images->first())
-                    <a href="{{ route('products.show', $product) }}" class="pg-card group">
-                        <div class="pg-media">
-                            <div class="pg-tags"><span class="product-card-badge">Nổi bật</span></div>
-                            @if ($image)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}"
-                                     alt="{{ $image->alt_text ?? $product->name }}" loading="lazy">
-                            @else
-                                <x-icon name="shirt" class="size-12" />
-                            @endif
-                        </div>
-                        <div class="pg-body">
-                            <div class="min-w-0">
-                                <p class="pg-brand">{{ $product->brand?->name ?? 'Fashion Store' }}</p>
-                                <h3>{{ $product->name }}</h3>
-                            </div>
-                            <span class="pg-price">{{ number_format((float) $product->base_price, 0) }} ₫</span>
-                        </div>
-                    </a>
+                    <x-storefront.product-card :product="$product" />
                 @endforeach
             </div>
         </section>
@@ -59,6 +41,5 @@
                 <article class="style-card"><div class="{{ $background }} flex h-64 justify-center sm:h-72"><x-outfit-art :look="$look" class="h-full w-full p-4" /></div><div class="p-6"><h3>{{ $title }}</h3><p>{{ $description }}</p></div></article>
             @endforeach
         </div>
-        <div class="mt-5 flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-sm text-gray-500"><x-icon name="info" class="mt-0.5 shrink-0" /><p>Đây là các gợi ý phong cách bằng hình minh họa. Danh sách sản phẩm và tính năng mua sắm đang được hoàn thiện.</p></div>
     </section>
 @endsection

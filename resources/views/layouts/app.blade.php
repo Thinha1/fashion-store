@@ -64,7 +64,6 @@
 
                 <a href="{{ route('collections.index') }}" class="nav-link"
                     @if (request()->routeIs('collections.*')) aria-current="page" @endif>Bộ sưu tập</a>
-                <a href="{{ route('home') }}#phong-cach" class="nav-link">Gợi ý phong cách</a>
                 @auth
                     @if (auth()->user()->hasPermission('admin.access'))
                         <a href="{{ route('admin.dashboard') }}" class="nav-link">Quản trị</a>
@@ -75,12 +74,16 @@
                 @else
                     <a href="{{ route('login') }}" class="nav-link"
                         @if (request()->routeIs('login')) aria-current="page" @endif>Đăng nhập</a>
-                    <a href="{{ route('register') }}" class="btn btn-primary">Tạo tài khoản <x-icon class="size-4" /></a>
+                    <a href="{{ route('register') }}" class="btn btn-primary whitespace-nowrap">Tạo tài khoản</a>
                 @endauth
+                <button type="button" class="icon-btn" aria-label="Tìm sản phẩm bằng trợ lý" x-on:click="$dispatch('open-assistant')"><x-icon name="search" /></button>
+                <button type="button" class="icon-btn" aria-label="Giỏ hàng" x-on:click="$dispatch('notify', 'Giỏ hàng sẽ sớm ra mắt — cảm ơn bạn đã quan tâm!')"><x-icon name="bag" /></button>
             </nav>
-            <button type="button" x-on:click="menuOpen = !menuOpen" :aria-expanded="menuOpen"
-                aria-controls="mobile-nav" aria-label="Mở menu" class="btn btn-secondary px-3 md:hidden"><x-icon
-                    name="menu" /></button>
+            <div class="flex items-center gap-2 md:hidden">
+                <button type="button" class="icon-btn" aria-label="Giỏ hàng" x-on:click="$dispatch('notify', 'Giỏ hàng sẽ sớm ra mắt — cảm ơn bạn đã quan tâm!')"><x-icon name="bag" /></button>
+                <button type="button" x-on:click="menuOpen = !menuOpen" :aria-expanded="menuOpen"
+                    aria-controls="mobile-nav" aria-label="Mở menu" class="icon-btn"><x-icon name="menu" /></button>
+            </div>
         </div>
         <nav id="mobile-nav" aria-label="Điều hướng trên điện thoại" x-cloak x-show="menuOpen"
             class="flex flex-col gap-2 border-t border-gray-100 p-5 md:hidden">
@@ -141,17 +144,21 @@
     </main>
     <footer class="border-t border-gray-200 bg-white">
         <div
-            class="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-5 py-8 sm:flex-row sm:items-center sm:px-8">
+            class="mx-auto flex max-w-7xl flex-col flex-wrap justify-between gap-x-8 gap-y-3 px-5 py-8 sm:flex-row sm:items-center sm:px-8">
             <div>
                 <p class="font-semibold">{{ config('app.name', 'Fashion Store') }}</p>
                 <p class="mt-1 text-sm text-gray-500">Phong cách bắt đầu từ chính bạn.</p>
             </div>
-            <div class="flex flex-wrap gap-5 text-sm text-gray-500"><a href="{{ route('home') }}#phong-cach"
-                    class="hover:text-brand">Gợi ý phong cách</a><a href="{{ route('login') }}"
-                    class="hover:text-brand">Tài khoản</a><span>&copy; {{ now()->year }}
-                    {{ config('app.name', 'Fashion Store') }}</span></div>
+            <div class="flex flex-wrap gap-x-5 text-sm text-gray-600"><a href="{{ route('home') }}#phong-cach"
+                    class="py-2 hover:text-brand">Gợi ý phong cách</a><a href="{{ route('login') }}"
+                    class="py-2 hover:text-brand">Tài khoản</a></div>
+            <p class="w-full text-sm text-gray-600">&copy; {{ now()->year }} {{ config('app.name', 'Fashion Store') }}</p>
         </div>
     </footer>
+    <div x-data="{ msg: '', timer: null }"
+         x-on:notify.window="msg = $event.detail; clearTimeout(timer); timer = setTimeout(() => msg = '', 3500)"
+         x-show="msg" x-cloak x-transition role="status" x-text="msg"
+         class="fixed bottom-24 left-1/2 z-50 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg sm:bottom-6"></div>
     <x-storefront.shopping-assist-widget />
 </body>
 

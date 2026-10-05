@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="shoppingAssistChat('{{ route('products.assist') }}', '{{ route('products.assist-stream') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="shoppingAssistChat('{{ route('products.assist') }}', '{{ route('products.assist-stream') }}')" x-on:open-assistant.window="open = true" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý gợi ý sản phẩm">
         <x-icon name="robot" x-show="!open" class="size-4" />

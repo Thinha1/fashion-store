@@ -18,9 +18,9 @@
     --color-gray-100: #edf2f3;
     --color-gray-200: #dce5e7;
     --color-gray-300: #c4d1d5;
-    --color-gray-400: #82969e;
-    --color-gray-500: #627880;
-    --color-gray-600: #50666f;
+    --color-gray-400: #5a6f78;
+    --color-gray-500: #50666f;
+    --color-gray-600: #44585f;
     --color-gray-700: #36525c;
     --color-gray-900: #17343a;
 }
@@ -45,13 +45,14 @@ body:has(dialog[open]) { overflow: hidden; }
     .brand-symbol { @apply flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white; }
     .eyebrow { @apply text-xs font-semibold tracking-[0.18em] uppercase text-brand; }
     .display-title { font-family: var(--font-display); @apply font-normal tracking-tight; }
-    .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+    .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
     .btn-primary { @apply bg-brand text-white shadow-sm hover:bg-brand-dark; }
     .btn-secondary { @apply border border-gray-200 bg-white text-gray-900 hover:border-brand hover:bg-brand-soft; }
     .field { @apply block min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/15; }
-    .nav-link { @apply rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-soft hover:text-brand; }
+    .nav-link { @apply rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900; }
     .nav-link[aria-current='page'] { @apply bg-brand-soft text-brand; }
-    .mega-trigger { @apply flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-soft hover:text-brand; }
+    .icon-btn { @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:border-brand hover:text-brand; }
+    .mega-trigger { @apply flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900; }
     .mega-trigger[aria-expanded='true'] { @apply bg-brand-soft text-brand; }
     .mega-panel { @apply absolute inset-x-0 top-full z-30 border-t border-gray-100 bg-white shadow-[0_24px_48px_-24px_#17343a30]; }
     .mega-panel-inner { @apply mx-auto grid max-w-7xl gap-8 px-8 py-8; }
@@ -104,16 +105,6 @@ body:has(dialog[open]) { overflow: hidden; }
     .style-card { @apply overflow-hidden rounded-2xl border border-gray-200 bg-white; }
     .style-card h3 { @apply text-lg font-semibold; }
     .style-card p { @apply mt-2 text-sm leading-6 text-gray-500; }
-    .product-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_#17343a60]; }
-    .product-card .product-card-media { @apply relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-brand-soft/60 text-brand/30; }
-    .product-card .product-card-media img { @apply size-full object-cover transition-transform duration-300 group-hover:scale-105; }
-    .product-card .product-card-tags { @apply absolute top-3 left-3 z-10 flex flex-wrap gap-1.5; }
-    .product-card .product-card-badge { @apply rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-brand uppercase shadow-sm; }
-    .product-card .product-card-badge-muted { @apply bg-gray-900/80 text-white; }
-    .product-card .product-card-body { @apply flex flex-1 flex-col gap-1 p-5; }
-    .product-card .product-card-eyebrow { @apply text-xs font-medium text-gray-400; }
-    .product-card h3 { @apply text-base font-semibold text-gray-900; }
-    .product-card .product-card-price { @apply mt-auto flex items-center justify-between pt-3; }
     .variant-option { @apply inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:border-brand; }
     .variant-option[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
     .variant-option:disabled { @apply cursor-not-allowed border-gray-100 text-gray-300 line-through hover:border-gray-100; }
@@ -123,20 +114,71 @@ body:has(dialog[open]) { overflow: hidden; }
     .gallery-thumb[aria-current='true'] { @apply border-brand; }
     .gallery-thumb img { @apply size-full object-cover; }
 
-    /* Editorial catalog toolbar + grid — dense, borderless, image-led. */
-    .catalog-bar { @apply mb-6 border-y border-gray-200; }
-    .catalog-bar-row { @apply flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-3.5; }
+    /* Danh sách sản phẩm: thanh lọc dính + lưới thẻ (wireframe A). */
+    .catalog-head { @apply mb-5 flex flex-wrap items-baseline justify-between gap-3; }
+    .catalog-head h1 { @apply text-[30px] leading-[1.1] sm:text-[40px]; }
+    .catalog-count { @apply text-sm text-gray-600; }
+    .catalog-bar { @apply sticky top-0 z-20 rounded-[14px] border border-gray-200 bg-white; }
+    .catalog-bar-row { @apply flex items-center gap-3 px-2.5 py-2 sm:px-3.5 sm:py-2.5; }
     .catalog-bar-row + .catalog-bar-row { @apply border-t border-gray-100; }
-    .catalog-tag { @apply text-xs font-semibold tracking-[0.14em] text-gray-900 uppercase; }
-    .catalog-count { @apply text-xs tracking-widest text-gray-400; }
-    .catalog-select { @apply rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 focus:border-brand focus:outline-none; }
-    .catalog-filter-row { @apply flex flex-nowrap items-center gap-1 overflow-x-auto border-t border-gray-100 py-2.5; }
-    .catalog-filter-label { @apply shrink-0 pr-3 text-[11px] font-semibold tracking-[0.1em] text-gray-400 uppercase; }
-    .catalog-filter-row-nested { @apply pl-4; }
-    .catalog-chip { @apply shrink-0 rounded-full border border-transparent px-3 py-1.5 text-xs font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-brand; }
-    .catalog-chip.is-active { @apply border-brand/30 bg-brand-soft text-brand; }
-    .density-btn { @apply flex size-8 items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-400 transition-colors hover:text-brand; }
-    .density-btn[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
+    .catalog-chips { @apply flex min-w-0 flex-1 gap-1.5 overflow-x-auto p-0.5; scrollbar-width: none; }
+    .catalog-chips::-webkit-scrollbar { display: none; }
+    .catalog-chip { @apply inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-gray-700 transition-colors hover:border-brand hover:text-brand; }
+    .catalog-chip.is-active, .catalog-chip[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
+    .catalog-btn { @apply inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[10px] border border-gray-200 bg-white px-3.5 text-[13px] font-semibold text-gray-900 transition-colors hover:border-brand hover:text-brand; }
+    .catalog-btn-count { @apply inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 text-[11px] font-semibold text-white; }
+    .catalog-select { @apply min-h-10 appearance-none rounded-[10px] border border-gray-200 bg-white py-0 pr-8 pl-3 text-[13px] font-medium text-gray-700 focus:border-brand focus:outline-none; background-image: linear-gradient(45deg, transparent 50%, var(--color-gray-500) 50%), linear-gradient(135deg, var(--color-gray-500) 50%, transparent 50%); background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px; background-size: 5px 5px; background-repeat: no-repeat; }
+    .catalog-sheet { @apply grid grid-cols-1 gap-6 border-t border-gray-200 p-[18px] pb-5 sm:grid-cols-2 lg:grid-cols-4; }
+    .catalog-sheet-title { @apply mb-2.5 text-xs font-semibold tracking-[0.1em] text-gray-600 uppercase; }
+    .catalog-check { @apply flex min-h-9 items-center gap-2.5 text-sm text-gray-700; }
+    .catalog-check b { @apply ml-auto text-xs font-normal text-gray-600; }
+    .catalog-range { @apply grid grid-cols-2 gap-2; }
+    .catalog-range input { @apply min-h-10 w-full rounded-[10px] border border-gray-300 bg-white px-2.5 text-[13px] placeholder:text-gray-600 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/15; }
+    .catalog-link { @apply inline-block px-1 py-1.5 text-[13px] font-semibold text-brand underline underline-offset-[3px]; }
+    .catalog-active { @apply mt-3.5 flex flex-wrap items-center gap-2 text-[13px] text-gray-600; }
+
+    .pg-card { @apply flex min-w-0 flex-col text-inherit no-underline; }
+    .pg-card .pg-media { @apply relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[14px] bg-brand-soft text-[44px] text-gray-400; }
+    .pg-card .pg-media img { @apply size-full object-cover transition-transform duration-[400ms] group-hover:scale-[1.03]; }
+    .pg-card .pg-tags { @apply absolute top-2.5 left-2.5 z-10 flex flex-wrap gap-1.5; }
+    .pg-card .product-card-badge { @apply rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-brand uppercase; }
+    .pg-card .product-card-badge-muted { @apply bg-gray-900/80 text-white; }
+    .pg-card .pg-body { @apply flex min-w-0 flex-1 flex-col px-0.5 pt-3; }
+    .pg-card .pg-brand { @apply truncate text-[11px] font-semibold tracking-[0.12em] text-gray-600 uppercase; }
+    .pg-card h3 { @apply mt-1 line-clamp-2 text-sm leading-[1.4] font-medium text-gray-900 transition-colors group-hover:text-brand; }
+    .pg-card .pg-price { @apply mt-auto block pt-1.5 text-[15px] font-bold text-gray-900; }
+    .pg-card .pg-dots { @apply mt-2 flex items-center gap-1; }
+    .pg-card .pg-dots i { @apply size-3 rounded-full border border-gray-300; }
+    .pg-card .pg-dots span { @apply ml-1 text-xs text-gray-600; }
+    .catalog-grid { @apply grid grid-cols-2 gap-x-3 gap-y-[22px] sm:grid-cols-3 sm:gap-x-5 sm:gap-y-7 lg:grid-cols-4; }
+    .catalog-empty { @apply rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-14 text-center; }
+    .catalog-empty-icon { @apply inline-flex size-14 items-center justify-center rounded-full bg-brand-soft text-[22px] text-brand; }
+    .catalog-pager { @apply mt-10 flex flex-wrap items-center justify-between gap-3; }
+
+    /* Chi tiết sản phẩm: ảnh trái, panel mua dính (wireframe A). */
+    .pd-grid { @apply grid grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12; }
+    .pd-gallery { @apply grid min-w-0 gap-3; }
+    .pd-main { @apply relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[18px] bg-brand-soft; }
+    .pd-main img { @apply size-full object-cover; }
+    .pd-noimg { @apply flex flex-col items-center gap-3 p-6 text-center text-[13px] text-gray-700; }
+    .pd-noimg .ui-icon { @apply size-16 text-[64px] text-gray-400; }
+    .pd-arrow { @apply absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-brand; }
+    .pd-thumbs { @apply grid grid-cols-5 gap-2.5 sm:grid-cols-6; }
+    .pd-thumbs .gallery-thumb:nth-child(n+7) { @apply max-sm:hidden; }
+    .pd-buy { @apply grid gap-5 lg:sticky lg:top-4; }
+    .pd-buy h1 { @apply mt-2.5 text-[26px] leading-tight font-semibold tracking-tight; }
+    .pd-price { @apply text-[28px] font-bold; }
+    .pd-opt-head { @apply mb-2.5 flex items-baseline justify-between text-sm font-semibold; }
+    .pd-opt-head a { @apply text-[13px] font-medium text-gray-700 underline underline-offset-[3px]; }
+    .pd-qty { @apply inline-flex min-h-12 items-center rounded-xl border border-gray-300; }
+    .pd-ask { @apply flex w-full items-center gap-3 rounded-[14px] border border-gray-200 bg-brand-soft px-3.5 py-3 text-left text-sm text-gray-900 transition-colors hover:border-brand; }
+    .pd-avatar { @apply flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-white; }
+    .pd-acc details { @apply border-t border-gray-200 last:border-b; }
+    .pd-acc summary { @apply flex min-h-[52px] cursor-pointer list-none items-center justify-between text-[15px] font-semibold; }
+    .pd-acc summary::-webkit-details-marker { display: none; }
+    .pd-acc summary .ui-icon { @apply text-xs text-gray-600 transition-transform; }
+    .pd-acc details[open] summary .ui-icon { rotate: 180deg; }
+    .pd-sticky-buy { @apply fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-2.5 sm:hidden; }
 
     .collection-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_#17343a60]; }
     .collection-card-grid { @apply grid grid-cols-2 gap-0.5 bg-gray-100; }
@@ -146,16 +188,6 @@ body:has(dialog[open]) { overflow: hidden; }
     .collection-card-body h3 { @apply text-lg font-semibold text-gray-900; }
     .collection-card-body p { @apply mt-1 text-sm text-gray-500; }
 
-    .pg-card { @apply flex flex-col; }
-    .pg-card .pg-media { @apply relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-brand-soft/50 text-brand/25; }
-    .pg-card .pg-media img { @apply size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]; }
-    .pg-card .pg-tags { @apply absolute top-2 left-2 z-10 flex flex-wrap gap-1; }
-    .pg-card .product-card-badge { @apply rounded-full bg-white/90 px-2 py-1 text-[9px] font-semibold tracking-[0.1em] text-brand uppercase shadow-sm; }
-    .pg-card .product-card-badge-muted { @apply bg-gray-900/80 text-white; }
-    .pg-card .pg-body { @apply min-w-0 border-b border-gray-200 py-2.5 transition-colors group-hover:border-brand/40; }
-    .pg-card .pg-brand { @apply truncate text-[9px] font-semibold tracking-[0.15em] text-gray-400 uppercase; }
-    .pg-card h3 { @apply mt-0.5 truncate text-[13px] font-medium text-gray-900; }
-    .pg-card .pg-price { @apply mt-1.5 block text-sm font-semibold text-brand; }
 }
 
 @media (prefers-reduced-motion: reduce) {
