@@ -23,18 +23,54 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $sorting = new AdminSorting($request, [
-            'name' => 'name', 'variants_count' => 'variants_count', 'status' => 'status', 'is_featured' => 'is_featured',
+            'name' => 'name', 'variants_count' => 'variants_count', 'stock' => 'stock_total', 'status' => 'status', 'is_featured' => 'is_featured',
             'category' => Category::query()->select('name')->whereColumn('categories.id', 'products.category_id'),
             'brand' => Brand::query()->select('name')->whereColumn('brands.id', 'products.brand_id'),
         ]);
-        $products = $sorting->apply(Product::query()
+        $term = trim((string) $request->query('q', ''));
+        $show = in_array($request->query('show'), ['low', 'out', 'no_image'], true) ? $request->query('show') : null;
+        $status = in_array($request->query('status'), ['active', 'archived'], true) ? $request->query('status') : null;
+        $categoryId = $request->integer('category') ?: null;
+        $brandId = $request->integer('brand') ?: null;
+
+        $like = '%'.addcslashes($term, '%_\\').'%';
+
+        $filtered = Product::query()
+            ->when($term !== '', fn ($query) => $query->where(fn ($query) => $query
+                ->where('name', 'like', $like)
+                ->orWhereHas('variants', fn ($variants) => $variants->where('sku', 'like', $like))))
+            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
+            ->when($brandId, fn ($query) => $query->where('brand_id', $brandId));
+
+        $counts = [
+            'all' => (clone $filtered)->count(),
+            'active' => (clone $filtered)->where('status', 'active')->count(),
+            'archived' => (clone $filtered)->where('status', 'archived')->count(),
+            'low' => (clone $filtered)->lowStock()->count(),
+        ];
+
+        $products = $sorting->apply($filtered
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($show === 'low', fn ($query) => $query->lowStock())
+            ->when($show === 'out', fn ($query) => $query->outOfStock())
+            ->when($show === 'no_image', fn ($query) => $query->withoutImages())
             ->with(['category:id,name', 'brand:id,name', 'images'])
-            ->withCount('variants')
+            ->withCount(['variants', 'variants as low_variants_count' => fn ($variants) => $variants
+                ->where('is_active', true)->where('stock_quantity', '>', 0)->whereColumn('stock_quantity', '<=', 'low_stock_threshold')])
+            ->withSum(['variants as stock_total' => fn ($variants) => $variants->where('is_active', true)], 'stock_quantity')
             ->orderByDesc('created_at')
             ->orderByDesc('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.products.index', ['products' => $products, 'sorting' => $sorting]);
+        return view('admin.products.index', [
+            'products' => $products,
+            'sorting' => $sorting,
+            'counts' => $counts,
+            'tab' => $show ?? $status ?? 'all',
+            'filters' => ['q' => $term, 'category' => $categoryId, 'brand' => $brandId],
+            'categories' => Category::query()->orderBy('name')->get(['id', 'name']),
+            'brands' => Brand::query()->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function create(): View

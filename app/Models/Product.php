@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,33 @@ class Product extends Model
             'base_price' => 'decimal:2',
             'is_featured' => 'boolean',
         ];
+    }
+
+    /**
+     * Active products with at least one sellable variant at or below its own low-stock threshold.
+     */
+    public function scopeLowStock(Builder $query): void
+    {
+        $query->where('status', 'active')->whereHas('variants', fn (Builder $variants) => $variants
+            ->where('is_active', true)
+            ->where('stock_quantity', '>', 0)
+            ->whereColumn('stock_quantity', '<=', 'low_stock_threshold'));
+    }
+
+    /**
+     * Active products that have variants but none of them can be sold right now.
+     */
+    public function scopeOutOfStock(Builder $query): void
+    {
+        $query->where('status', 'active')
+            ->whereHas('variants')
+            ->whereDoesntHave('variants', fn (Builder $variants) => $variants
+                ->where('is_active', true)->where('stock_quantity', '>', 0));
+    }
+
+    public function scopeWithoutImages(Builder $query): void
+    {
+        $query->where('status', 'active')->whereDoesntHave('images');
     }
 
     public function category(): BelongsTo

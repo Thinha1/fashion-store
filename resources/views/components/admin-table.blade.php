@@ -1,6 +1,7 @@
-@props(['header' => [], 'paginator' => null, 'sortable' => [], 'sorting' => null])
+@props(['header' => [], 'paginator' => null, 'sortable' => [], 'sorting' => null, 'searchable' => true])
 
 <div x-data="dataTable(@js(in_array('Thao tác', $header, true)))" {{ $attributes->merge(['class' => 'admin-table-card overflow-hidden border border-gray-200 bg-white']) }}>
+    @if ($searchable)
     <div x-cloak x-show="total > 0" class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4">
         <label class="relative w-full sm:max-w-xs">
             <span class="sr-only">Tìm trong trang này</span>
@@ -9,6 +10,7 @@
         </label>
         <span class="text-xs text-gray-500" role="status"><span x-text="visible"></span> / <span x-text="total"></span> bản ghi trong trang</span>
     </div>
+    @endif
     <div tabindex="0" role="region" aria-label="Bảng @yield('title', 'dữ liệu')" class="data-table rounded-none border-0 shadow-none">
     <table>
         @if ($header)
