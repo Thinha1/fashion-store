@@ -61,7 +61,9 @@ class AdminExcel
             'suppliers' => [
                 'label' => 'Nhà cung cấp', 'permission' => 'suppliers.manage',
                 'model' => Supplier::class, 'request' => StoreSupplierRequest::class, 'controller' => SupplierController::class, 'parameter' => 'supplier',
-                'columns' => ['ID' => 'id', 'Tên nhà cung cấp' => 'name', 'Điện thoại' => 'phone', 'Email' => 'email', 'Địa chỉ' => 'address', 'Mã số thuế' => 'tax_code', 'Hoạt động (1/0)' => 'is_active'],
+                // No ID column: ids are auto-increment, and a row is matched to an existing supplier by name instead.
+                'match_by' => 'name',
+                'columns' => ['Tên nhà cung cấp' => 'name', 'Điện thoại' => 'phone', 'Email' => 'email', 'Địa chỉ' => 'address', 'Mã số thuế' => 'tax_code', 'Hoạt động (1/0)' => 'is_active'],
             ],
             'products' => [
                 'label' => 'Sản phẩm', 'permission' => 'products.manage',
@@ -142,7 +144,9 @@ class AdminExcel
         $this->writeHeader($guide, ['Hướng dẫn nhập Excel — '.$definition['label']]);
         $instructions = [
             'Điền sheet Dữ liệu; giữ nguyên tên sheet và tên cột. File mẫu không có dữ liệu giả.',
-            'ID trống: thêm mới. ID có sẵn: cập nhật đúng bản ghi đó. Không xóa bản ghi bị thiếu trong file.',
+            isset($definition['match_by'])
+                ? 'Không có cột ID (hệ thống tự tăng). Tên trùng với bản ghi có sẵn (không phân biệt chữ hoa/thường, giữ đúng dấu tiếng Việt): cập nhật bản ghi đó thay vì tạo mới. Tên chưa có: thêm mới. Không xóa bản ghi bị thiếu trong file.'
+                : 'ID trống: thêm mới. ID có sẵn: cập nhật đúng bản ghi đó. Không xóa bản ghi bị thiếu trong file.',
             'Hoạt động / Nổi bật: nhập 1 hoặc 0; bỏ trống để giữ hiện trạng hoặc dùng mặc định khi thêm mới. Điện thoại và SKU nên để kiểu Text để giữ số 0 đầu.',
             $resource === 'products'
                 ? 'Nhập Tên danh mục và Tên thương hiệu có sẵn trong sheet Tham chiếu, không nhập ID. Không phân biệt chữ hoa/thường; giữ đúng dấu tiếng Việt. Nếu tên chưa có, thêm ở mục quản trị tương ứng trước khi nhập sản phẩm.'
@@ -188,11 +192,15 @@ class AdminExcel
             return DB::transaction(function () use ($resource, $definition, $rows, $children, $source): array {
                 $result = ['created' => 0, 'updated' => 0];
                 $seenIds = [];
+                $matchByName = ($definition['match_by'] ?? null) === 'name';
+                $matchIndex = $matchByName ? $this->indexNames($definition['model']) : [];
                 $categoryNames = $resource === 'products' ? $this->indexNames(Category::class) : [];
                 $brandNames = $resource === 'products' ? $this->indexNames(Brand::class) : [];
                 foreach ($rows as $rowNumber => $data) {
                     try {
-                        $model = $this->findModel($definition, $data['id'], $seenIds);
+                        $model = $matchByName
+                            ? $this->findByName($definition, $data['name'], $matchIndex)
+                            : $this->findModel($definition, $data['id'], $seenIds);
                         if ($resource === 'goods-receipts' && $model && $model->status !== 'draft') {
                             throw ValidationException::withMessages(['id' => 'Phiếu đã xác nhận không thể cập nhật bằng Excel.']);
                         }
@@ -220,6 +228,10 @@ class AdminExcel
                         }
                         unset($data['id']);
                         $this->saveUsingForm($definition, $data, $model, $source);
+                        if ($matchByName && ! $model && is_string($data['name'])) {
+                            // A later row with the same name must update this new record, not create another.
+                            $matchIndex[$this->normalizeName($data['name'])][] = (int) $definition['model']::query()->max('id');
+                        }
                         $result[$model ? 'updated' : 'created']++;
                     } catch (ValidationException $exception) {
                         $messages = [];
@@ -245,6 +257,24 @@ class AdminExcel
         } finally {
             $book->disconnectWorksheets();
         }
+    }
+
+    /**
+     * Finds the existing record with this name (ignoring case and extra whitespace, but not accents), so
+     * re-importing a name updates that record instead of creating a duplicate. Matching is done in PHP against
+     * an index rather than in SQL, because database collations disagree on case and accents.
+     *
+     * @param  array<string, list<int>>  $index
+     */
+    private function findByName(array $definition, mixed $name, array $index): ?Model
+    {
+        $ids = is_string($name) ? ($index[$this->normalizeName($name)] ?? []) : [];
+        if (count($ids) > 1) {
+            // Same stance as resolveName(): never guess which of several records the row means.
+            throw ValidationException::withMessages(['name' => 'Có '.count($ids).' bản ghi đang trùng tên "'.$name.'". Hãy gộp hoặc đổi tên trước khi nhập.']);
+        }
+
+        return $ids === [] ? null : $definition['model']::query()->lockForUpdate()->find($ids[0]);
     }
 
     private function findModel(array $definition, mixed $id, array &$seen): ?Model
