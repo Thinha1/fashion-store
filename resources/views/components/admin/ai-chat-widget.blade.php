@@ -43,9 +43,16 @@
                         <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
                             <div class="ai-chat-tool-calls">
                                 <template x-for="call in message.toolCalls" :key="call.name">
-                                    <div class="ai-chat-tool-call">
-                                        <span class="ai-chat-tool-name" x-text="call.name"></span>
-                                        <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                    <div class="ai-chat-tool-call" x-data="{ open: false }">
+                                        <button type="button" class="ai-chat-tools-toggle" x-on:click="open = !open" :aria-expanded="open.toString()">
+                                            <span class="ai-chat-tool-name" x-text="call.name"></span>
+                                            <x-icon name="chevron-down" class="ai-chat-tools-chevron size-3" />
+                                        </button>
+                                        <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
+                                            <div class="ai-chat-tool-calls">
+                                                <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
