@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}', '{{ route('admin.products.ai-pdf.read') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
         <x-icon name="robot" x-show="!open" class="size-4" />
@@ -31,6 +31,7 @@
             <p class="text-xs text-gray-500" x-show="!messages.length">
                 Đính kèm ảnh sản phẩm (ảnh đầu là ảnh chung; các ảnh sau nếu là biến thể màu khác, AI sẽ tự gán đúng màu)
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
+                Có thể đính kèm cả file PDF (catalog, phiếu thông số, báo giá) có chữ để AI đọc.
             </p>
             <template x-for="(message, index) in messages" :key="index">
                 <div>
@@ -70,7 +71,10 @@
                             <template x-for="block in message.blocks.filter((b) => b.type === 'image')" :key="block.dataUrl">
                                 <img :src="block.dataUrl" alt="Ảnh đính kèm" class="h-16 w-16 rounded-lg object-cover">
                             </template>
-                            <p class="whitespace-pre-line" x-text="message.blocks.filter((b) => b.type === 'text').map((b) => b.text).join(' ')"></p>
+                            <template x-for="doc in documentsOf(message)" :key="doc.name">
+                                <p class="ai-chat-doc-chip"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> <span x-text="doc.label"></span></p>
+                            </template>
+                            <p class="whitespace-pre-line" x-text="message.blocks.filter((b) => b.type === 'text' && !b.document).map((b) => b.text).join(' ')"></p>
                         </div>
                     </template>
                     <template x-if="message.role === 'assistant'">
@@ -119,6 +123,12 @@
                 <button type="button" class="admin-action admin-action-primary w-full justify-center" x-on:click="fillForm()">
                     Điền vào form
                 </button>
+                <div class="flex items-center justify-between gap-2 text-xs text-gray-500" x-show="canUndoDraftFill()">
+                    <span>Đã điền vào form. Bấm "Điền vào form" lần nữa sẽ ghi đè dữ liệu hiện tại.</span>
+                    <button type="button" class="shrink-0 font-semibold text-brand underline underline-offset-4" x-on:click="undoLastFormChange()">
+                        Hoàn tác
+                    </button>
+                </div>
             </div>
 
             <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
@@ -129,6 +139,17 @@
 
         <div class="ai-chat-composer">
             <p class="ai-chat-error" x-show="error" x-text="error"></p>
+            <div class="flex flex-wrap gap-2" x-show="attachedDocuments.length">
+                <template x-for="(doc, index) in attachedDocuments" :key="doc.name">
+                    <div class="ai-chat-attachment">
+                        <i class="fa-solid fa-file-pdf text-red-500" aria-hidden="true"></i>
+                        <span class="min-w-0 flex-1 truncate" x-text="`${doc.name} · ${doc.pages} trang${doc.truncated ? ' (đã cắt bớt)' : ''}`"></span>
+                        <button type="button" class="text-gray-400 hover:text-gray-700" x-on:click="removeAttachedDocument(index)" aria-label="Bỏ file PDF">
+                            <x-icon name="close" class="size-3.5" />
+                        </button>
+                    </div>
+                </template>
+            </div>
             <div class="flex flex-wrap gap-2" x-show="attachedImages.length">
                 <template x-for="(image, index) in attachedImages" :key="image.imageIndex">
                     <div class="ai-chat-attachment">
@@ -141,10 +162,10 @@
                 </template>
             </div>
             <div class="flex items-end gap-2">
-                <label for="ai-chat-file-input" class="sr-only">Đính kèm ảnh</label>
-                <input id="ai-chat-file-input" type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" x-on:change="onFileChange($event)">
+                <label for="ai-chat-file-input" class="sr-only">Đính kèm ảnh hoặc PDF</label>
+                <input id="ai-chat-file-input" type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple class="hidden" x-on:change="onFileChange($event)">
                 <button type="button" class="admin-action-quiet admin-action !min-h-11 !px-3" x-on:click="$refs.fileInput.click()"
-                        aria-label="Đính kèm ảnh">
+                        aria-label="Đính kèm ảnh hoặc PDF">
                     <x-icon name="paperclip" class="size-4" />
                 </button>
                 <label for="ai-chat-message-input" class="sr-only">Nội dung gửi trợ lý AI</label>
@@ -152,7 +173,7 @@
                           class="field flex-1 resize-none text-sm"
                           x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); send(); }"></textarea>
                 <button type="button" class="admin-action admin-action-primary !min-h-11 !px-3"
-                        :disabled="loading || (!input.trim() && !attachedImages.length)" x-on:click="send()" aria-label="Gửi">
+                        :disabled="loading || (!input.trim() && !attachedImages.length && !attachedDocuments.length)" x-on:click="send()" aria-label="Gửi">
                     <x-icon name="send" class="size-4" />
                 </button>
             </div>

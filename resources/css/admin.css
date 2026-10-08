@@ -125,6 +125,8 @@
     .ai-chat-thinking-label { @apply text-sm; }
     .ai-chat-composer { @apply space-y-2 border-t border-gray-100 p-3; }
     .ai-chat-composer textarea { @apply text-sm; }
+    .ai-chat-doc-chip { @apply inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/70 px-2 py-1 text-xs text-gray-700; }
+    .ai-chat-doc-chip i { @apply text-red-500; }
     .ai-chat-attachment { @apply flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600; }
     .ai-chat-error { @apply rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700; }
     @media (max-width: 639px) {
