@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
+use App\Http\Controllers\Admin\ProductAiPdfController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +86,10 @@ Route::prefix('admin')
         // parsing/validation logic both share.
         Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-goi-y/stream', ProductAiAssistStreamController::class)->name('products.ai-assist-stream');
+        // Extracts the text of an uploaded PDF so the chat can attach it to the
+        // next message. Calls no model and saves nothing.
+        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+            ->post('san-pham/ai-pdf/doc-file', ProductAiPdfController::class)->name('products.ai-pdf.read');
         Route::middleware('permission:products.manage')
             ->get('san-pham', [ProductController::class, 'index'])->name('products.index');
         Route::middleware('permission:products.manage')

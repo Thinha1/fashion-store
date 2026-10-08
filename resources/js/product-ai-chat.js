@@ -1,7 +1,57 @@
 import { createSessionStore, sendAssistTurn } from './ai-chat-transport.js';
 
 const MAX_VARIANT_ROWS = 12;
+const MAX_DOCUMENTS = 2;
+// The server caps every text block of a chat request at 4000 characters, so a
+// long PDF is sent as several blocks; the margin leaves room for the heading.
+const DOCUMENT_CHUNK_CHARS = 3800;
 const MAX_IMAGES_PER_SELECTION = 6;
+
+/** A PDF whose text the server should extract, as opposed to a product photo. */
+export function isPdfFile(file) {
+    return /\.pdf$/i.test(file?.name ?? '') || file?.type === 'application/pdf';
+}
+
+/** The most useful single sentence out of a failed Laravel JSON response. */
+export function describeRequestFailure(response, payload, fallback) {
+    if (response.status === 429) return 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
+    const validation = payload?.errors ? Object.values(payload.errors).flat()[0] : null;
+
+    return validation || payload?.message || fallback;
+}
+
+/** Cuts text into pieces of at most `size` characters, preferring to break at a line end. */
+export function splitIntoChunks(text, size = DOCUMENT_CHUNK_CHARS) {
+    const chunks = [];
+    let rest = String(text ?? '').trim();
+    while (rest.length > size) {
+        let cut = rest.lastIndexOf('\n', size);
+        if (cut < size / 2) cut = size;
+        chunks.push(rest.slice(0, cut).trim());
+        rest = rest.slice(cut).trim();
+    }
+    if (rest) chunks.push(rest);
+
+    return chunks;
+}
+
+/**
+ * The chat blocks that carry one PDF's text. They are tagged with `document`
+ * so the bubble can show a "📄 name" chip instead of dumping thousands of
+ * characters, while the model still receives every word.
+ */
+export function buildDocumentBlocks(doc) {
+    const name = doc.name.length > 60 ? `${doc.name.slice(0, 57)}…` : doc.name;
+
+    return splitIntoChunks(doc.text).map((chunk, index) => ({
+        type: 'text',
+        document: doc.name,
+        pages: doc.pages,
+        text: `${index === 0
+            ? `Nội dung trích từ file PDF "${name}" (${doc.pages} trang${doc.truncated ? ', đã cắt bớt vì quá dài' : ''}):`
+            : `(tiếp nội dung file PDF "${name}")`}\n${chunk}`,
+    }));
+}
 
 function toBase64(dataUrl) {
     const commaIndex = dataUrl.indexOf(',');
@@ -654,11 +704,13 @@ export function toWireMessages(messages) {
 // the existing two) so every existing call site — and every existing test —
 // keeps working unchanged; omitting it simply skips straight to the classic
 // non-streaming request.
-export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
+export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
     open: false,
     messages: [],
     input: '',
     attachedImages: [],
+    // PDFs already read by the server, waiting to ride along with the next message.
+    attachedDocuments: [],
     loading: false,
     error: '',
     // Short Vietnamese status line updated live while a streamed reply is
@@ -772,6 +824,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.navigate = null;
         this.error = '';
         this.attachedImages = [];
+        this.attachedDocuments = [];
         this.input = '';
         this.pendingFill = false;
         this.pendingSetFields = null;
@@ -787,11 +840,13 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.open = !this.open;
     },
 
-    onFileChange(event) {
-        const files = [...(event.target.files ?? [])].filter((file) => file.type.startsWith('image/'));
+    async onFileChange(event) {
+        const picked = [...(event.target.files ?? [])];
         event.target.value = '';
-        if (!files.length) {
-            this.error = 'Vui lòng chọn ít nhất một file ảnh.';
+        const pdfs = picked.filter(isPdfFile);
+        const files = picked.filter((file) => file.type.startsWith('image/'));
+        if (!files.length && !pdfs.length) {
+            this.error = 'Vui lòng chọn ít nhất một file ảnh hoặc file PDF.';
             return;
         }
         if (files.length > MAX_IMAGES_PER_SELECTION) {
@@ -809,18 +864,80 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
             };
             reader.readAsDataURL(file);
         }
+        for (const pdf of pdfs) {
+            await this.attachPdf(pdf);
+        }
     },
 
     removeAttachedImage(index) {
         this.attachedImages.splice(index, 1);
     },
 
+    /**
+     * Has the server pull the text out of a PDF (no AI call, nothing saved)
+     * and holds it as an attachment; the next message carries it to the model,
+     * which drafts the product exactly as it would from photos and notes.
+     */
+    async attachPdf(file) {
+        if (!pdfReadUrl) {
+            this.error = 'Trang này chưa hỗ trợ đọc file PDF.';
+            return;
+        }
+        if (this.attachedDocuments.length >= MAX_DOCUMENTS) {
+            this.error = `Chỉ đính kèm tối đa ${MAX_DOCUMENTS} file PDF mỗi lượt.`;
+            return;
+        }
+        if (this.loading) return;
+        this.error = '';
+        this.loading = true;
+        this.streamStatus = 'Đang đọc file PDF…';
+        try {
+            const body = new FormData();
+            body.append('file', file);
+            const response = await fetch(pdfReadUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+                body,
+            });
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload?.data?.text) {
+                this.error = describeRequestFailure(response, payload, 'Chưa thể đọc file PDF. Vui lòng thử lại.');
+                return;
+            }
+            const { text, pages, truncated } = payload.data;
+            this.attachedDocuments.push({ name: file.name, pages, text, truncated });
+        } catch {
+            this.error = 'Không kết nối được để đọc file PDF. Vui lòng thử lại.';
+        } finally {
+            this.loading = false;
+            this.streamStatus = '';
+        }
+    },
+
+    removeAttachedDocument(index) {
+        this.attachedDocuments.splice(index, 1);
+    },
+
+    /** The PDFs a sent message carried, one entry per file, for the chips in its bubble. */
+    documentsOf(message) {
+        const seen = new Map();
+        for (const block of message.blocks) {
+            if (block.document && !seen.has(block.document)) seen.set(block.document, `${block.document} · ${block.pages} trang`);
+        }
+
+        return [...seen].map(([name, label]) => ({ name, label }));
+    },
+
     async send() {
         if (this.loading) return;
         const text = this.input.trim();
-        if (!text && !this.attachedImages.length) return;
+        if (!text && !this.attachedImages.length && !this.attachedDocuments.length) return;
 
         const blocks = [];
+        for (const doc of this.attachedDocuments) {
+            blocks.push(...buildDocumentBlocks(doc));
+        }
         for (const image of this.attachedImages) {
             // Labels the image with the exact index the AI is told to use in "variant_images".
             blocks.push({ type: 'text', text: `Ảnh số ${image.imageIndex}:` });
@@ -829,6 +946,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
             });
         }
         if (text) blocks.push({ type: 'text', text });
+        else if (this.attachedDocuments.length) blocks.push({ type: 'text', text: 'Hãy soạn nội dung đăng sản phẩm từ file PDF đính kèm.' });
 
         this.messages.push({ role: 'user', blocks });
         // Keeps every request comfortably under the server's hard history
@@ -836,6 +954,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.messages = compactMessages(this.messages, this.draft);
         this.input = '';
         this.attachedImages = [];
+        this.attachedDocuments = [];
         this.error = '';
         this.streamStatus = '';
         this.loading = true;
