@@ -226,6 +226,26 @@ export function collectImageGallery(messages) {
 }
 
 /**
+ * The tool calls one assistant turn made, as `{name, args}` entries for the
+ * "which tool, with what parameters" dropdown under the bubble. Empty when
+ * the turn used none (plain chat reply). No DOM access, unit-testable alone.
+ */
+export function describeToolCalls({ navigate, setFields, draft }) {
+    const toolCalls = [];
+    if (navigate) toolCalls.push({ name: 'navigate', args: { page: navigate.key, label: navigate.label, url: navigate.url } });
+    if (setFields.length) toolCalls.push({ name: 'set_fields', args: { fields: setFields } });
+    if (draft) {
+        // Only what the model actually filled in — the rest is empty noise.
+        const args = Object.fromEntries(Object.entries(draft).filter(([key, value]) => (
+            key !== 'set_fields' && (Array.isArray(value) ? value.length : value !== '' && value != null)
+        )));
+        toolCalls.push({ name: 'draft', args });
+    }
+
+    return toolCalls;
+}
+
+/**
  * Pure planning step: turns a parsed AI draft into the flat list of writes
  * the real form needs. No DOM access, so this is unit-testable on its own —
  * the product form has no dedicated bullets/SEO-title fields, so those are
@@ -865,14 +885,10 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         const setFieldsLabel = setFields.length
             ? setFields.map(({ field }) => SET_FIELD_LABELS[field] ?? field).join(', ')
             : null;
-        // Which "tool" this turn actually used — shown as a small tag
-        // under the bubble so it's easy to check at a glance during
-        // testing, without having to open devtools on every reply.
-        const tools = [];
-        if (this.navigate) tools.push('navigate');
-        if (setFields.length) tools.push('set_fields');
-        if (this.draft) tools.push('draft');
-        if (!tools.length) tools.push('none');
+        // Which "tool(s)" this turn actually used, with the parameters each
+        // one got — shown as an expandable tag under the bubble so it's easy
+        // to check during testing, without having to open devtools.
+        const toolCalls = describeToolCalls({ navigate: this.navigate, setFields, draft: this.draft });
 
         // Carries the resolved page label / edited field names onto the
         // message itself so the bubble can say exactly what happened,
@@ -883,7 +899,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
             blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
             navigateLabel: this.navigate?.label ?? null,
             setFieldsLabel,
-            tools,
+            toolCalls,
         });
         // Ties the card to this exact turn — see `draftMessageIndex`.
         this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;

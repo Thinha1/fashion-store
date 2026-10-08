@@ -33,6 +33,32 @@
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
             </p>
             <template x-for="(message, index) in messages" :key="index">
+                <div>
+                <template x-if="message.role === 'assistant' && message.toolCalls?.length">
+                    <div class="ai-chat-tools" x-data="{ open: false }">
+                        <button type="button" class="ai-chat-tools-toggle" x-on:click="open = !open" :aria-expanded="open.toString()">
+                            <span x-text="`Đã dùng ${message.toolCalls.length} công cụ`"></span>
+                            <x-icon name="chevron-down" class="ai-chat-tools-chevron size-3" />
+                        </button>
+                        <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
+                            <div class="ai-chat-tool-calls">
+                                <template x-for="(call, callIndex) in message.toolCalls" :key="callIndex + '-' + call.name">
+                                    <div class="ai-chat-tool-call" x-data="{ open: false }">
+                                        <button type="button" class="ai-chat-tools-toggle" x-on:click="open = !open" :aria-expanded="open.toString()">
+                                            <span class="ai-chat-tool-name" x-text="call.name"></span>
+                                            <x-icon name="chevron-down" class="ai-chat-tools-chevron size-3" />
+                                        </button>
+                                        <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
+                                            <div class="ai-chat-tool-calls">
+                                                <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
                 <div :class="message.isRecap
                     ? 'ai-chat-recap-note'
                     : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant')">
@@ -54,7 +80,6 @@
                                 : (message.setFieldsLabel
                                     ? `Đã điền ${message.setFieldsLabel} vào form.`
                                     : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
-                            <p class="ai-chat-tool-tag" x-show="message.tools?.length" x-text="'tool: ' + message.tools?.join(', ')"></p>
                             <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
                                     x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
                                     x-on:click="undoLastFormChange()">
@@ -62,6 +87,7 @@
                             </button>
                         </div>
                     </template>
+                </div>
                 </div>
             </template>
 
