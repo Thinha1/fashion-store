@@ -51,12 +51,15 @@ class AiSetting extends Model
     }
 
     /**
-     * Makes this the only primary configuration. One transaction, so a
-     * reader never sees zero or two primaries.
+     * Makes this the only primary configuration. Locks every row first, so two
+     * concurrent calls run one after the other (the later one wins) instead of
+     * both promoting themselves, and the transaction keeps readers from seeing
+     * zero or two primaries in between.
      */
     public function makePrimary(): void
     {
         DB::transaction(function (): void {
+            static::query()->lockForUpdate()->pluck('id');
             static::query()->primary()->update(['is_primary' => false]);
             $this->update(['is_primary' => true, 'updated_by' => Auth::id()]);
         });

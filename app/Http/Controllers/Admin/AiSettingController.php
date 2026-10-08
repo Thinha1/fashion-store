@@ -45,10 +45,13 @@ class AiSettingController extends Controller
     {
         $setting = new AiSetting;
         $apiKeyChanged = $this->fillFromRequest($setting, $request);
-        // The very first configuration becomes primary straight away —
-        // otherwise saving it would silently change nothing.
-        $setting->is_primary = ! AiSetting::query()->primary()->exists();
         $setting->save();
+        // The very first configuration becomes primary straight away —
+        // otherwise saving it would silently change nothing. Goes through
+        // makePrimary() so two simultaneous first saves can't both end up primary.
+        if (! AiSetting::query()->primary()->exists()) {
+            $setting->makePrimary();
+        }
 
         $this->audit('ai_settings.created', $setting, $apiKeyChanged);
 
