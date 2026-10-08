@@ -512,6 +512,20 @@ class AdminExcelTest extends TestCase
         $this->assertDatabaseMissing('suppliers', ['phone' => '0901111111']);
     }
 
+    public function test_supplier_import_refuses_to_guess_when_several_existing_suppliers_share_the_name(): void
+    {
+        $first = Supplier::factory()->create(['name' => 'Trùng Tên', 'phone' => '0901111111']);
+        Supplier::factory()->create(['name' => 'Trùng Tên', 'phone' => '0902222222']);
+        $book = $this->supplierBook([['trùng tên', '0903333333', null, 'Hà Nội', null, 1]]);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->post(route('admin.excel.import', 'suppliers'), ['file' => $this->upload($book)]);
+
+        $response->assertSessionHasErrors('file');
+        $this->assertStringContainsString('trùng tên', session('errors')->first('file'));
+        $this->assertSame('0901111111', $first->fresh()->phone);
+        $this->assertDatabaseCount('suppliers', 2);
+    }
+
     public function test_supplier_import_does_not_merge_names_that_differ_only_by_accents(): void
     {
         Supplier::factory()->create(['name' => 'Cong ty Ao Dep']);

@@ -269,8 +269,12 @@ class AdminExcel
     private function findByName(array $definition, mixed $name, array $index): ?Model
     {
         $ids = is_string($name) ? ($index[$this->normalizeName($name)] ?? []) : [];
+        if (count($ids) > 1) {
+            // Same stance as resolveName(): never guess which of several records the row means.
+            throw ValidationException::withMessages(['name' => 'Có '.count($ids).' bản ghi đang trùng tên "'.$name.'". Hãy gộp hoặc đổi tên trước khi nhập.']);
+        }
 
-        return $ids === [] ? null : $definition['model']::query()->lockForUpdate()->find(min($ids));
+        return $ids === [] ? null : $definition['model']::query()->lockForUpdate()->find($ids[0]);
     }
 
     private function findModel(array $definition, mixed $id, array &$seen): ?Model
