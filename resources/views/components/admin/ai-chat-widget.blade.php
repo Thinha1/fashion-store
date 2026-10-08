@@ -33,6 +33,23 @@
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
             </p>
             <template x-for="(message, index) in messages" :key="index">
+                <div>
+                <template x-if="message.role === 'assistant' && message.toolCalls?.length">
+                    <details class="ai-chat-tools">
+                        <summary>
+                            <span x-text="`Đã dùng ${message.toolCalls.length} công cụ`"></span>
+                            <x-icon name="chevron-down" class="ai-chat-tools-chevron size-3" />
+                        </summary>
+                        <div class="ai-chat-tool-calls">
+                            <template x-for="call in message.toolCalls" :key="call.name">
+                                <div class="ai-chat-tool-call">
+                                    <span class="ai-chat-tool-name" x-text="call.name"></span>
+                                    <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                </div>
+                            </template>
+                        </div>
+                    </details>
+                </template>
                 <div :class="message.isRecap
                     ? 'ai-chat-recap-note'
                     : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant')">
@@ -49,16 +66,6 @@
                     </template>
                     <template x-if="message.role === 'assistant'">
                         <div>
-                            <p class="ai-chat-tool-tag" x-show="!message.toolCalls?.length">tool: none</p>
-                            <details class="ai-chat-tools" x-show="message.toolCalls?.length">
-                                <summary class="ai-chat-tool-tag" x-text="'tool: ' + message.toolCalls?.map((call) => call.name).join(', ')"></summary>
-                                <template x-for="call in message.toolCalls" :key="call.name">
-                                    <div class="ai-chat-tool-call">
-                                        <span class="ai-chat-tool-name" x-text="call.name + '(…)'"></span>
-                                        <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
-                                    </div>
-                                </template>
-                            </details>
                             <p x-text="message.navigateLabel
                                 ? `Đã di chuyển đến trang ${message.navigateLabel}.`
                                 : (message.setFieldsLabel
@@ -71,6 +78,7 @@
                             </button>
                         </div>
                     </template>
+                </div>
                 </div>
             </template>
 
