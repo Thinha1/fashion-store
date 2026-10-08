@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
+use App\Http\Controllers\Admin\ProductAiExcelController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +86,11 @@ Route::prefix('admin')
         // parsing/validation logic both share.
         Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-goi-y/stream', ProductAiAssistStreamController::class)->name('products.ai-assist-stream');
+        // Let the AI read a spreadsheet in any layout and list the products it
+        // found. Saves nothing: the chat widget fills the chosen product into
+        // the normal form and the staff member submits it themselves.
+        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+            ->post('san-pham/ai-excel/doc-file', ProductAiExcelController::class)->name('products.ai-excel.read');
         Route::middleware('permission:products.manage')
             ->get('san-pham', [ProductController::class, 'index'])->name('products.index');
         Route::middleware('permission:products.manage')

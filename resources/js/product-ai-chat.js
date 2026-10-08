@@ -1,7 +1,57 @@
 import { createSessionStore, sendAssistTurn } from './ai-chat-transport.js';
 
 const MAX_VARIANT_ROWS = 12;
+const EXCEL_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const EXCEL_FIELD_LABELS = {
+    name: 'Tên', category: 'Danh mục', brand: 'Thương hiệu', description: 'Mô tả', price: 'Giá', size: 'Size',
+    color: 'Màu', sku: 'SKU', variant_price: 'Giá biến thể', status: 'Trạng thái',
+};
 const MAX_IMAGES_PER_SELECTION = 6;
+
+/** An uploaded spreadsheet the AI should read, as opposed to a product photo. */
+export function isExcelFile(file) {
+    return /\.xlsx$/i.test(file?.name ?? '') || file?.type === EXCEL_MIME;
+}
+
+/**
+ * Shapes one product read from a spreadsheet into the same draft the chat's
+ * "Điền vào form" understands, plus the explicit per-variant rows (size,
+ * color, SKU, price) that a spreadsheet — unlike a chat message — can supply.
+ */
+export function draftFromExcelProduct(product) {
+    return {
+        name: product.name ?? '',
+        description: product.description ?? '',
+        bullets: [],
+        seo_title: '',
+        price: product.price == null ? '' : String(product.price),
+        sizes: [],
+        colors: [],
+        category: product.category ?? '',
+        brand: product.brand ?? '',
+        variant_images: [],
+        variants: Array.isArray(product.variants) ? product.variants : [],
+        status: product.status ?? null,
+        set_fields: [],
+        variant_price: '',
+        variant_stock: '',
+    };
+}
+
+/** One readable line per column the AI mapped, e.g. "Tên ← cột B (Tên hàng)". */
+export function describeExcelColumns(columns) {
+    return Object.entries(columns ?? {}).map(([field, { column, header }]) => (
+        `${EXCEL_FIELD_LABELS[field] ?? field} ← cột ${column}${header ? ` (${header})` : ''}`
+    ));
+}
+
+/** The most useful single sentence out of a failed Laravel JSON response. */
+export function describeRequestFailure(response, payload, fallback) {
+    if (response.status === 429) return 'Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.';
+    const validation = payload?.errors ? Object.values(payload.errors).flat()[0] : null;
+
+    return validation || payload?.message || fallback;
+}
 
 function toBase64(dataUrl) {
     const commaIndex = dataUrl.indexOf(',');
@@ -276,8 +326,23 @@ export function buildFillPlan(draft) {
     const variantPrice = draft.variant_price?.trim() || undefined;
     const variantStock = draft.variant_stock?.trim() || undefined;
 
+    // A spreadsheet names every variant explicitly (size, color, SKU, price),
+    // so those win over rebuilding a size x color grid from two flat lists.
+    const explicitVariants = Array.isArray(draft.variants) ? draft.variants.filter((variant) => variant?.size) : [];
+
     const variantRows = [];
-    if (sizes.length && colors.length) {
+    if (explicitVariants.length) {
+        for (const variant of explicitVariants.slice(0, MAX_VARIANT_ROWS)) {
+            variantRows.push({
+                size: variant.size,
+                color: variant.color ?? '',
+                sku: variant.sku || undefined,
+                imageIndex: undefined,
+                price: variant.price == null ? variantPrice : String(variant.price),
+                stock: variantStock,
+            });
+        }
+    } else if (sizes.length && colors.length) {
         outer: for (const size of sizes) {
             for (const color of colors) {
                 if (variantRows.length >= MAX_VARIANT_ROWS) break outer;
@@ -299,6 +364,8 @@ export function buildFillPlan(draft) {
         stockQuantity: parseStockQuantity(draft.stock_quantity),
         category: draft.category?.trim() ?? '',
         brand: draft.brand?.trim() ?? '',
+        // Only set when the source actually states it ('active' / 'archived').
+        status: draft.status === 'active' || draft.status === 'archived' ? draft.status : undefined,
         variantRows,
     };
 }
@@ -385,7 +452,7 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
     if (!rows.length) return;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color, imageIndex, price, stock } of rows) {
+    for (const { size, color, sku, imageIndex, price, stock } of rows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
@@ -405,6 +472,7 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
             flashField(sizeSelect);
         }
         if (color) setFieldValue(colorInput, color);
+        if (sku) setFieldValue(row.querySelector('input[name$="[sku]"]'), sku);
         setVariantRowPriceAndStock(row, price, stock);
         if (typeof imageIndex === 'number' && gallery[imageIndex]) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
@@ -432,6 +500,7 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
     if (plan.price) setCurrencyFieldValue(form.querySelector('#base_price'), plan.price);
     if (plan.category) selectPlainOptionByLabel(form.querySelector('#category_id'), plan.category);
     if (plan.brand) selectImageOptionByLabel(form.querySelector('#brand_id-native'), plan.brand, alpine);
+    if (plan.status) setCheckboxChecked(form.querySelector('#status'), plan.status === 'active');
     if (gallery[0]) assignImageFile(form.querySelector('#images'), gallery[0], 'ai-chat-anh-0.jpg');
 
     const list = form.querySelector('#variants-list');
@@ -638,7 +707,9 @@ export function compactMessages(messages, draft) {
  */
 export function toWireMessages(messages) {
     const merged = [];
-    for (const { role, blocks } of messages) {
+    for (const { role, blocks, local } of messages) {
+        // Local cards (an Excel import preview) are UI only — the chat model never sees them.
+        if (local) continue;
         const previous = merged.at(-1);
         if (previous && previous.role === role) {
             previous.content.push(...toContentBlocks(blocks));
@@ -654,7 +725,7 @@ export function toWireMessages(messages) {
 // the existing two) so every existing call site — and every existing test —
 // keeps working unchanged; omitting it simply skips straight to the classic
 // non-streaming request.
-export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
+export default (assistUrl, productCreateUrl, assistStreamUrl, excelReadUrl) => ({
     open: false,
     messages: [],
     input: '',
@@ -787,11 +858,21 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
         this.open = !this.open;
     },
 
-    onFileChange(event) {
-        const files = [...(event.target.files ?? [])].filter((file) => file.type.startsWith('image/'));
+    async onFileChange(event) {
+        const picked = [...(event.target.files ?? [])];
         event.target.value = '';
+        const spreadsheets = picked.filter(isExcelFile);
+        if (spreadsheets.length) {
+            if (picked.length > 1) {
+                this.error = 'Hãy chọn file Excel riêng, không chọn kèm ảnh hoặc file khác.';
+                return;
+            }
+            await this.readExcel(spreadsheets[0]);
+            return;
+        }
+        const files = picked.filter((file) => file.type.startsWith('image/'));
         if (!files.length) {
-            this.error = 'Vui lòng chọn ít nhất một file ảnh.';
+            this.error = 'Vui lòng chọn ít nhất một file ảnh hoặc một file Excel (.xlsx).';
             return;
         }
         if (files.length > MAX_IMAGES_PER_SELECTION) {
@@ -809,6 +890,73 @@ export default (assistUrl, productCreateUrl, assistStreamUrl) => ({
             };
             reader.readAsDataURL(file);
         }
+    },
+
+    /**
+     * Uploads a spreadsheet so the server can have the model work out its
+     * layout, then lists the products it found as a card. Nothing is saved
+     * and nothing touches the product form here: the staff member picks a
+     * product, `fillExcelProduct` fills it into the normal form, and they
+     * review it and press "Lưu" themselves.
+     */
+    async readExcel(file) {
+        if (!excelReadUrl) {
+            this.error = 'Trang này chưa hỗ trợ đọc file Excel.';
+            return;
+        }
+        if (this.loading) return;
+        this.error = '';
+        this.loading = true;
+        this.streamStatus = 'Đang đọc file Excel…';
+        try {
+            const body = new FormData();
+            body.append('file', file);
+            const response = await fetch(excelReadUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+                body,
+            });
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload?.data) {
+                this.error = describeRequestFailure(response, payload, 'Chưa thể đọc file Excel. Vui lòng thử lại.');
+                return;
+            }
+            this.messages.push({
+                role: 'assistant', local: true, blocks: [{ type: 'text', text: `Đã đọc file Excel ${file.name}` }],
+                excel: { ...payload.data, fileName: file.name, filled: [] },
+            });
+            this.persist();
+        } catch {
+            this.error = 'Không kết nối được để đọc file Excel. Vui lòng thử lại.';
+        } finally {
+            this.loading = false;
+            this.streamStatus = '';
+        }
+    },
+
+    /**
+     * Fills one product from an Excel card into the product form — going to
+     * the "add product" page first when no form is on screen, exactly like
+     * the draft card's "Điền vào form". Never submits: that stays a human step.
+     */
+    fillExcelProduct(messageIndex, productIndex) {
+        const excel = this.messages[messageIndex]?.excel;
+        const product = excel?.products?.[productIndex];
+        if (!product) return;
+        this.error = '';
+        this.draft = draftFromExcelProduct(product);
+        // The Excel card is the review surface; the separate draft card must not also pop up.
+        this.draftMessageIndex = null;
+        excel.filled = [...new Set([...(excel.filled ?? []), productIndex])];
+        this.fillForm();
+        this.persist();
+    },
+
+    describeExcelColumns,
+
+    formatPrice(amount) {
+        return Number.isFinite(Number(amount)) ? `${Number(amount).toLocaleString('vi-VN')}đ` : '';
     },
 
     removeAttachedImage(index) {

@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}', '{{ route('admin.products.ai-excel.read') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
         <x-icon name="robot" x-show="!open" class="size-4" />
@@ -31,6 +31,7 @@
             <p class="text-xs text-gray-500" x-show="!messages.length">
                 Đính kèm ảnh sản phẩm (ảnh đầu là ảnh chung; các ảnh sau nếu là biến thể màu khác, AI sẽ tự gán đúng màu)
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
+                Hoặc đính kèm file Excel danh sách sản phẩm (định dạng bất kỳ), AI sẽ đọc, liệt kê sản phẩm để bạn chọn điền vào form thêm sản phẩm.
             </p>
             <template x-for="(message, index) in messages" :key="index">
                 <div>
@@ -61,7 +62,58 @@
                 </template>
                 <div :class="message.isRecap
                     ? 'ai-chat-recap-note'
-                    : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant')">
+                    : (message.excel ? 'ai-chat-excel-card' : (message.role === 'user' ? 'ai-chat-bubble ai-chat-bubble-user' : 'ai-chat-bubble ai-chat-bubble-assistant'))">
+                    <template x-if="message.excel">
+                        <div class="space-y-2">
+                            <p class="font-semibold text-gray-900" x-text="`Đã đọc file ${message.excel.fileName}`"></p>
+                            <p class="text-xs text-gray-500" x-show="message.excel.note" x-text="message.excel.note"></p>
+                            <p class="text-sm" x-text="`${message.excel.product_count} sản phẩm · ${message.excel.variant_count} biến thể` + (message.excel.skipped_count ? ` · ${message.excel.skipped_count} bỏ qua` : '')"></p>
+
+                            <details class="ai-chat-excel-details" x-show="Object.keys(message.excel.columns ?? {}).length">
+                                <summary>Kết quả nhập liệu bằng AI</summary>
+                                <ul>
+                                    <template x-for="line in describeExcelColumns(message.excel.columns)" :key="line">
+                                        <li x-text="line"></li>
+                                    </template>
+                                </ul>
+                            </details>
+
+                            <p class="text-xs text-gray-500" x-show="message.excel.products?.length">Bấm "Điền vào form" để điền từng sản phẩm vào form thêm sản phẩm. Bạn kiểm tra rồi tự bấm Lưu.</p>
+                            <ul class="ai-chat-excel-products" x-show="message.excel.products?.length">
+                                <template x-for="(product, productIndex) in message.excel.products" :key="productIndex">
+                                    <li class="ai-chat-excel-product">
+                                        <div class="min-w-0">
+                                            <span class="font-medium" x-text="product.name"></span>
+                                            <span class="text-gray-500" x-text="` · ${product.category} · ${product.brand} · ${formatPrice(product.price)}` + (product.variants.length ? ` · ${product.variants.length} biến thể` : '')"></span>
+                                            <span class="block text-amber-700" x-show="product.variants.length > 12">Form chỉ nhận 12 biến thể, sẽ điền 12 biến thể đầu.</span>
+                                        </div>
+                                        <button type="button" class="admin-action admin-action-secondary !min-h-8 shrink-0 !px-2.5 text-xs"
+                                                x-on:click="fillExcelProduct(index, productIndex)"
+                                                x-text="(message.excel.filled ?? []).includes(productIndex) ? 'Điền lại' : 'Điền vào form'"></button>
+                                    </li>
+                                </template>
+                                <li class="text-gray-400" x-show="message.excel.product_count > message.excel.products.length"
+                                    x-text="`… và ${message.excel.product_count - message.excel.products.length} sản phẩm khác (chỉ hiện 100 sản phẩm đầu)`"></li>
+                            </ul>
+
+                            <details class="ai-chat-excel-details ai-chat-excel-issues" x-show="message.excel.skipped?.length" open>
+                                <summary x-text="`Không điền được (${message.excel.skipped_count})`"></summary>
+                                <ul>
+                                    <template x-for="item in message.excel.skipped" :key="item.row + item.name">
+                                        <li x-text="`Dòng ${item.row} — ${item.name}: ${item.reason}`"></li>
+                                    </template>
+                                </ul>
+                            </details>
+                            <details class="ai-chat-excel-details" x-show="message.excel.warnings?.length">
+                                <summary x-text="`Lưu ý (${message.excel.warning_count})`"></summary>
+                                <ul>
+                                    <template x-for="warning in message.excel.warnings" :key="warning">
+                                        <li x-text="warning"></li>
+                                    </template>
+                                </ul>
+                            </details>
+                        </div>
+                    </template>
                     <template x-if="message.isRecap">
                         <p x-text="message.blocks[0].text"></p>
                     </template>
@@ -73,7 +125,7 @@
                             <p class="whitespace-pre-line" x-text="message.blocks.filter((b) => b.type === 'text').map((b) => b.text).join(' ')"></p>
                         </div>
                     </template>
-                    <template x-if="message.role === 'assistant'">
+                    <template x-if="message.role === 'assistant' && !message.excel">
                         <div>
                             <p x-text="message.navigateLabel
                                 ? `Đã di chuyển đến trang ${message.navigateLabel}.`
@@ -142,7 +194,7 @@
             </div>
             <div class="flex items-end gap-2">
                 <label for="ai-chat-file-input" class="sr-only">Đính kèm ảnh</label>
-                <input id="ai-chat-file-input" type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" x-on:change="onFileChange($event)">
+                <input id="ai-chat-file-input" type="file" x-ref="fileInput" accept="image/jpeg,image/png,image/webp,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple class="hidden" x-on:change="onFileChange($event)">
                 <button type="button" class="admin-action-quiet admin-action !min-h-11 !px-3" x-on:click="$refs.fileInput.click()"
                         aria-label="Đính kèm ảnh">
                     <x-icon name="paperclip" class="size-4" />
