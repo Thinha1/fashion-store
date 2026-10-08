@@ -99,7 +99,8 @@
     .ai-chat-bubble { @apply max-w-[85%] rounded-xl px-3 py-2 text-sm; animation: ai-chat-rise 220ms cubic-bezier(.2,.8,.2,1) both; }
     .ai-chat-bubble-user { @apply ml-auto bg-brand-soft text-gray-900; }
     .ai-chat-bubble-assistant { @apply bg-gray-100 text-gray-900; }
-    .ai-chat-tool-tag { @apply mt-1 block font-mono text-[11px] tracking-tight text-gray-400; }
+    .ai-chat-tool-tag { @apply mb-1 block font-mono text-[11px] tracking-tight text-gray-400; }
+    .ai-chat-tools { @apply mb-1; }
     .ai-chat-tools > summary { @apply cursor-pointer select-none hover:text-gray-600; }
     .ai-chat-tool-call { @apply mt-1 rounded-md bg-white/70 p-1.5; }
     .ai-chat-tool-name { @apply font-mono text-[11px] font-semibold text-gray-600; }

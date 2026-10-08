@@ -49,11 +49,6 @@
                     </template>
                     <template x-if="message.role === 'assistant'">
                         <div>
-                            <p x-text="message.navigateLabel
-                                ? `Đã di chuyển đến trang ${message.navigateLabel}.`
-                                : (message.setFieldsLabel
-                                    ? `Đã điền ${message.setFieldsLabel} vào form.`
-                                    : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                             <p class="ai-chat-tool-tag" x-show="!message.toolCalls?.length">tool: none</p>
                             <details class="ai-chat-tools" x-show="message.toolCalls?.length">
                                 <summary class="ai-chat-tool-tag" x-text="'tool: ' + message.toolCalls?.map((call) => call.name).join(', ')"></summary>
@@ -64,6 +59,11 @@
                                     </div>
                                 </template>
                             </details>
+                            <p x-text="message.navigateLabel
+                                ? `Đã di chuyển đến trang ${message.navigateLabel}.`
+                                : (message.setFieldsLabel
+                                    ? `Đã điền ${message.setFieldsLabel} vào form.`
+                                    : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                             <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
                                     x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
                                     x-on:click="undoLastFormChange()">
