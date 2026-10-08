@@ -86,6 +86,17 @@ class GoodsReceiptTest extends TestCase
         $response->assertRedirect(route('admin.goods-receipts.show', $receipt));
     }
 
+    public function test_every_new_receipt_gets_a_padded_pn_number_from_its_id(): void
+    {
+        $this->actingAs($this->admin())->post(route('admin.goods-receipts.store'), $this->makePayload());
+        $first = GoodsReceipt::query()->firstOrFail();
+
+        $this->assertSame('PN-'.str_pad((string) $first->id, 4, '0', STR_PAD_LEFT), $first->receipt_number);
+        $this->assertSame('PN-0007', GoodsReceipt::numberFor(7));
+        $this->assertSame('PN-12345', GoodsReceipt::numberFor(12345));
+        $this->assertMatchesRegularExpression('/^PN-\d{4,}$/', GoodsReceipt::factory()->create()->receipt_number);
+    }
+
     public function test_receipt_items_must_be_unique_by_variant(): void
     {
         $variant = ProductVariant::factory()->create();

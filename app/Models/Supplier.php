@@ -13,6 +13,21 @@ class Supplier extends Model
 {
     use HasFactory;
 
+    /**
+     * The code needs the auto-increment id, so it can only be written once the row exists.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Supplier $supplier): void {
+            $supplier->forceFill(['code' => self::codeFor($supplier->id)])->saveQuietly();
+        });
+    }
+
+    public static function codeFor(int $id): string
+    {
+        return 'NCC-'.str_pad((string) $id, 4, '0', STR_PAD_LEFT);
+    }
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];

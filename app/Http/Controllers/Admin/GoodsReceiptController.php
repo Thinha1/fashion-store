@@ -14,7 +14,6 @@ use App\Support\AdminSorting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class GoodsReceiptController extends Controller
@@ -56,7 +55,6 @@ class GoodsReceiptController extends Controller
 
         $receipt = DB::transaction(function () use ($data, $items, $totalCost, $actorId) {
             $receipt = GoodsReceipt::query()->create([
-                'receipt_number' => $this->generateReceiptNumber(),
                 'supplier_id' => $data['supplier_id'],
                 'status' => 'draft',
                 'total_cost' => $totalCost,
@@ -143,11 +141,6 @@ class GoodsReceiptController extends Controller
     private function requestUser(): User
     {
         return auth()->user();
-    }
-
-    private function generateReceiptNumber(): string
-    {
-        return 'GR-'.now()->format('Ymd').'-'.strtoupper(Str::random(5));
     }
 
     private function calculateTotalCost(array $items): float

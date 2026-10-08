@@ -6,7 +6,6 @@ use App\Models\GoodsReceipt;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<GoodsReceipt>
@@ -21,7 +20,6 @@ class GoodsReceiptFactory extends Factory
     public function definition(): array
     {
         return [
-            'receipt_number' => 'GR-'.now()->format('Ymd').'-'.strtoupper(Str::random(5)),
             'supplier_id' => Supplier::factory(),
             'status' => 'draft',
             'total_cost' => 0,
