@@ -54,7 +54,16 @@
                                 : (message.setFieldsLabel
                                     ? `Đã điền ${message.setFieldsLabel} vào form.`
                                     : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
-                            <p class="ai-chat-tool-tag" x-show="message.tools?.length" x-text="'tool: ' + message.tools?.join(', ')"></p>
+                            <p class="ai-chat-tool-tag" x-show="!message.toolCalls?.length">tool: none</p>
+                            <details class="ai-chat-tools" x-show="message.toolCalls?.length">
+                                <summary class="ai-chat-tool-tag" x-text="'tool: ' + message.toolCalls?.map((call) => call.name).join(', ')"></summary>
+                                <template x-for="call in message.toolCalls" :key="call.name">
+                                    <div class="ai-chat-tool-call">
+                                        <span class="ai-chat-tool-name" x-text="call.name + '(…)'"></span>
+                                        <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                    </div>
+                                </template>
+                            </details>
                             <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
                                     x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
                                     x-on:click="undoLastFormChange()">

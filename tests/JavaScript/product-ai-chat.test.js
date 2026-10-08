@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
     buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery, compactMessages, applySetFields,
-    parseSseFrames, describeStreamProgress,
+    parseSseFrames, describeStreamProgress, describeToolCalls,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -491,7 +491,22 @@ test('send() tags the message with which tool(s) were used this turn', async t =
     const chat = productAiChat('/admin/san-pham/ai-goi-y');
     chat.input = 'áo sơ mi trắng giá 350k';
     await chat.send();
-    assert.deepEqual(chat.messages.at(-1).tools, ['draft']);
+    const [call, ...rest] = chat.messages.at(-1).toolCalls;
+    assert.equal(call.name, 'draft');
+    assert.deepEqual(rest, []);
+    assert.equal(call.args.name, draft.name);
+});
+
+test('describeToolCalls() lists each tool with the parameters it got, and nothing for a plain reply', () => {
+    const navigate = { key: 'products', label: 'Sản phẩm', url: '/admin/san-pham' };
+    const setFields = [{ field: 'price', value: '100000' }];
+    assert.deepEqual(describeToolCalls({ navigate: null, setFields: [], draft: null }), []);
+    assert.deepEqual(describeToolCalls({ navigate, setFields, draft: null }), [
+        { name: 'navigate', args: { page: 'products', label: 'Sản phẩm', url: '/admin/san-pham' } },
+        { name: 'set_fields', args: { fields: setFields } },
+    ]);
+    const [draftCall] = describeToolCalls({ navigate: null, setFields: [], draft: { name: 'Áo', price: '', sizes: ['S'], colors: [], set_fields: setFields } });
+    assert.deepEqual(draftCall, { name: 'draft', args: { name: 'Áo', sizes: ['S'] } });
 });
 
 test('send() jumps to the product create page and remembers set_fields when no form is on the current page', async t => {
