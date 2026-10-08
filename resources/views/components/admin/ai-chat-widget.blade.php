@@ -35,20 +35,22 @@
             <template x-for="(message, index) in messages" :key="index">
                 <div>
                 <template x-if="message.role === 'assistant' && message.toolCalls?.length">
-                    <details class="ai-chat-tools">
-                        <summary>
+                    <div class="ai-chat-tools" x-data="{ open: false }">
+                        <button type="button" class="ai-chat-tools-toggle" x-on:click="open = !open" :aria-expanded="open.toString()">
                             <span x-text="`Đã dùng ${message.toolCalls.length} công cụ`"></span>
                             <x-icon name="chevron-down" class="ai-chat-tools-chevron size-3" />
-                        </summary>
-                        <div class="ai-chat-tool-calls">
-                            <template x-for="call in message.toolCalls" :key="call.name">
-                                <div class="ai-chat-tool-call">
-                                    <span class="ai-chat-tool-name" x-text="call.name"></span>
-                                    <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
-                                </div>
-                            </template>
+                        </button>
+                        <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
+                            <div class="ai-chat-tool-calls">
+                                <template x-for="call in message.toolCalls" :key="call.name">
+                                    <div class="ai-chat-tool-call">
+                                        <span class="ai-chat-tool-name" x-text="call.name"></span>
+                                        <pre x-text="JSON.stringify(call.args, null, 2)"></pre>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                    </details>
+                    </div>
                 </template>
                 <div :class="message.isRecap
                     ? 'ai-chat-recap-note'
