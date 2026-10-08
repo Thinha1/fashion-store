@@ -750,6 +750,10 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
     // (variant rows carrying a real `<input type="file">`), which can't
     // survive serialization and shouldn't survive a reload anyway.
     lastFormChange: null,
+    // Undo for the latest "Điền vào form" specifically. A second click must
+    // REPLACE the earlier fill (clear what it wrote, then write again), not
+    // pile new variant rows on top of the old ones.
+    lastDraftFillRestore: null,
     // Ties the undo link to the turn that caused it, retiring the same way
     // draftMessageIndex does once the conversation moves on.
     lastFormChangeMessageIndex: null,
@@ -833,6 +837,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
         this.pendingFocus = false;
         this.lastFormChange = null;
         this.lastFormChangeMessageIndex = null;
+        this.lastDraftFillRestore = null;
         this.streamStatus = '';
     },
 
@@ -1082,8 +1087,11 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
     },
 
     applyDraftToForm(form) {
+        // Filling again replaces the previous fill instead of adding to it.
+        this.lastDraftFillRestore?.();
         const gallery = collectImageGallery(this.messages);
         const { restore } = applyFillPlan(buildFillPlan(this.draft), form, window.Alpine, gallery);
+        this.lastDraftFillRestore = restore;
         this.pendingFill = false;
         this.lastFormChange = { restore };
         this.lastFormChangeMessageIndex = this.draftMessageIndex;
@@ -1097,8 +1105,16 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
     },
 
     undoLastFormChange() {
-        this.lastFormChange?.restore();
+        const change = this.lastFormChange;
+        change?.restore();
+        // Undone once; running the same restore again later would trim rows the user added since.
+        if (change && change.restore === this.lastDraftFillRestore) this.lastDraftFillRestore = null;
         this.lastFormChange = null;
         this.lastFormChangeMessageIndex = null;
+    },
+
+    /** True while the most recent change to the form is a draft-card fill that can still be taken back — the card shows its "Hoàn tác" then. */
+    canUndoDraftFill() {
+        return Boolean(this.lastDraftFillRestore && this.lastFormChange?.restore === this.lastDraftFillRestore);
     },
 });

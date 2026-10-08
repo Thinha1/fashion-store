@@ -123,6 +123,12 @@
                 <button type="button" class="admin-action admin-action-primary w-full justify-center" x-on:click="fillForm()">
                     Điền vào form
                 </button>
+                <div class="flex items-center justify-between gap-2 text-xs text-gray-500" x-show="canUndoDraftFill()">
+                    <span>Đã điền vào form. Bấm "Điền vào form" lần nữa sẽ ghi đè dữ liệu hiện tại.</span>
+                    <button type="button" class="shrink-0 font-semibold text-brand underline underline-offset-4" x-on:click="undoLastFormChange()">
+                        Hoàn tác
+                    </button>
+                </div>
             </div>
 
             <div class="ai-chat-bubble ai-chat-bubble-assistant ai-chat-thinking" x-show="loading" x-cloak>
