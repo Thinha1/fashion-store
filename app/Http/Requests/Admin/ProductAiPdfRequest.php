@@ -15,7 +15,7 @@ class ProductAiPdfRequest extends BaseAdminRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'file' => ['required', 'file', 'mimes:pdf', 'max:8192'],
         ];
     }
 
@@ -27,7 +27,7 @@ class ProductAiPdfRequest extends BaseAdminRequest
         return [
             'file.required' => 'Vui lòng chọn file PDF.',
             'file.mimes' => 'Chỉ nhận file định dạng .pdf.',
-            'file.max' => 'File PDF tối đa 10 MB.',
+            'file.max' => 'File PDF tối đa 8 MB.',
         ];
     }
 }

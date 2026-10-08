@@ -71,6 +71,12 @@ class ProductAiPdfReadTest extends TestCase
         $this->read(UploadedFile::fake()->createWithContent('san-pham.txt', 'hello'))->assertJsonValidationErrors('file');
     }
 
+    public function test_a_pdf_over_8_mb_is_refused(): void
+    {
+        $this->read(UploadedFile::fake()->create('lon.pdf', 8193, 'application/pdf'))->assertJsonValidationErrors('file');
+        $this->read(UploadedFile::fake()->create('vua.pdf', 8192, 'application/pdf'))->assertJsonMissingValidationErrors('file.max');
+    }
+
     public function test_the_text_layer_and_page_count_are_returned(): void
     {
         $response = $this->read($this->upload($this->pdf(['Ao so mi linen tay dai', 'Gia ban le: 349.000d', 'Size: M, L, XL'], pages: 2)))->assertOk();
