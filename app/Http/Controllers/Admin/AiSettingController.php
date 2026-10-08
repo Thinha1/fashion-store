@@ -13,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -30,11 +29,11 @@ class AiSettingController extends Controller
 {
     public function edit(Request $request): View
     {
-        $editing = $request->filled('sua') ? AiSetting::query()->findOrFail($request->integer('sua')) : null;
+        $settings = AiSetting::query()->orderByDesc('is_primary')->orderBy('id')->get();
 
         return view('admin.settings.ai', [
-            'settings' => AiSetting::query()->with('updatedBy')->orderByDesc('is_primary')->orderBy('id')->get(),
-            'editing' => $editing,
+            'settings' => $settings,
+            'editing' => $request->filled('sua') ? $settings->firstWhere('id', $request->integer('sua')) ?? abort(404) : null,
             'envDefaults' => [
                 'endpoint' => (string) config('services.ai.openai_compatible.endpoint'),
                 'model' => (string) config('services.ai.openai_compatible.model'),
@@ -44,18 +43,17 @@ class AiSettingController extends Controller
 
     public function store(SaveAiSettingRequest $request): RedirectResponse
     {
-        $setting = DB::transaction(function () use ($request): AiSetting {
-            $setting = new AiSetting;
-            $this->fillFromRequest($setting, $request);
-            // The very first configuration becomes primary straight away —
-            // otherwise saving it would silently change nothing.
-            $setting->is_primary = ! AiSetting::query()->where('is_primary', true)->exists();
-            $setting->save();
+        $setting = new AiSetting;
+        $apiKeyChanged = $this->fillFromRequest($setting, $request);
+        $setting->save();
+        // The very first configuration becomes primary straight away —
+        // otherwise saving it would silently change nothing. Goes through
+        // makePrimary() so two simultaneous first saves can't both end up primary.
+        if (! AiSetting::query()->primary()->exists()) {
+            $setting->makePrimary();
+        }
 
-            return $setting;
-        });
-
-        $this->audit('ai_settings.created', $setting, $request->filled('api_key'));
+        $this->audit('ai_settings.created', $setting, $apiKeyChanged);
 
         return redirect()->route('admin.settings.ai.edit')
             ->with('status', 'Đã thêm cấu hình AI "'.$setting->name.'".');
@@ -63,9 +61,7 @@ class AiSettingController extends Controller
 
     public function update(SaveAiSettingRequest $request, AiSetting $aiSetting): RedirectResponse
     {
-        $apiKeyChanged = $request->boolean('clear_api_key') || $request->filled('api_key');
-
-        $this->fillFromRequest($aiSetting, $request);
+        $apiKeyChanged = $this->fillFromRequest($aiSetting, $request);
         $aiSetting->save();
 
         $this->audit('ai_settings.updated', $aiSetting, $apiKeyChanged);
@@ -76,13 +72,9 @@ class AiSettingController extends Controller
 
     public function makePrimary(AiSetting $aiSetting): RedirectResponse
     {
-        // One transaction so a reader never sees zero or two primaries.
-        DB::transaction(function () use ($aiSetting): void {
-            AiSetting::query()->where('id', '!=', $aiSetting->id)->where('is_primary', true)->update(['is_primary' => false]);
-            $aiSetting->forceFill(['is_primary' => true, 'updated_by' => Auth::id()])->save();
-        });
+        $aiSetting->makePrimary();
 
-        $this->audit('ai_settings.primary_changed', $aiSetting, false);
+        $this->audit('ai_settings.primary_changed', $aiSetting);
 
         return redirect()->route('admin.settings.ai.edit')
             ->with('status', 'Đã chuyển sang dùng cấu hình AI "'.$aiSetting->name.'".');
@@ -97,7 +89,7 @@ class AiSettingController extends Controller
 
         $aiSetting->delete();
 
-        $this->audit('ai_settings.deleted', $aiSetting, false);
+        $this->audit('ai_settings.deleted', $aiSetting);
 
         return redirect()->route('admin.settings.ai.edit')
             ->with('status', 'Đã xoá cấu hình AI "'.$aiSetting->name.'".');
@@ -149,7 +141,10 @@ class AiSettingController extends Controller
         return response()->json(['ok' => true, 'message' => 'Kết nối thành công.']);
     }
 
-    private function fillFromRequest(AiSetting $setting, SaveAiSettingRequest $request): void
+    /**
+     * @return bool whether this call touched the stored API key
+     */
+    private function fillFromRequest(AiSetting $setting, SaveAiSettingRequest $request): bool
     {
         $setting->fill([
             'name' => $request->string('name')->trim()->value(),
@@ -164,12 +159,19 @@ class AiSettingController extends Controller
         // so re-saving the rest of the form never accidentally wipes it.
         if ($request->boolean('clear_api_key')) {
             $setting->api_key = null;
-        } elseif ($request->filled('api_key')) {
-            $setting->api_key = $request->string('api_key')->value();
+
+            return true;
         }
+        if ($request->filled('api_key')) {
+            $setting->api_key = $request->string('api_key')->value();
+
+            return true;
+        }
+
+        return false;
     }
 
-    private function audit(string $action, AiSetting $setting, bool $apiKeyChanged): void
+    private function audit(string $action, AiSetting $setting, bool $apiKeyChanged = false): void
     {
         AuditLog::query()->create([
             'actor_id' => Auth::id(),

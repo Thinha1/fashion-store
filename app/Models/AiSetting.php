@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -37,6 +40,29 @@ class AiSetting extends Model
         }
 
         return Str::length($apiKey) <= 4 ? str_repeat('•', 8) : str_repeat('•', 8).Str::substr($apiKey, -4);
+    }
+
+    /**
+     * @param  Builder<AiSetting>  $query
+     */
+    public function scopePrimary(Builder $query): void
+    {
+        $query->where('is_primary', true);
+    }
+
+    /**
+     * Makes this the only primary configuration. Locks every row first, so two
+     * concurrent calls run one after the other (the later one wins) instead of
+     * both promoting themselves, and the transaction keeps readers from seeing
+     * zero or two primaries in between.
+     */
+    public function makePrimary(): void
+    {
+        DB::transaction(function (): void {
+            static::query()->lockForUpdate()->pluck('id');
+            static::query()->primary()->update(['is_primary' => false]);
+            $this->update(['is_primary' => true, 'updated_by' => Auth::id()]);
+        });
     }
 
     public function updatedBy(): BelongsTo
