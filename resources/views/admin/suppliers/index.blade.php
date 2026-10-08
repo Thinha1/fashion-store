@@ -17,7 +17,7 @@
         :header="['Mã NCC', 'Tên nhà cung cấp', 'Điện thoại', 'Email', 'Mã số thuế', 'Phiếu nhập', 'Trạng thái', 'Thao tác']">
         @forelse ($suppliers as $supplier)
             <tr>
-                <td class="px-4 py-3 text-gray-600">{{ $supplier->code }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ $supplier->code ?? '—' }}</td>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ $supplier->name }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $supplier->phone }}</td>
                 <td class="px-4 py-3 text-gray-600">{{ $supplier->email ?? '—' }}</td>

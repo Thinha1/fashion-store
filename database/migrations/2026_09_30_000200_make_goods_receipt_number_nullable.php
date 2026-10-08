@@ -17,6 +17,10 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Rolling back needs every receipt to have a number; the created hook always sets one, so that only fails
+     * if rows were inserted around the model (e.g. raw SQL) — fix those first.
+     */
     public function down(): void
     {
         Schema::table('goods_receipts', function (Blueprint $table) {
