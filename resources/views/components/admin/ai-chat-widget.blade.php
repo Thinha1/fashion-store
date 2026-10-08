@@ -42,7 +42,7 @@
                         </button>
                         <div class="ai-chat-tool-calls-wrap" :class="{ 'is-open': open }" :inert="!open">
                             <div class="ai-chat-tool-calls">
-                                <template x-for="call in message.toolCalls" :key="call.name">
+                                <template x-for="(call, callIndex) in message.toolCalls" :key="callIndex + '-' + call.name">
                                     <div class="ai-chat-tool-call" x-data="{ open: false }">
                                         <button type="button" class="ai-chat-tools-toggle" x-on:click="open = !open" :aria-expanded="open.toString()">
                                             <span class="ai-chat-tool-name" x-text="call.name"></span>
