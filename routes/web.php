@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Storefront\AddressController;
+use App\Http\Controllers\Storefront\CartController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\ProductAssistController;
@@ -37,6 +38,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::put('{address}', 'update')->name('update');
         Route::patch('{address}/mac-dinh', 'makeDefault')->name('default');
         Route::delete('{address}', 'destroy')->name('destroy');
+    });
+
+    Route::prefix('gio-hang')->name('cart.')->controller(CartController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::patch('{cartItem}', 'update')->name('update');
+        Route::delete('{cartItem}', 'destroy')->name('destroy');
     });
 });
 

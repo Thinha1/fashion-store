@@ -6,9 +6,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -45,6 +47,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * The cart the customer is filling right now. Checked-out carts stay
+     * behind as `converted` for history; the next add-to-cart starts a new one.
+     */
+    public function activeCart(): HasOne
+    {
+        return $this->hasOne(Cart::class)->ofMany(['id' => 'max'], fn (Builder $query) => $query->where('status', 'active'));
     }
 
     public function orders(): HasMany

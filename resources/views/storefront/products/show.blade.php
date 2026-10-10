@@ -157,11 +157,17 @@
                     <span class="w-10 text-center text-sm font-semibold" x-text="qty"></span>
                     <button type="button" class="flex size-11 items-center justify-center text-gray-500 hover:text-brand" x-on:click="inc()" aria-label="Tăng số lượng">+</button>
                 </div>
-                <button type="button" class="btn btn-primary flex-1" :disabled="!inStock"
-                        x-on:click="$dispatch('notify', 'Giỏ hàng sẽ sớm ra mắt — cảm ơn bạn đã quan tâm!')">
-                    <x-icon name="box" class="size-4" /> Thêm vào giỏ
-                </button>
+                <form method="POST" action="{{ route('cart.store') }}" class="flex flex-1">
+                    @csrf
+                    <input type="hidden" name="product_variant_id" :value="variant ? variant.id : ''">
+                    <input type="hidden" name="quantity" :value="qty">
+                    <button type="submit" class="btn btn-primary flex-1" :disabled="!inStock">
+                        <x-icon name="cart" class="size-4" /> Thêm vào giỏ
+                    </button>
+                </form>
             </div>
+            <x-input-error :messages="$errors->get('product_variant_id')" />
+            <x-input-error :messages="$errors->get('quantity')" />
             <p class="mt-3 flex items-center gap-1.5 text-xs text-gray-500"
                x-data="{ msg: '', timer: null }"
                x-on:notify.window="msg = $event.detail; clearTimeout(timer); timer = setTimeout(() => msg = '', 3500)"

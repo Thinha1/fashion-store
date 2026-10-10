@@ -65,6 +65,13 @@
                 <a href="{{ route('collections.index') }}" class="nav-link"
                     @if (request()->routeIs('collections.*')) aria-current="page" @endif>Bộ sưu tập</a>
                 <a href="{{ route('home') }}#phong-cach" class="nav-link">Gợi ý phong cách</a>
+                <a href="{{ route('cart.index') }}" class="nav-link relative" aria-label="Giỏ hàng ({{ $cartItemCount }} sản phẩm)"
+                    @if (request()->routeIs('cart.*')) aria-current="page" @endif>
+                    <x-icon name="cart" class="size-4" />
+                    @if ($cartItemCount > 0)
+                        <span class="absolute -top-0.5 -right-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] font-semibold text-white">{{ $cartItemCount > 99 ? '99+' : $cartItemCount }}</span>
+                    @endif
+                </a>
                 @auth
                     @if (auth()->user()->hasPermission('admin.access'))
                         <a href="{{ route('admin.dashboard') }}" class="nav-link">Quản trị</a>
@@ -78,9 +85,17 @@
                     <a href="{{ route('register') }}" class="btn btn-primary">Tạo tài khoản <x-icon class="size-4" /></a>
                 @endauth
             </nav>
-            <button type="button" x-on:click="menuOpen = !menuOpen" :aria-expanded="menuOpen"
-                aria-controls="mobile-nav" aria-label="Mở menu" class="btn btn-secondary px-3 md:hidden"><x-icon
-                    name="menu" /></button>
+            <div class="flex items-center gap-2 md:hidden">
+                <a href="{{ route('cart.index') }}" class="btn btn-secondary relative px-3" aria-label="Giỏ hàng ({{ $cartItemCount }} sản phẩm)">
+                    <x-icon name="cart" />
+                    @if ($cartItemCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] font-semibold text-white">{{ $cartItemCount > 99 ? '99+' : $cartItemCount }}</span>
+                    @endif
+                </a>
+                <button type="button" x-on:click="menuOpen = !menuOpen" :aria-expanded="menuOpen"
+                    aria-controls="mobile-nav" aria-label="Mở menu" class="btn btn-secondary px-3"><x-icon
+                        name="menu" /></button>
+            </div>
         </div>
         <nav id="mobile-nav" aria-label="Điều hướng trên điện thoại" x-cloak x-show="menuOpen"
             class="flex flex-col gap-2 border-t border-gray-100 p-5 md:hidden">
