@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
+use App\Services\Cart\ShoppingCart;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -81,6 +82,12 @@ class AppServiceProvider extends ServiceProvider
                         ]);
                 }])
                 ->get());
+        });
+
+        View::composer('layouts.app', function ($view): void {
+            $user = auth()->user();
+
+            $view->with('cartItemCount', $user ? app(ShoppingCart::class)->itemCount($user) : 0);
         });
     }
 }

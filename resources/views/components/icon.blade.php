@@ -15,6 +15,7 @@
         'chevron-left' => 'fa-chevron-left', 'chevron-right' => 'fa-chevron-right', 'chevron-down' => 'fa-chevron-down',
         'chat' => 'fa-comment-dots', 'send' => 'fa-paper-plane', 'robot' => 'fa-robot', 'paperclip' => 'fa-paperclip',
         'settings' => 'fa-gear', 'key' => 'fa-key',
+        'cart' => 'fa-bag-shopping', 'minus' => 'fa-minus',
     ];
 @endphp
 <i {{ $attributes->merge(['class' => 'ui-icon fa-solid '.($icons[$name] ?? $icons['arrow'])]) }} aria-hidden="true"></i>
