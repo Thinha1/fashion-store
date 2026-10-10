@@ -10,10 +10,10 @@
         $maxStatusCount = max(1, collect($statusBreakdown)->max('count') ?? 0);
         $pipelineColour = array_combine(\App\Services\Reports\SalesDashboard::PIPELINE, ['var(--viz-pipeline-1)', 'var(--viz-pipeline-2)', 'var(--viz-pipeline-3)', 'var(--viz-pipeline-4)', 'var(--viz-pipeline-5)']);
         $kpis = [
-            ['title' => 'Tổng doanh thu', 'value' => (float) $totalRevenue, 'money' => true, 'change' => $changes['revenue'] ?? null, 'comparable' => true, 'note' => 'Đơn đã giao và đã thanh toán, gồm phí vận chuyển.', 'hero' => true],
-            ['title' => 'Tổng đơn hàng', 'value' => $totalOrders, 'money' => false, 'unit' => 'đơn', 'change' => $changes['orders'] ?? null, 'comparable' => true, 'note' => $totals['cancelledOrders'] > 0 ? 'Gồm '.$totals['cancelledOrders'].' đơn đã huỷ.' : 'Tất cả đơn đặt trong khoảng này.', 'hero' => false],
-            ['title' => 'Giá trị đơn trung bình', 'value' => $totals['averageOrderValue'], 'money' => true, 'change' => $changes['averageOrderValue'] ?? null, 'comparable' => true, 'note' => 'Không tính đơn đã huỷ.', 'hero' => false],
-            ['title' => 'Tổng sản phẩm', 'value' => $totalProducts, 'money' => false, 'unit' => 'sản phẩm', 'change' => null, 'comparable' => false, 'note' => 'Mẫu sản phẩm trong danh mục, không tính biến thể.', 'hero' => false],
+            ['title' => 'Tổng doanh thu', 'value' => (float) $totalRevenue, 'money' => true, 'change' => $changes['revenue'] ?? null, 'comparable' => true, 'hero' => true],
+            ['title' => 'Tổng đơn hàng', 'value' => $totalOrders, 'money' => false, 'unit' => 'đơn', 'change' => $changes['orders'] ?? null, 'comparable' => true, 'hero' => false],
+            ['title' => 'Giá trị đơn trung bình', 'value' => $totals['averageOrderValue'], 'money' => true, 'change' => $changes['averageOrderValue'] ?? null, 'comparable' => true, 'hero' => false],
+            ['title' => 'Tổng sản phẩm', 'value' => $totalProducts, 'money' => false, 'unit' => 'sản phẩm', 'change' => null, 'comparable' => false, 'hero' => false],
         ];
     @endphp
 
@@ -67,11 +67,14 @@
         {{-- KPI row: one hero figure, the rest as stat tiles. --}}
         <section aria-label="Số liệu chính" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             @foreach ($kpis as $kpi)
-                <article class="flex min-w-0 flex-col rounded-xl border border-gray-200 bg-white p-5">
+                @php($kpiValue = number_format($kpi['value'], 0, ',', '.'))
+                @php($kpiUnit = $kpi['money'] ? '₫' : $kpi['unit'])
+                <article class="viz-kpi flex min-w-0 flex-col rounded-xl border border-gray-200 bg-white p-5">
                     <h2 class="text-sm font-medium text-gray-600">{{ $kpi['title'] }}</h2>
-                    <p class="mt-3 flex flex-wrap items-baseline gap-x-1.5">
-                        <span @class(['font-semibold tracking-tight text-gray-900', 'text-5xl' => $kpi['hero'], 'text-3xl' => ! $kpi['hero']])>{{ number_format($kpi['value'], 0, ',', '.') }}</span>
-                        <span class="text-sm text-gray-500">{{ $kpi['money'] ? '₫' : $kpi['unit'] }}</span>
+                    {{-- The figure shrinks to fit the card: --kpi-fit is its width in characters, the small unit counting as half. --}}
+                    <p class="mt-3 flex flex-wrap items-baseline gap-x-1.5" style="--kpi-fit: {{ mb_strlen($kpiValue) + 0.5 + mb_strlen($kpiUnit) * 0.5 }}; --kpi-max: {{ $kpi['hero'] ? '3rem' : '1.875rem' }}">
+                        <span class="viz-kpi-value font-semibold tracking-tight text-gray-900">{{ $kpiValue }}</span>
+                        <span class="text-sm text-gray-500">{{ $kpiUnit }}</span>
                     </p>
                     @if ($period->previous() && $kpi['comparable'])
                         <p class="mt-2 flex flex-wrap items-center gap-x-1.5 text-xs">
@@ -86,7 +89,6 @@
                             @endif
                         </p>
                     @endif
-                    <p class="mt-auto pt-4 text-xs leading-5 text-gray-500">{{ $kpi['note'] }}</p>
                 </article>
             @endforeach
         </section>
