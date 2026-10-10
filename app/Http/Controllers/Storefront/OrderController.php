@@ -40,12 +40,8 @@ class OrderController extends Controller
             'order' => $order,
             'bankTransfer' => $bankTransfer,
             'awaitingTransfer' => $order->payment_method === 'bank_transfer'
-                && in_array($order->payment_status, ['unpaid', 'rejected'], true)
+                && $order->payment_status === 'unpaid'
                 && $order->status !== 'cancelled',
-            'proofUnderReview' => $order->payment_method === 'bank_transfer'
-                && $order->payment_status === 'pending_review'
-                && $order->status !== 'cancelled',
-            'canSubmitProof' => $bankTransfer->canSubmitProof($order),
         ]);
     }
 

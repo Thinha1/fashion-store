@@ -172,7 +172,7 @@ class DashboardReportTest extends TestCase
         $dashboard = new SalesDashboard;
 
         $this->assertSame([$empty->id, $low->id], $dashboard->lowStockVariants()->pluck('id')->all());
-        $this->assertSame(['pendingOrders' => 0, 'pendingPaymentReviews' => 0, 'outOfStock' => 1, 'lowStock' => 2], $dashboard->actionCounts());
+        $this->assertSame(['pendingOrders' => 0, 'outOfStock' => 1, 'lowStock' => 2], $dashboard->actionCounts());
     }
 
     public function test_dashboard_page_renders_every_section_for_the_chosen_period(): void
