@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,18 @@ class Discount extends Model
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Enabled and inside its starts_at..ends_at window right now.
+     *
+     * @param  Builder<Discount>  $query
+     */
+    public function scopeCurrentlyActive(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>=', now());
     }
 
     public function productVariant(): BelongsTo

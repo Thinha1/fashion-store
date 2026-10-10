@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\Pricing\PriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -89,7 +90,7 @@ class ProductController extends Controller
     /**
      * Display a single active product with its variants and gallery.
      */
-    public function show(Product $product): View
+    public function show(Product $product, PriceCalculator $prices): View
     {
         abort_unless($product->status === 'active', 404);
 
@@ -99,7 +100,14 @@ class ProductController extends Controller
             'images' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('sort_order'),
             'images.variant',
             'variants' => fn ($query) => $query->where('is_active', true)->orderByRaw(ProductVariant::sizeOrderRaw())->orderBy('id'),
+            'variants.activeDiscounts',
         ]);
+
+        $variantPrices = $product->variants->mapWithKeys(function (ProductVariant $variant) use ($product, $prices): array {
+            $variant->setRelation('product', $product);
+
+            return [$variant->id => $prices->priceVariant($variant)];
+        });
 
         $related = Product::query()
             ->where('status', 'active')
@@ -110,6 +118,10 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
 
-        return view('storefront.products.show', ['product' => $product, 'related' => $related]);
+        return view('storefront.products.show', [
+            'product' => $product,
+            'variantPrices' => $variantPrices,
+            'related' => $related,
+        ]);
     }
 }
