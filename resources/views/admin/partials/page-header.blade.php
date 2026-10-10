@@ -2,7 +2,7 @@
     $title = $title ?? 'Trang';
     $subtitle = $subtitle ?? null;
     $section = explode('.', request()->route()?->getName() ?? '')[1] ?? '';
-    $sections = ['products' => ['Sản phẩm', 'shirt'], 'categories' => ['Danh mục', 'layers'], 'brands' => ['Thương hiệu', 'tag'], 'discounts' => ['Giảm giá', 'percent'], 'suppliers' => ['Nhà cung cấp', 'truck'], 'goods-receipts' => ['Phiếu nhập hàng', 'box'], 'orders' => ['Đơn hàng', 'orders']];
+    $sections = ['products' => ['Sản phẩm', 'shirt'], 'categories' => ['Danh mục', 'layers'], 'brands' => ['Thương hiệu', 'tag'], 'discounts' => ['Giảm giá', 'percent'], 'suppliers' => ['Nhà cung cấp', 'truck'], 'goods-receipts' => ['Phiếu nhập hàng', 'box'], 'orders' => ['Đơn hàng', 'orders'], 'payments' => ['Duyệt thanh toán', 'revenue']];
     $sectionInfo = $sections[$section] ?? ['Tổng quan', 'grid'];
 @endphp
 
