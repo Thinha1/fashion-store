@@ -31,6 +31,7 @@ class ChangeOrderStatus
                 $actor,
                 $note ?: 'Cửa hàng hủy đơn',
                 Order::staffCancellableStatuses(),
+                allowPaid: true,
             );
         }
 

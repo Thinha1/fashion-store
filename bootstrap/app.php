@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => EnsureUserHasPermission::class,
         ]);
+
+        // Payment webhooks come from the provider's servers, which have no
+        // session or CSRF token; each one authenticates itself instead.
+        $middleware->preventRequestForgery(except: ['webhooks/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

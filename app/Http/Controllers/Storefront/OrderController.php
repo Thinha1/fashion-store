@@ -6,6 +6,8 @@ use App\Actions\CancelOrder;
 use App\Actions\OrderNotCancellableException;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\Payments\BankTransfer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -28,13 +30,30 @@ class OrderController extends Controller
         return view('storefront.orders.index', ['orders' => $orders]);
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, BankTransfer $bankTransfer): View
     {
         Gate::authorize('view', $order);
 
         $order->load('items');
 
-        return view('storefront.orders.show', ['order' => $order]);
+        return view('storefront.orders.show', [
+            'order' => $order,
+            'bankTransfer' => $bankTransfer,
+            'awaitingTransfer' => $order->payment_method === 'bank_transfer'
+                && in_array($order->payment_status, ['unpaid', 'rejected'], true)
+                && $order->status !== 'cancelled',
+        ]);
+    }
+
+    /**
+     * Polled by the order page while a bank transfer is outstanding, so the
+     * page can refresh itself once the SePay webhook marks the order paid.
+     */
+    public function paymentStatus(Order $order): JsonResponse
+    {
+        Gate::authorize('view', $order);
+
+        return response()->json(['payment_status' => $order->payment_status]);
     }
 
     /**

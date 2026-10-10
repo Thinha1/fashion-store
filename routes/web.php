@@ -10,6 +10,7 @@ use App\Http\Controllers\Storefront\ProductAssistController;
 use App\Http\Controllers\Storefront\ProductAssistStreamController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Storefront\ProfileController;
+use App\Http\Controllers\Webhooks\SepayWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -55,8 +56,15 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::get('don-hang', [OrderController::class, 'index'])->name('orders.index');
     Route::get('don-hang/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('don-hang/{order:order_number}/trang-thai-thanh-toan', [OrderController::class, 'paymentStatus'])
+        ->middleware('throttle:30,1')->name('orders.payment-status');
     Route::patch('don-hang/{order:order_number}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
+
+// SePay → shop: no session/CSRF (exempted in bootstrap/app.php); the
+// controller checks the "Authorization: Apikey ..." header itself.
+Route::post('webhooks/sepay', SepayWebhookController::class)
+    ->middleware('throttle:60,1')->name('webhooks.sepay');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
