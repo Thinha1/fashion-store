@@ -58,7 +58,39 @@
                         <span class="size-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true"></span>
                         Đang chờ tiền về — trang sẽ tự cập nhật khi cửa hàng nhận được thanh toán.
                     </p>
+
+                    @if ($canSubmitProof)
+                        <form method="POST" action="{{ route('orders.payment-proof', $order) }}" enctype="multipart/form-data"
+                              class="mt-5 space-y-3 border-t border-gray-100 pt-5">
+                            @csrf
+                            <p class="text-sm font-medium text-gray-900">Đã chuyển khoản nhưng chưa được xác nhận?</p>
+                            <p class="text-xs text-gray-500">Gửi mã giao dịch và ảnh chụp biên lai, cửa hàng sẽ kiểm tra thủ công.</p>
+                            <div>
+                                <x-label for="transaction_code">Mã giao dịch</x-label>
+                                <x-input id="transaction_code" name="transaction_code" value="{{ old('transaction_code') }}" required maxlength="100" class="mt-1" placeholder="Ví dụ: FT26283123456" />
+                                <x-input-error :messages="$errors->get('transaction_code')" />
+                            </div>
+                            <div>
+                                <label for="receipt" class="block text-sm font-medium text-gray-700">Ảnh biên lai (JPG, PNG, WebP — tối đa 4 MB)</label>
+                                <input id="receipt" type="file" name="receipt" accept="image/jpeg,image/png,image/webp" required
+                                       class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand">
+                                <x-input-error :messages="$errors->get('receipt')" />
+                            </div>
+                            <x-button type="submit" variant="secondary">Gửi chứng từ</x-button>
+                        </form>
+                    @elseif ($order->payment_status === 'unpaid')
+                        <p class="mt-4 text-xs text-gray-500">
+                            Đã chuyển khoản mà đến {{ $bankTransfer->proofAllowedAt($order)->format('H:i d/m') }} vẫn chưa được xác nhận?
+                            Khi đó bạn có thể gửi biên lai để cửa hàng kiểm tra thủ công.
+                        </p>
+                    @endif
                 </div>
+            </section>
+        @elseif ($proofUnderReview)
+            <section class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900" role="status"
+                     x-data="paymentStatusPoller({ url: {{ Js::from(route('orders.payment-status', $order)) }}, current: {{ Js::from($order->payment_status) }} })">
+                <p class="font-semibold">Cửa hàng đang kiểm tra chứng từ chuyển khoản của bạn.</p>
+                <p class="mt-1">Mã giao dịch {{ $order->transaction_code }}, gửi lúc {{ $order->payment_proof_submitted_at?->format('H:i d/m/Y') }}. Trang sẽ tự cập nhật khi có kết quả.</p>
             </section>
         @endif
 

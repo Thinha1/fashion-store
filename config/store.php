@@ -9,11 +9,14 @@ return [
     | bank_id is the VietQR bank code or BIN, e.g. "VCB" or "970436".
     | proof_wait_minutes: how long after placing the order the customer waits
     | for the SePay webhook before they may upload a transfer receipt instead.
+    | proof_disk: where those receipts are kept — a PRIVATE disk; they are
+    | only ever served through an authorised controller.
     */
     'bank_transfer' => [
         'bank_id' => env('STORE_BANK_ID'),
         'account_number' => env('STORE_BANK_ACCOUNT_NUMBER'),
         'account_name' => env('STORE_BANK_ACCOUNT_NAME'),
         'proof_wait_minutes' => (int) env('STORE_PAYMENT_PROOF_WAIT_MINUTES', 15),
+        'proof_disk' => env('STORE_PAYMENT_PROOF_DISK', 'local'),
     ],
 ];

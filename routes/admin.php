@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PaymentReviewController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
@@ -147,6 +148,17 @@ Route::prefix('admin')
                 Route::get('/', [OrderController::class, 'index'])->name('index');
                 Route::get('{order}', [OrderController::class, 'show'])->name('show');
                 Route::patch('{order}/trang-thai', [OrderController::class, 'updateStatus'])->name('status');
+            });
+
+        // Transfer receipts the SePay webhook couldn't match — its own
+        // "payments.manage" permission, separate from working orders.
+        Route::prefix('duyet-thanh-toan')->name('payments.')
+            ->middleware('permission:payments.manage')
+            ->group(function (): void {
+                Route::get('/', [PaymentReviewController::class, 'index'])->name('index');
+                Route::get('{order}', [PaymentReviewController::class, 'show'])->name('show');
+                Route::get('{order}/chung-tu', [PaymentReviewController::class, 'receipt'])->name('receipt');
+                Route::patch('{order}', [PaymentReviewController::class, 'review'])->name('review');
             });
 
         // Settings — which self-hosted AI backend both chat agents call.
