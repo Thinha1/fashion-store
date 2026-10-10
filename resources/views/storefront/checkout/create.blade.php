@@ -65,16 +65,17 @@
                             <span class="block text-gray-500">Trả tiền mặt cho nhân viên giao hàng.</span>
                         </span>
                     </label>
-                    <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-400" aria-disabled="true">
-                        <input type="radio" disabled class="accent-brand">
+                    <label class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-400">
+                        <input type="radio" name="payment_method" value="bank_transfer" disabled class="accent-brand">
                         <span>Chuyển khoản ngân hàng (QR) <span class="text-xs">— sắp ra mắt</span></span>
-                    </div>
+                    </label>
                 </div>
                 <x-input-error :messages="$errors->get('payment_method')" class="mt-2" />
             </section>
 
             <section class="rounded-2xl border border-gray-200 bg-white p-6">
-                <x-label for="customer_note">Ghi chú cho cửa hàng <span class="font-normal text-gray-400">(không bắt buộc)</span></x-label>
+                {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the textarea. --}}
+                <label for="customer_note" class="block text-sm font-medium text-gray-700">Ghi chú cho cửa hàng <span class="font-normal text-gray-400">(không bắt buộc)</span></label>
                 <textarea id="customer_note" name="customer_note" rows="3" maxlength="500" class="field mt-1"
                           placeholder="Ví dụ: giao giờ hành chính">{{ old('customer_note') }}</textarea>
                 <x-input-error :messages="$errors->get('customer_note')" />
