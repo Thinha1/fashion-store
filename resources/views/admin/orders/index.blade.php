@@ -9,32 +9,48 @@
     ])
 
     @php($tabs = ['' => 'Tất cả'] + \App\Models\Order::STATUS_LABELS)
+    @php($filters = array_filter(['q' => $search, 'payment_status' => $paymentStatus, 'payment_method' => $paymentMethod]))
 
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label="Lọc theo trạng thái" class="flex flex-wrap gap-1.5">
-            @foreach ($tabs as $value => $label)
-                @php($count = $value === '' ? $statusCounts->sum() : ($statusCounts[$value] ?? 0))
-                <a href="{{ route('admin.orders.index', array_filter(['status' => $value, 'q' => $search])) }}"
-                   @if ((string) $status === (string) $value) aria-current="page" @endif
-                   @class([
-                       'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold',
-                       'border-brand bg-brand text-white' => (string) $status === (string) $value,
-                       'border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand' => (string) $status !== (string) $value,
-                   ])>
-                    {{ $label }} <span class="opacity-75">{{ $count }}</span>
-                </a>
+    <nav aria-label="Lọc theo trạng thái" class="mb-3 flex flex-wrap gap-1.5">
+        @foreach ($tabs as $value => $label)
+            @php($count = $value === '' ? $statusCounts->sum() : ($statusCounts[$value] ?? 0))
+            <a href="{{ route('admin.orders.index', array_filter(['status' => $value]) + $filters) }}"
+               @if ((string) $status === (string) $value) aria-current="page" @endif
+               @class([
+                   'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold',
+                   'border-brand bg-brand text-white' => (string) $status === (string) $value,
+                   'border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand' => (string) $status !== (string) $value,
+               ])>
+                {{ $label }} <span class="opacity-75">{{ $count }}</span>
+            </a>
+        @endforeach
+    </nav>
+
+    <form method="GET" action="{{ route('admin.orders.index') }}" role="search" class="mb-4 flex flex-wrap items-center gap-2">
+        @if ($status)
+            <input type="hidden" name="status" value="{{ $status }}">
+        @endif
+        <label for="order-search" class="sr-only">Tìm đơn hàng</label>
+        <input id="order-search" type="search" name="q" value="{{ $search }}" placeholder="Mã đơn, tên, SĐT, email…" class="field min-h-10 sm:w-64">
+        <label for="payment-status-filter" class="sr-only">Trạng thái thanh toán</label>
+        <select id="payment-status-filter" name="payment_status" class="field min-h-10 sm:w-auto" x-data x-on:change="$el.form.requestSubmit()">
+            <option value="">Mọi trạng thái thanh toán</option>
+            @foreach (\App\Models\Order::PAYMENT_STATUS_LABELS as $value => $label)
+                <option value="{{ $value }}" @selected($paymentStatus === $value)>{{ $label }}</option>
             @endforeach
-        </nav>
-
-        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex w-full gap-2 sm:w-auto">
-            @if ($status)
-                <input type="hidden" name="status" value="{{ $status }}">
-            @endif
-            <label for="order-search" class="sr-only">Tìm đơn hàng</label>
-            <input id="order-search" type="search" name="q" value="{{ $search }}" placeholder="Mã đơn, tên, SĐT, email…" class="field min-h-10 sm:w-64">
-            <x-admin.action type="submit" variant="secondary" icon="search">Tìm</x-admin.action>
-        </form>
-    </div>
+        </select>
+        <label for="payment-method-filter" class="sr-only">Hình thức thanh toán</label>
+        <select id="payment-method-filter" name="payment_method" class="field min-h-10 sm:w-auto" x-data x-on:change="$el.form.requestSubmit()">
+            <option value="">Mọi hình thức thanh toán</option>
+            @foreach (\App\Models\Order::PAYMENT_METHOD_LABELS as $value => $label)
+                <option value="{{ $value }}" @selected($paymentMethod === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <x-admin.action type="submit" variant="secondary" icon="search">Lọc</x-admin.action>
+        @if ($filters)
+            <a href="{{ route('admin.orders.index', array_filter(['status' => $status])) }}" class="px-2 text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline">Xoá lọc</a>
+        @endif
+    </form>
 
     <x-admin-table :paginator="$orders" :sorting="$sorting"
         :sortable="['Mã đơn' => 'order_number', 'Khách hàng' => 'customer', 'Ngày đặt' => 'placed_at', 'Tổng tiền' => 'grand_total', 'Trạng thái' => 'status']"
@@ -73,7 +89,7 @@
         @empty
             <tr>
                 <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                    {{ $search !== '' || $status ? 'Không có đơn hàng nào khớp bộ lọc.' : 'Chưa có đơn hàng nào.' }}
+                    {{ $filters || $status ? 'Không có đơn hàng nào khớp bộ lọc.' : 'Chưa có đơn hàng nào.' }}
                 </td>
             </tr>
         @endforelse

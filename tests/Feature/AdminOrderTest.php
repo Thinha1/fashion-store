@@ -59,6 +59,7 @@ class AdminOrderTest extends TestCase
         $this->actingAs($catalogStaff)->get(route('admin.orders.index'))->assertForbidden();
         $this->actingAs($catalogStaff)->get(route('admin.orders.show', $order))->assertForbidden();
         $this->actingAs($catalogStaff)->patch(route('admin.orders.status', $order), ['status' => 'confirmed'])->assertForbidden();
+        $this->actingAs($catalogStaff)->patch(route('admin.orders.confirm-payment', $order))->assertForbidden();
 
         $this->assertSame('pending', $order->fresh()->status);
     }
@@ -200,12 +201,65 @@ class AdminOrderTest extends TestCase
             ->assertSee('Khách đặt hàng');
     }
 
-    public function test_sidebar_shows_pending_order_count(): void
+    public function test_index_filters_by_payment_status_and_method(): void
     {
-        Order::factory()->count(2)->create();
-        Order::factory()->create(['status' => 'confirmed']);
+        $unpaidTransfer = Order::factory()->create(['payment_method' => 'bank_transfer']);
+        $paidTransfer = Order::factory()->create(['payment_method' => 'bank_transfer', 'payment_status' => 'paid', 'status' => 'confirmed']);
+        $unpaidCod = Order::factory()->create();
 
-        $this->actingAs($this->admin)->get(route('admin.dashboard'))
-            ->assertSee('title="Đơn chờ xác nhận">2</span>', false);
+        $this->actingAs($this->admin)->get(route('admin.orders.index', ['payment_status' => 'unpaid', 'payment_method' => 'bank_transfer']))
+            ->assertOk()
+            ->assertSee($unpaidTransfer->order_number)
+            ->assertDontSee($paidTransfer->order_number)
+            ->assertDontSee($unpaidCod->order_number)
+            ->assertViewHas('statusCounts', fn ($counts): bool => $counts->all() === ['pending' => 1]);
+
+        $this->actingAs($this->admin)->get(route('admin.orders.index', ['payment_method' => 'cod']))
+            ->assertSee($unpaidCod->order_number)
+            ->assertDontSee($unpaidTransfer->order_number);
+
+        $this->actingAs($this->admin)->get(route('admin.orders.index', ['payment_status' => 'pending_review', 'payment_method' => 'card']))
+            ->assertOk()
+            ->assertViewHas('paymentStatus', null)
+            ->assertViewHas('paymentMethod', null)
+            ->assertSee($unpaidTransfer->order_number)
+            ->assertSee($unpaidCod->order_number);
+    }
+
+    public function test_staff_confirm_a_bank_transfer_by_hand(): void
+    {
+        $order = Order::factory()->create(['payment_method' => 'bank_transfer']);
+        $orderStaff = $this->staffWith('admin.access', 'orders.manage');
+
+        $this->actingAs($orderStaff)->patch(route('admin.orders.confirm-payment', $order))
+            ->assertSessionHas('status', "Đã xác nhận thanh toán cho đơn {$order->order_number}.");
+
+        $order->refresh();
+        $this->assertSame('paid', $order->payment_status);
+        $this->assertSame($orderStaff->id, $order->payment_reviewed_by);
+        $this->assertNotNull($order->payment_reviewed_at);
+        $this->assertTrue(AuditLog::query()->where('action', 'payment.confirmed_manually')->where('subject_id', $order->id)->where('actor_id', $orderStaff->id)->exists());
+
+        $this->actingAs($orderStaff)->get(route('admin.orders.show', $order))
+            ->assertSee('Xác nhận lúc')
+            ->assertSee($orderStaff->name)
+            ->assertDontSee('Xác nhận đã nhận tiền');
+    }
+
+    public function test_only_unpaid_uncancelled_bank_transfers_can_be_confirmed_by_hand(): void
+    {
+        $cod = Order::factory()->create();
+        $alreadyPaid = Order::factory()->create(['payment_method' => 'bank_transfer', 'payment_status' => 'paid', 'transaction_code' => 'SEPAY-1']);
+        $cancelled = Order::factory()->create(['payment_method' => 'bank_transfer', 'status' => 'cancelled']);
+
+        foreach ([$cod, $alreadyPaid, $cancelled] as $order) {
+            $this->actingAs($this->admin)->patch(route('admin.orders.confirm-payment', $order))->assertSessionHas('error');
+        }
+
+        $this->assertSame('unpaid', $cod->fresh()->payment_status);
+        $this->assertNull($alreadyPaid->fresh()->payment_reviewed_by);
+        $this->assertSame('unpaid', $cancelled->fresh()->payment_status);
+        $this->assertSame(0, AuditLog::query()->count());
+        $this->actingAs($this->admin)->get(route('admin.orders.show', $cod))->assertDontSee('Xác nhận đã nhận tiền');
     }
 }

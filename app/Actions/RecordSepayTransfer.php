@@ -24,10 +24,9 @@ class RecordSepayTransfer
     public const IGNORED = 'ignored';
 
     /**
-     * Payment statuses that still accept money. A receipt under review or
-     * rejected is superseded by the bank actually reporting the transfer.
+     * Payment statuses that still accept money.
      */
-    private const AWAITING_PAYMENT = ['unpaid', 'pending_review', 'rejected'];
+    private const AWAITING_PAYMENT = ['unpaid'];
 
     /**
      * "DH" + yymmdd + 6 letters/digits — see PlaceOrder::newOrderNumber().
@@ -86,7 +85,6 @@ class RecordSepayTransfer
                 'transaction_code' => $transactionCode,
                 'payment_reviewed_by' => null,
                 'payment_reviewed_at' => now(),
-                'payment_rejection_reason' => null,
             ])->save();
 
             $this->log('payment.sepay_matched', $order, [
