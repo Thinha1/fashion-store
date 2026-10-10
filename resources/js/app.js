@@ -12,6 +12,7 @@ import productAiChat from './product-ai-chat';
 import shoppingAssistChat from './shopping-assist-chat';
 import aiSettingsForm from './ai-settings-form';
 import paymentStatusPoller from './payment-status-poller';
+import salesChart from './sales-chart';
 
 window.Alpine = Alpine;
 
@@ -28,6 +29,7 @@ Alpine.data('productAiChat', productAiChat);
 Alpine.data('shoppingAssistChat', shoppingAssistChat);
 Alpine.data('aiSettingsForm', aiSettingsForm);
 Alpine.data('paymentStatusPoller', paymentStatusPoller);
+Alpine.data('salesChart', salesChart);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,
