@@ -60,6 +60,15 @@ class ProductVariant extends Model
         return $this->hasMany(Discount::class);
     }
 
+    /**
+     * Variant discounts (scope=variant) in effect right now — what
+     * PriceCalculator picks the best one from.
+     */
+    public function activeDiscounts(): HasMany
+    {
+        return $this->discounts()->where('scope', 'variant')->currentlyActive();
+    }
+
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);

@@ -6,7 +6,9 @@
             'id' => $v->id,
             'size' => $v->size,
             'color' => $v->color,
-            'price' => (float) ($v->price ?? $product->base_price),
+            'price' => $variantPrices[$v->id]->unitPrice,
+            'originalPrice' => $variantPrices[$v->id]->originalUnitPrice,
+            'discountPercent' => $variantPrices[$v->id]->discountPercent(),
             'stock' => (int) $v->stock_quantity,
         ]);
         $imagesForJs = $product->images->map(fn ($image) => [
@@ -90,8 +92,16 @@
                 @endif
             </p>
 
-            <p class="mt-4 text-2xl font-semibold text-gray-900"
-               x-text="(variant ? variant.price : {{ (float) $product->base_price }}).toLocaleString('vi-VN') + ' ₫'"></p>
+            <div class="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p class="text-2xl font-semibold text-gray-900"
+                   x-text="(variant ? variant.price : {{ (float) $product->base_price }}).toLocaleString('vi-VN') + ' ₫'"></p>
+                <template x-if="variant && variant.price < variant.originalPrice">
+                    <p class="flex items-baseline gap-2">
+                        <s class="text-sm text-gray-400" x-text="variant.originalPrice.toLocaleString('vi-VN') + ' ₫'"></s>
+                        <span class="rounded-md bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-600" x-text="'-' + variant.discountPercent + '%'"></span>
+                    </p>
+                </template>
+            </div>
 
             @if ($product->description)
                 @if (mb_strlen($product->description) > 220)
