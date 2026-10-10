@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable([
     'user_id', 'label', 'recipient_name', 'phone', 'province_code',
@@ -23,5 +24,28 @@ class Address extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * "12 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh".
+     */
+    public function fullAddress(): string
+    {
+        return implode(', ', [$this->address_line, $this->ward_name, $this->district_name, $this->province_name]);
+    }
+
+    /**
+     * Make this the owner's only default address.
+     */
+    public function markAsDefault(): void
+    {
+        DB::transaction(function (): void {
+            static::query()
+                ->where('user_id', $this->user_id)
+                ->whereKeyNot($this->id)
+                ->update(['is_default' => false]);
+
+            $this->forceFill(['is_default' => true])->save();
+        });
     }
 }
