@@ -21,6 +21,47 @@ class Order extends Model
 {
     use HasFactory;
 
+    /**
+     * Order lifecycle (BUSINESS_FLOWS.md §2), in display order.
+     */
+    public const STATUS_LABELS = [
+        'pending' => 'Chờ xác nhận',
+        'confirmed' => 'Đã xác nhận',
+        'preparing' => 'Đang chuẩn bị hàng',
+        'shipping' => 'Đang giao hàng',
+        'delivered' => 'Đã giao hàng',
+        'cancelled' => 'Đã hủy',
+        'returned' => 'Đã trả hàng',
+    ];
+
+    public const PAYMENT_METHOD_LABELS = [
+        'cod' => 'Thanh toán khi nhận hàng (COD)',
+        'bank_transfer' => 'Chuyển khoản ngân hàng',
+    ];
+
+    public const PAYMENT_STATUS_LABELS = [
+        'unpaid' => 'Chưa thanh toán',
+        'pending_review' => 'Chờ duyệt chứng từ',
+        'paid' => 'Đã thanh toán',
+        'rejected' => 'Chứng từ bị từ chối',
+        'refunded' => 'Đã hoàn tiền',
+    ];
+
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
+    }
+
+    public function paymentMethodLabel(): string
+    {
+        return self::PAYMENT_METHOD_LABELS[$this->payment_method] ?? $this->payment_method;
+    }
+
+    public function paymentStatusLabel(): string
+    {
+        return self::PAYMENT_STATUS_LABELS[$this->payment_status] ?? $this->payment_status;
+    }
+
     protected function casts(): array
     {
         return [

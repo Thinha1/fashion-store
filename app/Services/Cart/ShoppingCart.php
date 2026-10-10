@@ -123,7 +123,10 @@ class ShoppingCart
         return null;
     }
 
-    private function isPurchasable(?ProductVariant $variant): bool
+    /**
+     * Variant and its product are still on sale (stock is checked separately).
+     */
+    public function isPurchasable(?ProductVariant $variant): bool
     {
         return $variant !== null
             && ! $variant->trashed()
