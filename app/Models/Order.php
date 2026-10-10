@@ -34,6 +34,29 @@ class Order extends Model
         'returned' => 'Đã trả hàng',
     ];
 
+    /**
+     * Where staff can move an order from each status — one step at a time,
+     * never skipping (BUSINESS_FLOWS.md §2). `delivered → returned` belongs
+     * to the return-request flow, not here.
+     */
+    public const STAFF_TRANSITIONS = [
+        'pending' => ['confirmed', 'cancelled'],
+        'confirmed' => ['preparing', 'cancelled'],
+        'preparing' => ['shipping'],
+        'shipping' => ['delivered'],
+    ];
+
+    /**
+     * Button labels for moving an order INTO each status.
+     */
+    public const TRANSITION_LABELS = [
+        'confirmed' => 'Xác nhận đơn',
+        'preparing' => 'Chuẩn bị hàng',
+        'shipping' => 'Giao cho vận chuyển',
+        'delivered' => 'Đã giao thành công',
+        'cancelled' => 'Hủy đơn',
+    ];
+
     public const PAYMENT_METHOD_LABELS = [
         'cod' => 'Thanh toán khi nhận hàng (COD)',
         'bank_transfer' => 'Chuyển khoản ngân hàng',
@@ -46,6 +69,27 @@ class Order extends Model
         'rejected' => 'Chứng từ bị từ chối',
         'refunded' => 'Đã hoàn tiền',
     ];
+
+    /**
+     * @return list<string>
+     */
+    public function nextStaffStatuses(): array
+    {
+        return self::STAFF_TRANSITIONS[$this->status] ?? [];
+    }
+
+    /**
+     * Statuses staff may cancel from (customers: `pending` only).
+     *
+     * @return list<string>
+     */
+    public static function staffCancellableStatuses(): array
+    {
+        return array_keys(array_filter(
+            self::STAFF_TRANSITIONS,
+            fn (array $targets): bool => in_array('cancelled', $targets, true),
+        ));
+    }
 
     public function statusLabel(): string
     {

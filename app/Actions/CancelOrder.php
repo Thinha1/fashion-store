@@ -71,6 +71,12 @@ class CancelOrder
                 'note' => $note,
                 'at' => now()->toIso8601String(),
             ]];
+
+            // `orders.updated_by` records staff edits, not the customer's own.
+            if ($actor->id !== $lockedOrder->user_id) {
+                $lockedOrder->updated_by = $actor->id;
+            }
+
             $lockedOrder->save();
 
             AuditLog::query()->create([
