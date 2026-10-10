@@ -18,6 +18,7 @@ class HomeController extends Controller
             ->where('status', 'active')
             ->where('is_featured', true)
             ->with(['brand', 'images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
+            ->withListingPrices()
             ->latest('id')
             ->limit(8)
             ->get();

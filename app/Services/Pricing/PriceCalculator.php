@@ -4,6 +4,7 @@ namespace App\Services\Pricing;
 
 use App\Models\Discount;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -45,6 +46,36 @@ class PriceCalculator
             unitDiscountAmount: $bestAmount,
             unitPrice: $originalUnitPrice - $bestAmount,
             discount: $bestDiscount,
+        );
+    }
+
+    /**
+     * Price for a product card, from its active variants. Expects `variants`
+     * (with `activeDiscounts`) eager-loaded — see Product::scopeWithListingPrices.
+     * A product with no active variant shows its base price.
+     */
+    public function priceTag(Product $product): ProductPriceTag
+    {
+        $lines = $product->variants
+            ->filter(fn (ProductVariant $variant): bool => (bool) $variant->is_active)
+            ->map(function (ProductVariant $variant) use ($product): LinePrice {
+                $variant->setRelation('product', $product);
+
+                return $this->priceVariant($variant);
+            });
+
+        if ($lines->isEmpty()) {
+            $basePrice = $this->toMoney($product->base_price);
+
+            return new ProductPriceTag($basePrice, $basePrice, 0);
+        }
+
+        $cheapest = $lines->sortBy(fn (LinePrice $line): int => $line->unitPrice)->first();
+
+        return new ProductPriceTag(
+            price: $cheapest->unitPrice,
+            originalPrice: $cheapest->originalUnitPrice,
+            maxDiscountPercent: (int) $lines->max(fn (LinePrice $line): int => $line->discountPercent()),
         );
     }
 

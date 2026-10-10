@@ -44,6 +44,7 @@ class ProductController extends Controller
                 'images' => fn ($query) => $query->where('is_primary', true)->limit(1),
             ])
             ->withSum(['variants as stock_total' => fn ($query) => $query->where('is_active', true)], 'stock_quantity')
+            ->withListingPrices()
             ->when($sort === 'gia-tang', fn ($query) => $query->orderBy('base_price'))
             ->when($sort === 'gia-giam', fn ($query) => $query->orderByDesc('base_price'))
             ->when($sort === 'moi-nhat', fn ($query) => $query->latest('id'))
@@ -114,6 +115,7 @@ class ProductController extends Controller
             ->where('id', '!=', $product->id)
             ->where('brand_id', $product->brand_id)
             ->with(['images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
+            ->withListingPrices()
             ->latest('id')
             ->limit(4)
             ->get();
