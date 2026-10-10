@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Storefront;
 
+use App\Http\Requests\Storefront\Concerns\ChecksAdministrativeDivisions;
 use App\Services\Payments\BankTransfer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -9,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 class PlaceOrderRequest extends FormRequest
 {
+    use ChecksAdministrativeDivisions;
+
     public function authorize(): bool
     {
         return true;
@@ -36,14 +39,19 @@ class PlaceOrderRequest extends FormRequest
             'recipient_name' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:255'],
             'phone' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:20', 'regex:/^(0|\+84)[0-9]{9,10}$/'],
             'province_name' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:255'],
-            'district_name' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:255'],
             'ward_name' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:255'],
             'address_line' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:500'],
             'label' => ['nullable', 'string', 'max:50'],
             'payment_method' => ['required', Rule::in($this->paymentMethods())],
             'coupon_code' => ['nullable', 'string', 'max:50'],
             'customer_note' => ['nullable', 'string', 'max:500'],
+            ...$this->divisionRules(),
         ];
+    }
+
+    protected function hasAddressFields(): bool
+    {
+        return $this->input('address_id') === 'new';
     }
 
     /**

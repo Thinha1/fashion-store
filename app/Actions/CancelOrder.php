@@ -37,8 +37,8 @@ class CancelOrder
                 throw new OrderNotCancellableException("Đơn hàng đang ở trạng thái \"{$lockedOrder->statusLabel()}\" nên không thể hủy.");
             }
 
-            if (! $allowPaid && in_array($lockedOrder->payment_status, ['paid', 'pending_review'], true)) {
-                throw new OrderNotCancellableException('Đơn hàng đã thanh toán hoặc đang chờ duyệt chứng từ. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền.');
+            if (! $allowPaid && $lockedOrder->payment_status === 'paid') {
+                throw new OrderNotCancellableException('Đơn hàng đã thanh toán. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền.');
             }
 
             $items = $lockedOrder->items()->whereNotNull('product_variant_id')->get();

@@ -11,8 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'order_number', 'user_id', 'discount_id', 'status',
     'status_history', 'payment_method', 'payment_status', 'transaction_code',
-    'payment_proof_path', 'payment_proof_submitted_at', 'payment_reviewed_by',
-    'payment_reviewed_at', 'payment_rejection_reason', 'customer_name',
+    'payment_reviewed_by', 'payment_reviewed_at', 'customer_name',
     'customer_email', 'customer_phone', 'province_name', 'district_name',
     'ward_name', 'shipping_address', 'customer_note', 'subtotal',
     'discount_amount', 'shipping_fee', 'grand_total', 'placed_at', 'updated_by',
@@ -64,9 +63,7 @@ class Order extends Model
 
     public const PAYMENT_STATUS_LABELS = [
         'unpaid' => 'Chưa thanh toán',
-        'pending_review' => 'Chờ duyệt chứng từ',
         'paid' => 'Đã thanh toán',
-        'rejected' => 'Chứng từ bị từ chối',
         'refunded' => 'Đã hoàn tiền',
     ];
 
@@ -110,7 +107,6 @@ class Order extends Model
     {
         return [
             'status_history' => 'array',
-            'payment_proof_submitted_at' => 'datetime',
             'payment_reviewed_at' => 'datetime',
             'placed_at' => 'datetime',
             'subtotal' => 'decimal:2',
@@ -118,6 +114,14 @@ class Order extends Model
             'shipping_fee' => 'decimal:2',
             'grand_total' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Street, ward, (district for older orders), province.
+     */
+    public function fullShippingAddress(): string
+    {
+        return implode(', ', array_filter([$this->shipping_address, $this->ward_name, $this->district_name, $this->province_name], 'filled'));
     }
 
     public function user(): BelongsTo

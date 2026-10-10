@@ -16,6 +16,8 @@
         'chat' => 'fa-comment-dots', 'send' => 'fa-paper-plane', 'robot' => 'fa-robot', 'paperclip' => 'fa-paperclip',
         'settings' => 'fa-gear', 'key' => 'fa-key',
         'cart' => 'fa-bag-shopping', 'minus' => 'fa-minus',
+        'trend-up' => 'fa-arrow-trend-up', 'trend-down' => 'fa-arrow-trend-down', 'warning' => 'fa-triangle-exclamation',
+        'circle-x' => 'fa-circle-xmark', 'table' => 'fa-table', 'chart' => 'fa-chart-line', 'clock' => 'fa-clock',
     ];
 @endphp
 <i {{ $attributes->merge(['class' => 'ui-icon fa-solid '.($icons[$name] ?? $icons['arrow'])]) }} aria-hidden="true"></i>

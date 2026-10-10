@@ -110,7 +110,7 @@
                 <dl class="space-y-3 text-sm">
                     <div><dt class="text-xs text-gray-500">Người nhận</dt><dd class="text-gray-900">{{ $order->customer_name }} · {{ $order->customer_phone }}</dd></div>
                     <div><dt class="text-xs text-gray-500">Email</dt><dd class="break-all text-gray-900">{{ $order->customer_email }}</dd></div>
-                    <div><dt class="text-xs text-gray-500">Địa chỉ giao hàng</dt><dd class="text-gray-900">{{ $order->shipping_address }}, {{ $order->ward_name }}, {{ $order->district_name }}, {{ $order->province_name }}</dd></div>
+                    <div><dt class="text-xs text-gray-500">Địa chỉ giao hàng</dt><dd class="text-gray-900">{{ $order->fullShippingAddress() }}</dd></div>
                     @if ($order->customer_note)
                         <div><dt class="text-xs text-gray-500">Ghi chú của khách</dt><dd class="whitespace-pre-line text-gray-900">{{ $order->customer_note }}</dd></div>
                     @endif
@@ -133,11 +133,14 @@
                     @if ($order->payment_method === 'cod' && $order->payment_status === 'unpaid')
                         <p class="text-xs text-gray-500">Đơn COD tự chuyển sang "Đã thanh toán" khi đánh dấu giao thành công.</p>
                     @endif
-                    @if ($order->payment_status === 'pending_review' && auth()->user()->hasPermission('payments.manage'))
-                        <a href="{{ route('admin.payments.show', $order) }}" class="block rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 hover:underline">Khách đã gửi chứng từ — mở trang duyệt thanh toán &rarr;</a>
-                    @endif
-                    @if ($order->payment_method === 'bank_transfer' && $order->payment_status !== 'paid' && $order->status !== 'cancelled')
-                        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Chưa nhận được tiền chuyển khoản — nên chờ thanh toán trước khi chuẩn bị hàng.</p>
+                    @if ($order->payment_method === 'bank_transfer' && $order->payment_status === 'unpaid' && $order->status !== 'cancelled')
+                        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Chưa nhận được tiền chuyển khoản — nên chờ thanh toán trước khi chuẩn bị hàng. SePay tự xác nhận khi khách giữ đúng nội dung chuyển khoản.</p>
+                        <form method="POST" action="{{ route('admin.orders.confirm-payment', $order) }}"
+                              x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: {{ Js::from('Xác nhận đã nhận '.number_format((float) $order->grand_total, 0, ',', '.').' ₫ cho đơn '.$order->order_number.'? Chỉ xác nhận khi đã thấy tiền vào tài khoản cửa hàng.') }} })">
+                            @csrf
+                            @method('PATCH')
+                            <x-admin.action type="submit" variant="secondary" icon="check" class="w-full">Xác nhận đã nhận tiền</x-admin.action>
+                        </form>
                     @endif
                     @if ($order->status === 'cancelled' && $order->payment_status === 'paid')
                         <p class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">Đơn đã hủy nhưng khách đã thanh toán — cần hoàn tiền cho khách.</p>

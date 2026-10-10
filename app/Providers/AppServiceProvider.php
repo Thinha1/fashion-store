@@ -2,9 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\Category;
-use App\Models\Order;
 use App\Models\User;
+use App\Services\Address\AdministrativeDivisions;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
@@ -65,45 +64,16 @@ class AppServiceProvider extends ServiceProvider
             max(1, (int) config('services.ai.shopping_assist_requests_per_minute'))
         )->by($request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip()));
 
-        // The storefront header renders a 3-level mega-menu (top category ->
-        // garment type -> a handful of specific styles). A garment type with
-        // no further styles (e.g. "Balo") falls back to listing its own
-        // products directly in the view.
-        View::composer('layouts.app', function ($view): void {
-            $view->with('megaMenu', Category::query()
-                ->whereNull('parent_id')
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->with(['children' => function ($query) {
-                    $query->where('is_active', true)
-                        ->orderBy('sort_order')
-                        ->with([
-                            'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order'),
-                            'products' => fn ($query) => $query->where('status', 'active')->latest('id')->limit(5),
-                        ]);
-                }])
-                ->get());
+        // Province picker for the shared address fields (null = the list
+        // couldn't be loaded; the partial falls back to free-text inputs).
+        View::composer('storefront.addresses._fields', function ($view): void {
+            $view->with('provinces', app(AdministrativeDivisions::class)->provinces());
         });
 
         View::composer('layouts.app', function ($view): void {
             $user = auth()->user();
 
             $view->with('cartItemCount', $user ? app(ShoppingCart::class)->itemCount($user) : 0);
-        });
-
-        // Sidebar badges: orders waiting for staff to confirm them, and
-        // transfer receipts waiting for a payment review.
-        View::composer('layouts.admin', function ($view): void {
-            $user = auth()->user();
-
-            $view->with([
-                'pendingOrderCount' => $user?->hasPermission('orders.manage')
-                    ? Order::query()->where('status', 'pending')->count()
-                    : 0,
-                'pendingPaymentReviewCount' => $user?->hasPermission('payments.manage')
-                    ? Order::query()->where('payment_status', 'pending_review')->count()
-                    : 0,
-            ]);
         });
     }
 }

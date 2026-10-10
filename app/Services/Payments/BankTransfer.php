@@ -3,7 +3,6 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
-use Carbon\CarbonInterface;
 
 /**
  * The shop's receiving bank account and the VietQR code customers scan.
@@ -57,30 +56,5 @@ class BankTransfer
                 'accountName' => $this->accountName(),
             ], '', '&', PHP_QUERY_RFC3986),
         );
-    }
-
-    /**
-     * The customer may send a receipt instead of waiting for the webhook once
-     * the wait is over and the money still hasn't been matched — or right
-     * away after a previous receipt was rejected.
-     */
-    public function canSubmitProof(Order $order): bool
-    {
-        if ($order->payment_method !== 'bank_transfer' || $order->status === 'cancelled') {
-            return false;
-        }
-
-        return $order->payment_status === 'rejected'
-            || ($order->payment_status === 'unpaid' && $this->proofAllowedAt($order)->isPast());
-    }
-
-    public function proofAllowedAt(Order $order): CarbonInterface
-    {
-        return $order->placed_at->copy()->addMinutes((int) config('store.bank_transfer.proof_wait_minutes'));
-    }
-
-    public function proofDisk(): string
-    {
-        return (string) config('store.bank_transfer.proof_disk');
     }
 }
