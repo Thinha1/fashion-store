@@ -154,3 +154,45 @@
     .admin-form-actions { margin-bottom: -16px; }
     .admin-form-actions > div { width: 100%; }
 }
+
+/* Dashboard charts. Data colours are the dataviz reference palette, run
+   through its validator against the white panel surface: series-1 blue
+   passes every check (the brand teal fails the chroma floor and would read
+   as grey); the five order-pipeline steps pass the ordinal checks. Text
+   stays in the admin ink, never in a series colour. */
+.viz-root {
+    --viz-surface: #ffffff;
+    --viz-series-1: #2a78d6;
+    --viz-pipeline-1: #86b6ef;
+    --viz-pipeline-2: #5598e7;
+    --viz-pipeline-3: #2a78d6;
+    --viz-pipeline-4: #1c5cab;
+    --viz-pipeline-5: #104281;
+    --viz-deemphasis: #898781;
+    --viz-grid: #e1e0d9;
+    --viz-axis: #c3c2b7;
+    --viz-delta-up: #006300;
+    --viz-delta-down: #d03b3b;
+    --viz-status-warning: #fab219;
+    --viz-status-critical: #d03b3b;
+}
+.viz-root .viz-grid { stroke: var(--viz-grid); stroke-width: 1; shape-rendering: crispEdges; }
+.viz-root .viz-axis { stroke: var(--viz-axis); stroke-width: 1; shape-rendering: crispEdges; }
+.viz-root .viz-tick { fill: #5c7080; font-size: 11px; font-variant-numeric: tabular-nums; }
+.viz-root .viz-line { fill: none; stroke: var(--viz-series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.viz-root .viz-area { fill: var(--viz-series-1); fill-opacity: .1; stroke: none; }
+.viz-root .viz-dot { fill: var(--viz-series-1); stroke: var(--viz-surface); stroke-width: 2; }
+.viz-root .viz-cursor line { stroke: var(--viz-axis); stroke-width: 1; }
+.viz-root .viz-peak-label { fill: #435b6b; font-size: 11px; font-weight: 600; }
+.viz-root .viz-chart-frame { position: relative; outline: none; border-radius: 8px; }
+.viz-root .viz-chart-frame:focus-visible { box-shadow: 0 0 0 3px rgb(42 120 214 / 25%); }
+.viz-root .viz-tooltip { position: absolute; top: 0; transform: translate(-50%, -4px); pointer-events: none; min-width: 9.5rem; border: 1px solid #dce4ea; border-radius: 10px; background: #fff; padding: 8px 12px; box-shadow: 0 8px 24px rgb(24 46 60 / 12%); white-space: nowrap; }
+.viz-root .viz-key-line { display: inline-block; width: 12px; height: 2px; border-radius: 1px; background: var(--viz-series-1); vertical-align: middle; }
+/* Bars: 10px thick, 4px rounded data-end, square at the baseline. */
+.viz-root .viz-bar-track { position: relative; height: 10px; }
+.viz-root .viz-bar { height: 10px; min-width: 2px; border-radius: 0 4px 4px 0; transition: filter .15s; }
+.viz-root .viz-bar-row { position: relative; outline: none; border-radius: 6px; }
+.viz-root .viz-bar-row:hover .viz-bar, .viz-root .viz-bar-row:focus-visible .viz-bar { filter: brightness(1.12); }
+.viz-root .viz-bar-row:focus-visible { box-shadow: 0 0 0 2px rgb(42 120 214 / 35%); }
+.viz-root .viz-bar-tip { position: absolute; right: 0; bottom: calc(100% + 4px); z-index: 10; visibility: hidden; opacity: 0; transition: opacity .12s; pointer-events: none; }
+.viz-root .viz-bar-row:hover .viz-bar-tip, .viz-root .viz-bar-row:focus-visible .viz-bar-tip { visibility: visible; opacity: 1; }
