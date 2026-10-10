@@ -44,7 +44,7 @@
                                 <p class="pg-brand">{{ $product->brand?->name ?? 'Fashion Store' }}</p>
                                 <h3>{{ $product->name }}</h3>
                             </div>
-                            <span class="pg-price">{{ number_format((float) $product->base_price, 0) }} ₫</span>
+                            <x-storefront.price-tag :product="$product" class="pg-price" />
                         </div>
                     </a>
                 @endforeach

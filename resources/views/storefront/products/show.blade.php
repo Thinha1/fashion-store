@@ -198,7 +198,7 @@
                             <p class="product-card-eyebrow">{{ $item->brand?->name }}</p>
                             <h3>{{ $item->name }}</h3>
                             <div class="product-card-price">
-                                <span class="font-semibold text-brand">{{ number_format((float) $item->base_price, 0) }} ₫</span>
+                                <x-storefront.price-tag :product="$item" class="font-semibold text-brand" />
                             </div>
                         </div>
                     </a>

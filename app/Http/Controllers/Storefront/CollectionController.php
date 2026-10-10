@@ -51,6 +51,7 @@ class CollectionController extends Controller
                 'images' => fn ($query) => $query->where('is_primary', true)->limit(1),
             ])
             ->withSum(['variants as stock_total' => fn ($query) => $query->where('is_active', true)], 'stock_quantity')
+            ->withListingPrices()
             ->latest('id')
             ->paginate(12)
             ->withQueryString();

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,17 @@ class Product extends Model
             'base_price' => 'decimal:2',
             'is_featured' => 'boolean',
         ];
+    }
+
+    /**
+     * Eager-load what a product card needs to show its real price: active
+     * variants and their running discounts (PriceCalculator::priceTag).
+     *
+     * @param  Builder<Product>  $query
+     */
+    public function scopeWithListingPrices(Builder $query): void
+    {
+        $query->with(['variants' => fn ($variants) => $variants->where('is_active', true)->with('activeDiscounts')]);
     }
 
     public function category(): BelongsTo
