@@ -4,6 +4,9 @@
 
 @section('content')
     <div class="mx-auto w-full max-w-4xl">
+        <a href="{{ route('orders.index') }}" class="mb-5 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand">
+            <x-icon name="back" class="size-3.5" /> Đơn hàng của tôi
+        </a>
         <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="eyebrow">Đơn hàng</p>
@@ -63,6 +66,16 @@
                     <p class="mt-3 text-gray-900">{{ $order->paymentMethodLabel() }}</p>
                     <p class="text-gray-500">{{ $order->paymentStatusLabel() }}</p>
                 </section>
+
+                @if ($order->status === 'pending')
+                    <form method="POST" action="{{ route('orders.cancel', $order) }}"
+                          x-data x-on:submit="if (! confirm('Hủy đơn hàng {{ $order->order_number }}?')) $event.preventDefault()">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="btn btn-secondary w-full hover:border-red-300 hover:bg-red-50 hover:text-red-600">Hủy đơn hàng</button>
+                        <p class="mt-2 text-center text-xs text-gray-500">Chỉ hủy được khi cửa hàng chưa xác nhận đơn.</p>
+                    </form>
+                @endif
             </div>
         </div>
 

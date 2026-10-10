@@ -33,7 +33,11 @@
             <x-button type="submit">Lưu thay đổi</x-button>
         </form>
 
-        <a href="{{ route('addresses.index') }}" class="mt-8 flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900 no-underline hover:border-brand">
+        <a href="{{ route('orders.index') }}" class="mt-8 flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900 no-underline hover:border-brand">
+            <span class="flex items-center gap-2"><x-icon name="orders" class="size-4 text-brand" /> Đơn hàng của tôi</span>
+            <x-icon name="arrow" class="size-3" />
+        </a>
+        <a href="{{ route('addresses.index') }}" class="mt-3 flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900 no-underline hover:border-brand">
             <span class="flex items-center gap-2"><x-icon name="home" class="size-4 text-brand" /> Sổ địa chỉ</span>
             <x-icon name="arrow" class="size-3" />
         </a>
