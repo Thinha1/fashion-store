@@ -9,6 +9,7 @@ use App\Services\Payments\BankTransfer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -28,6 +29,12 @@ class SubmitPaymentProof
     {
         $disk = Storage::disk($this->bankTransfer->proofDisk());
         $path = $receipt->store('payment-proofs', $this->bankTransfer->proofDisk());
+
+        // The disk is configured not to throw, so a failed write only shows
+        // up as `false` — surface it instead of recording an order with no file.
+        if ($path === false) {
+            throw new RuntimeException('Could not store the payment receipt on the "'.$this->bankTransfer->proofDisk().'" disk.');
+        }
 
         try {
             [$lockedOrder, $previousPath] = DB::transaction(function () use ($order, $customer, $transactionCode, $path): array {
