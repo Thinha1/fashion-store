@@ -110,7 +110,7 @@
                 <dl class="space-y-3 text-sm">
                     <div><dt class="text-xs text-gray-500">Người nhận</dt><dd class="text-gray-900">{{ $order->customer_name }} · {{ $order->customer_phone }}</dd></div>
                     <div><dt class="text-xs text-gray-500">Email</dt><dd class="break-all text-gray-900">{{ $order->customer_email }}</dd></div>
-                    <div><dt class="text-xs text-gray-500">Địa chỉ giao hàng</dt><dd class="text-gray-900">{{ $order->shipping_address }}, {{ $order->ward_name }}, {{ $order->district_name }}, {{ $order->province_name }}</dd></div>
+                    <div><dt class="text-xs text-gray-500">Địa chỉ giao hàng</dt><dd class="text-gray-900">{{ $order->fullShippingAddress() }}</dd></div>
                     @if ($order->customer_note)
                         <div><dt class="text-xs text-gray-500">Ghi chú của khách</dt><dd class="whitespace-pre-line text-gray-900">{{ $order->customer_note }}</dd></div>
                     @endif

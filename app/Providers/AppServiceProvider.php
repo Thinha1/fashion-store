@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\Address\AdministrativeDivisions;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
@@ -62,6 +63,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('shopping-assist', fn ($request): Limit => Limit::perMinute(
             max(1, (int) config('services.ai.shopping_assist_requests_per_minute'))
         )->by($request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip()));
+
+        // Province picker for the shared address fields (null = the list
+        // couldn't be loaded; the partial falls back to free-text inputs).
+        View::composer('storefront.addresses._fields', function ($view): void {
+            $view->with('provinces', app(AdministrativeDivisions::class)->provinces());
+        });
 
         View::composer('layouts.app', function ($view): void {
             $user = auth()->user();

@@ -20,6 +20,13 @@ return [
         'webhook_api_key' => env('SEPAY_WEBHOOK_API_KEY'),
     ],
 
+    // Provinces/wards for address forms (provinces.open-api.vn, v2 = the
+    // 2025 two-level structure). Empty URL = free-text address fields.
+    'vn_divisions' => [
+        'base_url' => env('VN_DIVISIONS_API_URL', 'https://provinces.open-api.vn/api/v2'),
+        'cache_days' => (int) env('VN_DIVISIONS_CACHE_DAYS', 30),
+    ],
+
     'vietqr' => [
         'business_cache_seconds' => (int) env('VIETQR_BUSINESS_CACHE_SECONDS', 900),
         'business_requests_per_minute' => (int) env('VIETQR_BUSINESS_REQUESTS_PER_MINUTE', 10),

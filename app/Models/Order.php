@@ -116,6 +116,14 @@ class Order extends Model
         ];
     }
 
+    /**
+     * Street, ward, (district for older orders), province.
+     */
+    public function fullShippingAddress(): string
+    {
+        return implode(', ', array_filter([$this->shipping_address, $this->ward_name, $this->district_name, $this->province_name], 'filled'));
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

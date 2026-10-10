@@ -97,7 +97,7 @@
                     <h2 id="order-shipping-title" class="flex items-center gap-2 font-semibold text-gray-900"><x-icon name="truck" class="size-4 text-brand" /> Giao đến</h2>
                     <p class="mt-3 font-medium text-gray-900">{{ $order->customer_name }}</p>
                     <p class="text-gray-600">{{ $order->customer_phone }}</p>
-                    <p class="mt-1 leading-6 text-gray-600">{{ $order->shipping_address }}, {{ $order->ward_name }}, {{ $order->district_name }}, {{ $order->province_name }}</p>
+                    <p class="mt-1 leading-6 text-gray-600">{{ $order->fullShippingAddress() }}</p>
                     @if ($order->customer_note)
                         <p class="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-gray-600">Ghi chú: {{ $order->customer_note }}</p>
                     @endif
