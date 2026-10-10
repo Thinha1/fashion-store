@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         if (app()->environment(['local', 'testing'])) {
-            $this->call(CatalogDemoSeeder::class);
+            $this->call([CatalogDemoSeeder::class, CouponDemoSeeder::class]);
         }
     }
 }

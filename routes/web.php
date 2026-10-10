@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Storefront\AddressController;
 use App\Http\Controllers\Storefront\CartController;
+use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductAssistController;
 use App\Http\Controllers\Storefront\ProductAssistStreamController;
 use App\Http\Controllers\Storefront\ProductController;
@@ -46,6 +48,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::patch('{cartItem}', 'update')->name('update');
         Route::delete('{cartItem}', 'destroy')->name('destroy');
     });
+
+    Route::get('thanh-toan', [CheckoutController::class, 'create'])->name('checkout.create');
+    Route::post('thanh-toan', [CheckoutController::class, 'store'])
+        ->middleware('throttle:10,1')->name('checkout.store');
+
+    Route::get('don-hang/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
 });
 
 require __DIR__.'/auth.php';
