@@ -53,7 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('thanh-toan', [CheckoutController::class, 'store'])
         ->middleware('throttle:10,1')->name('checkout.store');
 
+    Route::get('don-hang', [OrderController::class, 'index'])->name('orders.index');
     Route::get('don-hang/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
+    Route::patch('don-hang/{order:order_number}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
 require __DIR__.'/auth.php';
