@@ -52,7 +52,6 @@ class OrderDemoSeeder extends Seeder
             return;
         }
 
-        mt_srand(20261010);
         $customers = $this->customers();
         $today = CarbonImmutable::now()->startOfDay();
 
@@ -62,8 +61,8 @@ class OrderDemoSeeder extends Seeder
                 // Busier weekends and a gentle upward trend towards today.
                 $base = 2 + (int) round((self::DAYS - $daysAgo) / 40) + ($day->isWeekend() ? 2 : 0);
 
-                for ($count = mt_rand(max(0, $base - 2), $base + 2); $count > 0; $count--) {
-                    $placedAt = $day->setTime(mt_rand(8, 22), mt_rand(0, 59));
+                for ($count = random_int(max(0, $base - 2), $base + 2); $count > 0; $count--) {
+                    $placedAt = $day->setTime(random_int(8, 22), random_int(0, 59));
 
                     if ($placedAt->isFuture()) {
                         continue;
@@ -95,9 +94,9 @@ class OrderDemoSeeder extends Seeder
     private function createOrder(User $customer, $variants, CarbonImmutable $placedAt, int $daysAgo): void
     {
         [$status, $paymentMethod, $paymentStatus] = $this->outcome($daysAgo);
-        $lines = $variants->random(min($variants->count(), mt_rand(1, 3)))->map(function (ProductVariant $variant): array {
+        $lines = $variants->random(min($variants->count(), random_int(1, 3)))->map(function (ProductVariant $variant): array {
             $unitPrice = (int) round((float) ($variant->price ?? $variant->product->base_price));
-            $quantity = mt_rand(1, 10) > 8 ? 2 : 1;
+            $quantity = random_int(1, 10) > 8 ? 2 : 1;
 
             return ['variant' => $variant, 'unit' => $unitPrice, 'quantity' => $quantity, 'total' => $unitPrice * $quantity];
         });
@@ -116,11 +115,11 @@ class OrderDemoSeeder extends Seeder
             'payment_status' => $paymentStatus,
             'customer_name' => $customer->name,
             'customer_email' => $customer->email,
-            'customer_phone' => '09'.mt_rand(10000000, 99999999),
+            'customer_phone' => '09'.random_int(10000000, 99999999),
             'province_name' => 'TP. Hồ Chí Minh',
-            'district_name' => ['Quận 1', 'Quận 3', 'Quận 7', 'Quận Bình Thạnh', 'TP. Thủ Đức'][mt_rand(0, 4)],
-            'ward_name' => 'Phường '.mt_rand(1, 15),
-            'shipping_address' => mt_rand(1, 250).' Đường demo',
+            'district_name' => ['Quận 1', 'Quận 3', 'Quận 7', 'Quận Bình Thạnh', 'TP. Thủ Đức'][random_int(0, 4)],
+            'ward_name' => 'Phường '.random_int(1, 15),
+            'shipping_address' => random_int(1, 250).' Đường demo',
             'subtotal' => $subtotal,
             'discount_amount' => 0,
             'shipping_fee' => $shippingFee,
@@ -152,13 +151,13 @@ class OrderDemoSeeder extends Seeder
      */
     private function outcome(int $daysAgo): array
     {
-        $roll = mt_rand(1, 100);
+        $roll = random_int(1, 100);
         $status = match (true) {
             $daysAgo > 10 => $roll <= 86 ? 'delivered' : ($roll <= 95 ? 'cancelled' : 'returned'),
             $daysAgo > 3 => $roll <= 55 ? 'delivered' : ($roll <= 80 ? 'shipping' : ($roll <= 92 ? 'preparing' : 'cancelled')),
             default => $roll <= 45 ? 'pending' : ($roll <= 75 ? 'confirmed' : ($roll <= 92 ? 'preparing' : 'cancelled')),
         };
-        $paymentMethod = mt_rand(1, 100) <= 60 ? 'cod' : 'bank_transfer';
+        $paymentMethod = random_int(1, 100) <= 60 ? 'cod' : 'bank_transfer';
         $paymentStatus = match (true) {
             $status === 'returned' => 'refunded',
             $status === 'cancelled' => 'unpaid',

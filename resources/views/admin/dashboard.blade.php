@@ -108,15 +108,17 @@
             </div>
             <div class="admin-panel-body">
                 <div x-show="view === 'chart'">
-                    <div x-ref="frame" class="viz-chart-frame" style="height: 260px" tabindex="0" role="group"
+                    <div x-ref="frame" class="viz-chart-frame" style="height: 260px" tabindex="0" role="slider"
                          aria-label="Biểu đồ doanh số theo {{ $bucketNoun }}. Dùng phím mũi tên trái phải để xem từng mốc; bấm nút Bảng để xem toàn bộ số liệu."
+                         aria-valuemin="0" :aria-valuemax="points.length - 1" :aria-valuenow="active ?? points.length - 1"
+                         :aria-valuetext="activePoint ? activePoint.longLabel + ': ' + formatVnd(activePoint.sales) + ', ' + activePoint.orders + ' đơn' : ''"
                          x-on:pointermove="pointerMove($event)" x-on:pointerleave="clear()"
                          x-on:focus="moveTo(points.length - 1)" x-on:blur="clear()" x-on:keydown="keydown($event)">
                         <svg x-ref="svg" class="block" aria-hidden="true"></svg>
                         @if ($salesIsEmpty)
                             <p class="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm text-gray-500">Chưa có đơn hàng nào trong khoảng thời gian này.</p>
                         @endif
-                        <div class="viz-tooltip" x-show="activePoint" x-cloak :style="tooltipStyle" aria-live="polite">
+                        <div class="viz-tooltip" x-show="activePoint" x-cloak :style="tooltipStyle" aria-hidden="true">
                             <template x-if="activePoint">
                                 <div>
                                     <p class="text-base font-semibold text-gray-900" x-text="formatVnd(activePoint.sales)"></p>
