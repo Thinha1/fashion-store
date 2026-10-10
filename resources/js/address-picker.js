@@ -11,10 +11,10 @@ export default ({ wardsUrl, provinces = [], province = '', ward = '' } = {}) => 
     request: 0,
 
     init() {
-        this.loadWards();
+        void this.loadWards();
         this.$watch('province', () => {
             this.ward = '';
-            this.loadWards();
+            void this.loadWards();
         });
     },
 
