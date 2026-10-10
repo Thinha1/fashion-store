@@ -9,6 +9,7 @@ use App\Models\Address;
 use App\Services\Cart\CartException;
 use App\Services\Cart\CartLine;
 use App\Services\Cart\ShoppingCart;
+use App\Services\Payments\BankTransfer;
 use App\Services\Pricing\InvalidCouponException;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class CheckoutController extends Controller
      * Review page. A coupon typed in the small "Áp dụng" form comes back as
      * `?ma-giam-gia=` and is previewed here; PlaceOrder checks it again.
      */
-    public function create(Request $request, ShoppingCart $cart, PriceCalculator $prices): View|RedirectResponse
+    public function create(Request $request, ShoppingCart $cart, PriceCalculator $prices, BankTransfer $bankTransfer): View|RedirectResponse
     {
         $user = $request->user();
         $lines = $cart->lines($user->activeCart);
@@ -53,6 +54,7 @@ class CheckoutController extends Controller
             'couponCode' => $couponCode,
             'couponError' => $couponError,
             'addresses' => $user->addresses()->orderByDesc('is_default')->latest('id')->get(),
+            'bankTransferEnabled' => $bankTransfer->isEnabled(),
         ]);
     }
 
@@ -72,7 +74,9 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', $exception->getMessage());
         }
 
-        return redirect()->route('orders.show', $order)->with('status', 'Đặt hàng thành công! Cảm ơn bạn đã mua sắm.');
+        return redirect()->route('orders.show', $order)->with('status', $order->payment_method === 'bank_transfer'
+            ? 'Đặt hàng thành công! Vui lòng quét mã QR bên dưới để chuyển khoản.'
+            : 'Đặt hàng thành công! Cảm ơn bạn đã mua sắm.');
     }
 
     /**

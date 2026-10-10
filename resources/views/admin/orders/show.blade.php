@@ -124,8 +124,20 @@
                 <dl class="space-y-3 text-sm">
                     <div><dt class="text-xs text-gray-500">Phương thức</dt><dd class="text-gray-900">{{ $order->paymentMethodLabel() }}</dd></div>
                     <div><dt class="text-xs text-gray-500">Trạng thái</dt><dd class="text-gray-900">{{ $order->paymentStatusLabel() }}</dd></div>
+                    @if ($order->transaction_code)
+                        <div><dt class="text-xs text-gray-500">Mã giao dịch</dt><dd class="break-all text-gray-900">{{ $order->transaction_code }}</dd></div>
+                    @endif
+                    @if ($order->payment_reviewed_at)
+                        <div><dt class="text-xs text-gray-500">Xác nhận lúc</dt><dd class="text-gray-900">{{ $order->payment_reviewed_at->format('H:i d/m/Y') }} · {{ $order->paymentReviewer?->name ?? 'Tự động (SePay)' }}</dd></div>
+                    @endif
                     @if ($order->payment_method === 'cod' && $order->payment_status === 'unpaid')
                         <p class="text-xs text-gray-500">Đơn COD tự chuyển sang "Đã thanh toán" khi đánh dấu giao thành công.</p>
+                    @endif
+                    @if ($order->payment_method === 'bank_transfer' && $order->payment_status !== 'paid' && $order->status !== 'cancelled')
+                        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Chưa nhận được tiền chuyển khoản — nên chờ thanh toán trước khi chuẩn bị hàng.</p>
+                    @endif
+                    @if ($order->status === 'cancelled' && $order->payment_status === 'paid')
+                        <p class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">Đơn đã hủy nhưng khách đã thanh toán — cần hoàn tiền cho khách.</p>
                     @endif
                 </dl>
             </x-admin.panel>

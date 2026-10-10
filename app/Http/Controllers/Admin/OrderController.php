@@ -58,7 +58,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['items', 'user:id,name,email,phone', 'discount:id,code', 'updatedBy:id,name']);
+        $order->load(['items', 'user:id,name,email,phone', 'discount:id,code', 'updatedBy:id,name', 'paymentReviewer:id,name']);
 
         $actorIds = collect($order->status_history)->pluck('actor_id')->filter()->unique();
 

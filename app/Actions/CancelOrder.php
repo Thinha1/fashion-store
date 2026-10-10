@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\DB;
  * transaction:
  *  - lock the order row so a cancel can't race an admin status change;
  *  - only the given statuses may be cancelled (customers: `pending` only);
+ *  - a customer can't cancel once money has arrived or a receipt is under
+ *    review — a refund needs the shop, so staff cancel those (allowPaid);
  *  - lock and restock each variant, give the coupon use back;
  *  - append to `status_history` and audit-log stock before/after.
- * Written for the customer now; the admin order screen can reuse it.
+ * Used by the customer's own cancel and by ChangeOrderStatus for staff.
  */
 class CancelOrder
 {
@@ -26,13 +28,17 @@ class CancelOrder
      *
      * @throws OrderNotCancellableException when the order is no longer cancellable (message is customer-facing)
      */
-    public function execute(Order $order, User $actor, string $note, array $cancellableStatuses = ['pending']): Order
+    public function execute(Order $order, User $actor, string $note, array $cancellableStatuses = ['pending'], bool $allowPaid = false): Order
     {
-        return DB::transaction(function () use ($order, $actor, $note, $cancellableStatuses): Order {
+        return DB::transaction(function () use ($order, $actor, $note, $cancellableStatuses, $allowPaid): Order {
             $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
 
             if (! in_array($lockedOrder->status, $cancellableStatuses, true)) {
                 throw new OrderNotCancellableException("Đơn hàng đang ở trạng thái \"{$lockedOrder->statusLabel()}\" nên không thể hủy.");
+            }
+
+            if (! $allowPaid && in_array($lockedOrder->payment_status, ['paid', 'pending_review'], true)) {
+                throw new OrderNotCancellableException('Đơn hàng đã thanh toán hoặc đang chờ duyệt chứng từ. Vui lòng liên hệ cửa hàng để hủy và hoàn tiền.');
             }
 
             $items = $lockedOrder->items()->whereNotNull('product_variant_id')->get();

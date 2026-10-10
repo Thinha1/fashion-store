@@ -224,12 +224,14 @@ class CheckoutTest extends TestCase
         $this->assertSame(0, Order::query()->count());
     }
 
-    public function test_only_cod_is_accepted_for_now(): void
+    public function test_unknown_payment_method_is_rejected(): void
     {
         $this->putInCart(ProductVariant::factory()->create(['stock_quantity' => 5]), 1);
 
-        $this->actingAs($this->customer)->post(route('checkout.store'), $this->payload(['payment_method' => 'bank_transfer']))
+        $this->actingAs($this->customer)->post(route('checkout.store'), $this->payload(['payment_method' => 'momo']))
             ->assertSessionHasErrors('payment_method');
+
+        $this->assertSame(0, Order::query()->count());
     }
 
     public function test_customer_sees_their_order_but_not_someone_elses(): void

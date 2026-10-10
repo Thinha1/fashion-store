@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Storefront;
 
+use App\Services\Payments\BankTransfer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,10 +40,20 @@ class PlaceOrderRequest extends FormRequest
             'ward_name' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:255'],
             'address_line' => [Rule::requiredIf($isNewAddress), 'nullable', 'string', 'max:500'],
             'label' => ['nullable', 'string', 'max:50'],
-            'payment_method' => ['required', Rule::in(['cod'])],
+            'payment_method' => ['required', Rule::in($this->paymentMethods())],
             'coupon_code' => ['nullable', 'string', 'max:50'],
             'customer_note' => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    /**
+     * Bank transfer is accepted only once the shop's account is configured.
+     *
+     * @return list<string>
+     */
+    private function paymentMethods(): array
+    {
+        return app(BankTransfer::class)->isEnabled() ? ['cod', 'bank_transfer'] : ['cod'];
     }
 
     /**

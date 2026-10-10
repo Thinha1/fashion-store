@@ -14,6 +14,12 @@ return [
     |
     */
 
+    // SePay calls POST /webhooks/sepay with "Authorization: Apikey <key>";
+    // with no key configured every webhook call is refused.
+    'sepay' => [
+        'webhook_api_key' => env('SEPAY_WEBHOOK_API_KEY'),
+    ],
+
     'vietqr' => [
         'business_cache_seconds' => (int) env('VIETQR_BUSINESS_CACHE_SECONDS', 900),
         'business_requests_per_minute' => (int) env('VIETQR_BUSINESS_REQUESTS_PER_MINUTE', 10),

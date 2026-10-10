@@ -59,16 +59,21 @@
                 <h2 id="payment-title" class="flex items-center gap-2 font-semibold text-gray-900"><x-icon name="revenue" class="size-4 text-brand" /> Phương thức thanh toán</h2>
                 <div class="mt-4 space-y-3">
                     <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-4 has-checked:border-brand has-checked:bg-brand-soft/40">
-                        <input type="radio" name="payment_method" value="cod" checked class="accent-brand">
+                        <input type="radio" name="payment_method" value="cod" class="accent-brand" @checked(old('payment_method', 'cod') === 'cod')>
                         <span class="text-sm">
                             <span class="font-medium text-gray-900">Thanh toán khi nhận hàng (COD)</span>
                             <span class="block text-gray-500">Trả tiền mặt cho nhân viên giao hàng.</span>
                         </span>
                     </label>
-                    <label class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-400">
-                        <input type="radio" name="payment_method" value="bank_transfer" disabled class="accent-brand">
-                        <span>Chuyển khoản ngân hàng (QR) <span class="text-xs">— sắp ra mắt</span></span>
-                    </label>
+                    @if ($bankTransferEnabled)
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-4 has-checked:border-brand has-checked:bg-brand-soft/40">
+                            <input type="radio" name="payment_method" value="bank_transfer" class="accent-brand" @checked(old('payment_method') === 'bank_transfer')>
+                            <span class="text-sm">
+                                <span class="font-medium text-gray-900">Chuyển khoản ngân hàng (quét mã QR)</span>
+                                <span class="block text-gray-500">Mã QR hiện sau khi đặt hàng; đơn được xác nhận thanh toán tự động khi tiền về.</span>
+                            </span>
+                        </label>
+                    @endif
                 </div>
                 <x-input-error :messages="$errors->get('payment_method')" class="mt-2" />
             </section>

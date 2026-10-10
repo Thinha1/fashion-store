@@ -18,6 +18,50 @@
             </span>
         </div>
 
+        @if ($awaitingTransfer && $bankTransfer->isEnabled())
+            @php
+                $transferFacts = [
+                    ['Ngân hàng', $bankTransfer->bankId(), false],
+                    ['Số tài khoản', $bankTransfer->accountNumber(), true],
+                    ['Chủ tài khoản', $bankTransfer->accountName(), false],
+                    ['Số tiền', number_format((float) $order->grand_total, 0, ',', '.').' ₫', false],
+                    ['Nội dung chuyển khoản', $bankTransfer->transferMemo($order), true],
+                ];
+            @endphp
+            <section class="mb-6 grid gap-6 rounded-2xl border border-brand/30 bg-white p-6 sm:grid-cols-[13rem_minmax(0,1fr)]" aria-labelledby="transfer-title"
+                     x-data="paymentStatusPoller({ url: {{ Js::from(route('orders.payment-status', $order)) }}, current: {{ Js::from($order->payment_status) }} })">
+                <img src="{{ $bankTransfer->qrImageUrl($order) }}" alt="Mã QR chuyển khoản cho đơn {{ $order->order_number }}"
+                     class="mx-auto w-52 rounded-xl border border-gray-100" width="208" height="208">
+                <div class="min-w-0">
+                    <h2 id="transfer-title" class="font-semibold text-gray-900">Quét mã QR để chuyển khoản</h2>
+                    <p class="mt-1 text-sm text-gray-500">Mở ứng dụng ngân hàng, quét mã — số tiền và nội dung đã được điền sẵn. Vui lòng <strong class="text-gray-700">giữ nguyên nội dung</strong> để hệ thống tự xác nhận.</p>
+                    @if ($order->payment_status === 'rejected' && $order->payment_rejection_reason)
+                        <p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Chứng từ trước bị từ chối: {{ $order->payment_rejection_reason }}</p>
+                    @endif
+                    <dl class="mt-4 space-y-2 text-sm">
+                        @foreach ($transferFacts as [$label, $value, $copyable])
+                            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                <dt class="text-gray-500">{{ $label }}</dt>
+                                <dd class="flex items-center gap-2 font-medium text-gray-900">
+                                    {{ $value }}
+                                    @if ($copyable)
+                                        <button type="button" class="text-xs font-semibold text-brand hover:underline"
+                                                x-data="{ copied: false }"
+                                                x-on:click="navigator.clipboard.writeText({{ Js::from($value) }}).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
+                                                x-text="copied ? 'Đã chép' : 'Chép'" aria-label="Chép {{ mb_strtolower($label) }}">Chép</button>
+                                    @endif
+                                </dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                    <p class="mt-4 flex items-center gap-2 text-xs text-gray-500" role="status">
+                        <span class="size-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true"></span>
+                        Đang chờ tiền về — trang sẽ tự cập nhật khi cửa hàng nhận được thanh toán.
+                    </p>
+                </div>
+            </section>
+        @endif
+
         <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
             <section class="rounded-2xl border border-gray-200 bg-white" aria-labelledby="order-items-title">
                 <h2 id="order-items-title" class="border-b border-gray-100 px-6 py-4 font-semibold text-gray-900">Sản phẩm</h2>
