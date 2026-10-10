@@ -33,5 +33,10 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="IMAGE_DISK" value="public"/>
+        <!-- Tests opt in to bank transfer / SePay themselves; never inherit a dev .env. -->
+        <env name="STORE_BANK_ID" value=""/>
+        <env name="STORE_BANK_ACCOUNT_NUMBER" value=""/>
+        <env name="STORE_BANK_ACCOUNT_NAME" value=""/>
+        <env name="SEPAY_WEBHOOK_API_KEY" value=""/>
     </php>
 </phpunit>
