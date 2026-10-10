@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Storefront\AddressController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\ProductAssistController;
@@ -27,6 +28,16 @@ Route::get('bo-suu-tap/{brand:slug}', [CollectionController::class, 'show'])->na
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('tai-khoan', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('tai-khoan', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::prefix('tai-khoan/dia-chi')->name('addresses.')->controller(AddressController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('tao-moi', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('{address}/sua', 'edit')->name('edit');
+        Route::put('{address}', 'update')->name('update');
+        Route::patch('{address}/mac-dinh', 'makeDefault')->name('default');
+        Route::delete('{address}', 'destroy')->name('destroy');
+    });
 });
 
 require __DIR__.'/auth.php';
