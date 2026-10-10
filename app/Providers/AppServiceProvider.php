@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\User;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
@@ -88,6 +89,13 @@ class AppServiceProvider extends ServiceProvider
             $user = auth()->user();
 
             $view->with('cartItemCount', $user ? app(ShoppingCart::class)->itemCount($user) : 0);
+        });
+
+        // Sidebar badge: orders still waiting for staff to confirm them.
+        View::composer('layouts.admin', function ($view): void {
+            $view->with('pendingOrderCount', auth()->user()?->hasPermission('orders.manage')
+                ? Order::query()->where('status', 'pending')->count()
+                : 0);
         });
     }
 }

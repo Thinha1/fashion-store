@@ -15,6 +15,16 @@
         <div class="flex items-center justify-between border-b border-white/10 px-5 py-5"><x-brand /><button type="button" x-ref="closeMenu" class="rounded-lg p-2 text-gray-500 lg:hidden" aria-label="Đóng menu" x-on:click="sidebarOpen = false; $nextTick(() => $refs.menuButton.focus())"><x-icon name="close" /></button></div>
         <nav aria-label="Điều hướng quản trị" tabindex="0" class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
             <div><p class="sidebar-label">Điều hành</p><a href="{{ route('admin.dashboard') }}" class="sidebar-link" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif><x-icon name="grid" /> Tổng quan</a></div>
+            @if (auth()->user()->hasPermission('orders.manage'))
+                <div><p class="sidebar-label">Bán hàng</p>
+                    <a href="{{ route('admin.orders.index') }}" class="sidebar-link" @if(request()->routeIs('admin.orders.*')) aria-current="page" @endif>
+                        <x-icon name="orders" /> Đơn hàng
+                        @if ($pendingOrderCount > 0)
+                            <span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-[0.65rem] font-semibold text-gray-900" title="Đơn chờ xác nhận">{{ $pendingOrderCount }}</span>
+                        @endif
+                    </a>
+                </div>
+            @endif
             @if (auth()->user()->hasPermission('products.manage'))
                 <div><p class="sidebar-label">Sản phẩm & thương hiệu</p>
                     @foreach ([['products', 'shirt', 'Sản phẩm'], ['categories', 'layers', 'Danh mục'], ['brands', 'tag', 'Thương hiệu'], ['discounts', 'percent', 'Giảm giá']] as [$section, $icon, $label])

@@ -58,6 +58,7 @@
     .admin-status-success { background: #eaf6ef; color: #216541; }
     .admin-status-warning { background: #fff5dc; color: #85530e; }
     .admin-status-neutral { background: #edf1f5; color: #526572; }
+    .admin-status-info { background: #e8f1fb; color: #1d4f7a; }
     .admin-detail-grid { @apply grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]; }
     .admin-facts { @apply grid gap-x-6 gap-y-5 sm:grid-cols-2; }
     .admin-facts dt { @apply text-xs text-gray-500; }

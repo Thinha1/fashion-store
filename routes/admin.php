@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
@@ -138,6 +139,15 @@ Route::prefix('admin')
             ->put('giam-gia/{discount}', [DiscountController::class, 'update'])->name('discounts.update');
         Route::middleware('permission:products.manage')
             ->delete('giam-gia/{discount}', [DiscountController::class, 'destroy'])->name('discounts.destroy');
+
+        // Orders — staff move them one step at a time (see ChangeOrderStatus).
+        Route::prefix('don-hang')->name('orders.')
+            ->middleware('permission:orders.manage')
+            ->group(function (): void {
+                Route::get('/', [OrderController::class, 'index'])->name('index');
+                Route::get('{order}', [OrderController::class, 'show'])->name('show');
+                Route::patch('{order}/trang-thai', [OrderController::class, 'updateStatus'])->name('status');
+            });
 
         // Settings — which self-hosted AI backend both chat agents call.
         // Its own "settings.manage" permission (not products.manage): an API
