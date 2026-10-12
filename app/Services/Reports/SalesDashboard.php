@@ -178,13 +178,12 @@ class SalesDashboard
     /**
      * What needs someone's attention right now — not tied to the period.
      *
-     * @return array{pendingOrders: int, pendingPaymentReviews: int, outOfStock: int, lowStock: int}
+     * @return array{pendingOrders: int, outOfStock: int, lowStock: int}
      */
     public function actionCounts(): array
     {
         return [
             'pendingOrders' => Order::query()->where('status', 'pending')->count(),
-            'pendingPaymentReviews' => Order::query()->where('payment_status', 'pending_review')->count(),
             'outOfStock' => $this->lowStockQuery()->where('stock_quantity', '<=', 0)->count(),
             'lowStock' => $this->lowStockQuery()->count(),
         ];

@@ -46,7 +46,6 @@
         @php
             $actions = array_filter([
                 $actionCounts['pendingOrders'] > 0 ? ['count' => $actionCounts['pendingOrders'], 'label' => 'đơn chờ xác nhận', 'icon' => 'warning', 'tone' => 'warning', 'href' => $canWorkOrders ? route('admin.orders.index', ['status' => 'pending']) : null] : null,
-                $actionCounts['pendingPaymentReviews'] > 0 ? ['count' => $actionCounts['pendingPaymentReviews'], 'label' => 'chứng từ chờ duyệt', 'icon' => 'warning', 'tone' => 'warning', 'href' => $user->hasPermission('payments.manage') ? route('admin.payments.index') : null] : null,
                 $actionCounts['outOfStock'] > 0 ? ['count' => $actionCounts['outOfStock'], 'label' => 'biến thể đã hết hàng', 'icon' => 'circle-x', 'tone' => 'critical', 'href' => '#sap-het-hang'] : null,
                 $actionCounts['lowStock'] - $actionCounts['outOfStock'] > 0 ? ['count' => $actionCounts['lowStock'] - $actionCounts['outOfStock'], 'label' => 'biến thể sắp hết', 'icon' => 'warning', 'tone' => 'warning', 'href' => '#sap-het-hang'] : null,
             ]);

@@ -19,8 +19,8 @@ flowchart TD
         A6 -->|COD| A7["Đặt hàng thành công (pending)"]
         A6 -->|Chuyển khoản| A8["Quét QR VietQR, chuyển khoản"]
         A8 --> A9["SePay tự đối soát → payment_status=paid\n(xem sơ đồ 6)"]
-        A9 --> A9b{"Quá thời gian chờ vẫn unpaid?"}
-        A9b -->|Có, webhook chưa khớp| A9c["Fallback: tự upload chứng từ,\nchờ Admin duyệt tay"]
+        A9 --> A9b{"Webhook chưa khớp?\n(vd. sửa nội dung CK)"}
+        A9b -->|Có| A9c["Liên hệ cửa hàng — nhân viên kiểm tra\ntài khoản rồi xác nhận tay (không cần chứng từ)"]
         A7 --> A10["Theo dõi đơn hàng"]
         A9 --> A10
         A9c --> A10
@@ -33,7 +33,7 @@ flowchart TD
 
     subgraph AD["Admin / Nhân viên"]
         B1["Quản lý catalog, biến thể, tồn kho, giảm giá"]
-        B2["Duyệt / từ chối chứng từ chuyển khoản\n(chỉ khi webhook SePay chưa khớp)"]
+        B2["Xác nhận tay đã nhận tiền chuyển khoản\n(chỉ khi webhook SePay chưa khớp)"]
         B3["Xử lý đơn: confirmed → preparing → shipping → delivered"]
         B4["Duyệt / từ chối yêu cầu đổi trả"]
         B5["Duyệt / ẩn đánh giá"]
@@ -82,10 +82,10 @@ stateDiagram-v2
 
     note right of confirmed
         payment_status là field độc lập
-        (unpaid/pending_review/paid/rejected/refunded),
+        (unpaid/paid/refunded),
         không tự động đổi orders.status.
         paid có thể đến từ webhook SePay tự động
-        hoặc Admin duyệt tay (xem sơ đồ 6).
+        hoặc nhân viên xác nhận tay (xem sơ đồ 6).
     end note
 ```
 
@@ -204,11 +204,12 @@ flowchart TD
 
 ## 6. Xác nhận thanh toán chuyển khoản qua SePay
 
-Đường chính (tự động) thay cho việc bắt Admin duyệt tay mọi giao dịch chuyển khoản; luồng thủ công cũ (upload chứng từ + `Admin/PaymentReviewController`) chỉ còn là **fallback** khi webhook chưa khớp.
+Đường chính là tự động. Cửa hàng **không nhận chứng từ chuyển khoản** (đã bỏ luồng khách upload biên lai + Admin duyệt chứng từ ngày 10/10/2026): khi webhook không khớp, nhân viên có quyền `orders.manage` tự kiểm tra tài khoản ngân hàng rồi bấm **Xác nhận đã nhận tiền** ở trang chi tiết đơn (`Actions/ConfirmTransferPayment`).
 
 ```mermaid
 sequenceDiagram
     actor KH as Khách hàng
+    actor NV as Nhân viên
     participant APP as App (Checkout/Order)
     participant SEPAY as SePay
     participant WH as Webhooks/SepayWebhookController
@@ -238,11 +239,12 @@ sequenceDiagram
     end
     deactivate WH
 
-    KH->>APP: Vào trang theo dõi đơn
-    alt payment_status vẫn unpaid sau X phút (webhook chưa khớp)
-        KH->>APP: Tự upload ảnh chứng từ + nhập mã GD (fallback thủ công)
-        APP->>DB: payment_status=pending_review, payment_proof_path, transaction_code
-        Note over APP,DB: Admin duyệt tay theo đúng luồng PaymentReviewController đã có
+    KH->>APP: Vào trang theo dõi đơn (tự cập nhật khi đơn đã paid)
+    alt Webhook không khớp (vd. khách sửa nội dung CK)
+        KH->>NV: Liên hệ cửa hàng
+        NV->>APP: Kiểm tra tài khoản ngân hàng, bấm "Xác nhận đã nhận tiền"
+        APP->>DB: payment_status=paid, payment_reviewed_by=nhân viên, payment_reviewed_at=now()
+        APP->>DB: Ghi audit_logs (action=payment.confirmed_manually)
     end
 ```
 
@@ -250,4 +252,4 @@ sequenceDiagram
 - Route `/webhooks/sepay` không qua `auth`/CSRF (SePay không có session) — bắt buộc tự xác thực bằng API key/secret riêng cấu hình trong `.env`; request không xác thực được trả `401` và **không đụng tới dữ liệu đơn**.
 - Chỉ set `paid` khi khớp **cả hai**: đúng `order_number` trích từ nội dung chuyển khoản **và** đúng số tiền = `grand_total`. Lệch một trong hai → chỉ ghi `audit_logs`, không tự động cập nhật đơn.
 - `payment_reviewed_by` để `null` khi `paid` đến từ webhook (không phải người xác nhận) — phân biệt với luồng thủ công (`payment_reviewed_by` bắt buộc có giá trị).
-- Ngưỡng thời gian chờ trước khi cho phép fallback thủ công là quyết định của Người 2 khi hiện thực (vd. 15–30 phút), không chốt cứng ở tài liệu này.
+- Xác nhận tay chỉ áp dụng cho đơn chuyển khoản `unpaid` chưa hủy, và khóa dòng đơn trước khi ghi — không ghi đè khi webhook vừa khớp. Không lưu ảnh/biên lai.

@@ -6,7 +6,6 @@ use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\OrderController;
-use App\Http\Controllers\Storefront\PaymentProofController;
 use App\Http\Controllers\Storefront\ProductAssistController;
 use App\Http\Controllers\Storefront\ProductAssistStreamController;
 use App\Http\Controllers\Storefront\ProductController;
@@ -59,8 +58,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('don-hang/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('don-hang/{order:order_number}/trang-thai-thanh-toan', [OrderController::class, 'paymentStatus'])
         ->middleware('throttle:30,1')->name('orders.payment-status');
-    Route::post('don-hang/{order:order_number}/chung-tu-thanh-toan', [PaymentProofController::class, 'store'])
-        ->middleware('throttle:6,1')->name('orders.payment-proof');
     Route::patch('don-hang/{order:order_number}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
