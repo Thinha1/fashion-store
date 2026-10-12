@@ -87,7 +87,7 @@ class CheckoutController extends Controller
     {
         $user = $request->user();
         $address = $user->addresses()->create($request->safe()->only([
-            'label', 'recipient_name', 'phone', 'province_name', 'district_name', 'ward_name', 'address_line',
+            'label', 'recipient_name', 'phone', 'province_code', 'province_name', 'district_name', 'ward_name', 'address_line',
         ]));
 
         if (! $user->addresses()->where('is_default', true)->exists()) {

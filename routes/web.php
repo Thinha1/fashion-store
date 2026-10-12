@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::prefix('tai-khoan/dia-chi')->name('addresses.')->controller(AddressController::class)->group(function (): void {
         Route::get('/', 'index')->name('index');
         Route::get('tao-moi', 'create')->name('create');
+        Route::get('phuong-xa/{provinceCode}', 'wards')->whereNumber('provinceCode')->middleware('throttle:60,1')->name('wards');
         Route::post('/', 'store')->name('store');
         Route::get('{address}/sua', 'edit')->name('edit');
         Route::put('{address}', 'update')->name('update');

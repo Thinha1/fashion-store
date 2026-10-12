@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Storefront;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\SaveAddressRequest;
 use App\Models\Address;
+use App\Services\Address\AdministrativeDivisions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +41,21 @@ class AddressController extends Controller
         }
 
         return redirect()->route('addresses.index')->with('status', 'Đã thêm địa chỉ mới.');
+    }
+
+    /**
+     * Wards of one province, for the address form's ward suggestions.
+     */
+    public function wards(int $provinceCode, AdministrativeDivisions $divisions): JsonResponse
+    {
+        $provinces = $divisions->provinces();
+        abort_if($provinces === null, 503, 'Chưa tải được danh sách phường/xã.');
+        abort_unless(collect($provinces)->contains('code', $provinceCode), 404);
+
+        $wards = $divisions->wards($provinceCode);
+        abort_if($wards === null, 503, 'Chưa tải được danh sách phường/xã.');
+
+        return response()->json(['data' => $wards]);
     }
 
     public function edit(Address $address): View

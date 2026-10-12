@@ -27,11 +27,12 @@ class Address extends Model
     }
 
     /**
-     * "12 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh".
+     * "12 Lê Lợi, Phường Sài Gòn, Thành phố Hồ Chí Minh" — older addresses
+     * also carry the district they were saved with.
      */
     public function fullAddress(): string
     {
-        return implode(', ', [$this->address_line, $this->ward_name, $this->district_name, $this->province_name]);
+        return implode(', ', array_filter([$this->address_line, $this->ward_name, $this->district_name, $this->province_name], 'filled'));
     }
 
     /**
