@@ -51,14 +51,6 @@ body:has(dialog[open]) { overflow: hidden; }
     .field { @apply block min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/15; }
     .nav-link { @apply rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-soft hover:text-brand; }
     .nav-link[aria-current='page'] { @apply bg-brand-soft text-brand; }
-    .mega-trigger { @apply flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-soft hover:text-brand; }
-    .mega-trigger[aria-expanded='true'] { @apply bg-brand-soft text-brand; }
-    .mega-panel { @apply absolute inset-x-0 top-full z-30 border-t border-gray-100 bg-white shadow-[0_24px_48px_-24px_#17343a30]; }
-    .mega-panel-inner { @apply mx-auto grid max-w-7xl gap-8 px-8 py-8; }
-    .mega-col h3 { @apply flex items-center gap-2 text-sm font-semibold text-gray-900; }
-    .mega-col ul { @apply mt-3 space-y-2.5; }
-    .mega-col a { @apply text-sm text-gray-500 transition-colors hover:text-brand; }
-    .mega-col .mega-see-all { @apply mt-3 block text-xs font-medium text-brand hover:underline; }
     .store-main { @apply mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:px-8; }
     .auth-shell { @apply mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_16px_60px_-32px_#17343a50] lg:grid-cols-[0.9fr_1.1fr]; }
     .auth-story { @apply relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-white lg:flex; }
