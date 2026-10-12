@@ -68,7 +68,8 @@ class DashboardTest extends TestCase
             ]);
         }
 
-        $this->actingAs($admin)->get(route('admin.dashboard'))
+        // These orders are years old, so look at the all-time window (the default is the last 30 days).
+        $this->actingAs($admin)->get(route('admin.dashboard', ['khoang' => 'tat-ca']))
             ->assertOk()
             ->assertViewHas('totalRevenue', fn ($value) => (float) $value === 700000.25)
             ->assertViewHas('totalOrders', 8)
