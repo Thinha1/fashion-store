@@ -54,6 +54,15 @@ test('changing the province clears the ward and loads the new list', async () =>
     assert.deepEqual(picker.wards, ['Phường Ba Đình']);
 });
 
+test('a saved ward missing from the new list is cleared so it gets picked again', async () => {
+    stubFetch(() => ({ body: { data: [{ code: 26734, name: 'Phường Bến Thành' }] } }));
+    const { picker } = mount({ province: 'Thành phố Hồ Chí Minh', ward: 'Phường Bến Nghé' });
+    await picker.loadWards();
+
+    assert.equal(picker.ward, '');
+    assert.equal(picker.status, 'ready');
+});
+
 test('a failed load leaves the ward as free text', async () => {
     stubFetch(() => ({ ok: false, status: 503 }));
     const { picker } = mount({ province: 'Thành phố Hà Nội', ward: 'Phường Ba Đình' });

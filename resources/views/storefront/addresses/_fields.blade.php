@@ -1,7 +1,7 @@
 {{-- Shared address inputs: the address book form and checkout's "new address" option.
      Province -> ward (no district since the 2025 reorganisation). With the province list loaded,
-     the province is picked from a list and the ward is suggested from that province's wards;
-     without it ($provinces === null) both are plain text. --}}
+     both are picked from dropdowns (the ward list follows the province, and falls back to a text
+     input if it cannot be loaded); without it ($provinces === null) both are plain text. --}}
 <div class="grid gap-4 sm:grid-cols-2">
     <div>
         <x-label for="recipient_name">Họ tên người nhận</x-label>
@@ -29,13 +29,13 @@
             </div>
             <div>
                 <label for="ward_name" class="block text-sm font-medium text-gray-700">Phường/Xã</label>
-                <input id="ward_name" name="ward_name" list="ward-options" required autocomplete="off" class="field mt-1"
-                       value="{{ old('ward_name', $address->ward_name) }}" x-model="ward"
-                       :placeholder="province ? 'Gõ để tìm, ví dụ: Bến Thành' : 'Chọn Tỉnh/Thành phố trước'">
-                <datalist id="ward-options">
-                    <template x-for="name in wards" :key="name"><option :value="name"></option></template>
-                </datalist>
-                <p class="mt-1 text-xs text-gray-500" x-show="status === 'loading'" x-cloak>Đang tải danh sách phường/xã…</p>
+                <select id="ward_name" name="ward_name" required class="field mt-1" x-on:change="ward = $event.target.value"
+                        x-show="status !== 'failed'" :disabled="status !== 'ready'">
+                    <option value="" :selected="!ward" x-text="!province ? 'Chọn Tỉnh/Thành phố trước' : (status === 'loading' ? 'Đang tải…' : 'Chọn Phường/Xã')">Chọn Tỉnh/Thành phố trước</option>
+                    <template x-for="name in wards" :key="name"><option :value="name" :selected="name === ward" x-text="name"></option></template>
+                </select>
+                <input name="ward_name" required autocomplete="off" class="field mt-1" x-model="ward"
+                       x-show="status === 'failed'" :disabled="status !== 'failed'" x-cloak>
                 <p class="mt-1 text-xs text-amber-700" x-show="status === 'failed'" x-cloak>Chưa tải được danh sách phường/xã — bạn vẫn có thể tự nhập.</p>
                 <x-input-error :messages="$errors->get('ward_name')" />
             </div>

@@ -1,7 +1,7 @@
 // Address form: once a province is picked, load its wards (via the shop's
-// own route, which caches provinces.open-api.vn) as suggestions for the
-// ward input. A failed load leaves the ward as free text; the server still
-// checks the ward against the province whenever it has the list.
+// own route, which caches provinces.open-api.vn) as the options of the ward
+// dropdown. A failed load turns the ward into a free-text input; the server
+// still checks the ward against the province whenever it has the list.
 
 export default ({ wardsUrl, provinces = [], province = '', ward = '' } = {}) => ({
     province: provinces.some((item) => item.name === province) ? province : '',
@@ -37,6 +37,8 @@ export default ({ wardsUrl, provinces = [], province = '', ward = '' } = {}) => 
             const { data } = await response.json();
             if (request !== this.request) return;
             this.wards = data.map((item) => item.name);
+            // A saved ward that no longer exists (the 2025 reorganisation) must be picked again, not silently kept.
+            if (!this.wards.includes(this.ward)) this.ward = '';
             this.status = 'ready';
         } catch {
             if (request === this.request) this.status = 'failed';
