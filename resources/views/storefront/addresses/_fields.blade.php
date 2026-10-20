@@ -34,7 +34,8 @@
                     <option value="" :selected="!ward" x-text="!province ? 'Chọn Tỉnh/Thành phố trước' : (status === 'loading' ? 'Đang tải…' : 'Chọn Phường/Xã')">Chọn Tỉnh/Thành phố trước</option>
                     <template x-for="name in wards" :key="name"><option :value="name" :selected="name === ward" x-text="name"></option></template>
                 </select>
-                <input name="ward_name" required autocomplete="off" class="field mt-1" x-model="ward"
+                <label for="ward_name_text" class="sr-only">Phường/Xã</label>
+                <input id="ward_name_text" name="ward_name" required autocomplete="off" class="field mt-1" x-model="ward"
                        x-show="status === 'failed'" :disabled="status !== 'failed'" x-cloak>
                 <p class="mt-1 text-xs text-amber-700" x-show="status === 'failed'" x-cloak>Chưa tải được danh sách phường/xã — bạn vẫn có thể tự nhập.</p>
                 <x-input-error :messages="$errors->get('ward_name')" />
