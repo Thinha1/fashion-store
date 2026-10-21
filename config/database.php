@@ -57,6 +57,9 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
+            // Same offset as app.timezone, so NOW()/CURRENT_TIMESTAMP and
+            // the values Laravel writes agree whatever the server's zone.
+            'timezone' => env('DB_TIMEZONE', '+07:00'),
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
@@ -77,6 +80,9 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
+            // Same offset as app.timezone, so NOW()/CURRENT_TIMESTAMP and
+            // the values Laravel writes agree whatever the server's zone.
+            'timezone' => env('DB_TIMEZONE', '+07:00'),
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
