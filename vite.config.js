@@ -20,7 +20,16 @@ export default defineConfig({
         },
         watch: {
             usePolling: true,
-            ignored: ['**/storage/framework/views/**'],
+            // Polling a Windows bind mount is expensive: skip trees Vite never
+            // serves (vendor/ alone is ~14k files and stalled every request).
+            ignored: [
+                '**/storage/**',
+                '**/vendor/**',
+                '**/public/build/**',
+                '**/.docker/**',
+                '**/docs/**',
+                '**/tests/**',
+            ],
         },
     },
 });

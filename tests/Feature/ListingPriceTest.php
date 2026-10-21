@@ -18,8 +18,8 @@ class ListingPriceTest extends TestCase
     public function test_price_tag_shows_the_cheapest_variant_after_its_discount_and_the_deepest_discount(): void
     {
         $product = Product::factory()->create(['base_price' => 500000]);
-        $cheap = ProductVariant::factory()->for($product)->create(['price' => 300000]);
-        $pricey = ProductVariant::factory()->for($product)->create(['price' => 400000]);
+        $cheap = ProductVariant::factory()->for($product)->create(['size' => 'S', 'price' => 300000]);
+        $pricey = ProductVariant::factory()->for($product)->create(['size' => 'M', 'price' => 400000]);
         Discount::factory()->for($cheap)->create(['discount_type' => 'percent', 'discount_value' => 10]);
         Discount::factory()->for($pricey)->create(['discount_type' => 'percent', 'discount_value' => 30]);
 
