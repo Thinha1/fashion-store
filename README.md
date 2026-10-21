@@ -28,6 +28,7 @@ Các model cho giỏ hàng, đơn hàng, đánh giá, yêu thích và trả hàn
 
 - Trang chủ với sản phẩm nổi bật.
 - Danh sách sản phẩm có phân trang, lọc danh mục ba cấp, lọc thương hiệu và sắp xếp.
+- Tìm kiếm sản phẩm bằng Meilisearch (chấp nhận gõ sai, gõ không dấu, từ đồng nghĩa như đầm/váy) và bộ lọc size, màu, khoảng giá theo giá đã giảm, còn hàng. Meilisearch không chạy thì tìm bằng MySQL.
 - Chi tiết sản phẩm với thư viện ảnh, màu sắc, kích thước, SKU, tồn kho và sản phẩm liên quan.
 - Trang bộ sưu tập theo thương hiệu.
 - Đăng ký, đăng nhập, xác minh email và đặt lại mật khẩu.
@@ -86,6 +87,7 @@ Luồng xử lý HTTP chính:
 | Dữ liệu | MySQL 8.4 |
 | File | Laravel Filesystem, MinIO/S3 |
 | Excel | PhpSpreadsheet 5 |
+| Tìm kiếm | Laravel Scout 11, Meilisearch 1.55 |
 | Email phát triển | Mailpit |
 | Chất lượng mã | Laravel Pint, PHPUnit 12, SonarQube Cloud |
 | Môi trường | Docker Compose, Nginx, PHP-FPM |
@@ -107,6 +109,7 @@ docker compose up -d --build
 - sinh `APP_KEY` và tạo storage link;
 - chuẩn bị bucket MinIO;
 - chạy migration;
+- đồng bộ cấu hình index Meilisearch và import sản phẩm (`search-index`);
 - khởi động web app, Vite, queue worker và scheduler.
 
 Kiểm tra trạng thái:
@@ -123,6 +126,7 @@ docker compose ps
 | Mailpit | <http://localhost:8025> |
 | MinIO API | <http://localhost:9000> |
 | MinIO Console | <http://localhost:9001> |
+| Meilisearch | <http://localhost:7700> (key: `MEILISEARCH_KEY`) |
 | MySQL từ máy host | `127.0.0.1:3307` |
 | MySQL trong Docker | `mysql:3306` |
 
@@ -175,6 +179,9 @@ docker compose exec app vendor/bin/pint --test
 
 # Build frontend
 docker compose run --rm node npm run build
+
+# Đồng bộ lại index tìm kiếm (sau khi đổi config/scout.php hoặc seed lại dữ liệu)
+docker compose run --rm search-index
 
 # Theo dõi log
 docker compose logs -f

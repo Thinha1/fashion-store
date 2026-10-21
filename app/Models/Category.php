@@ -16,6 +16,26 @@ class Category extends Model
 {
     use HasFactory;
 
+    /**
+     * Products are searchable by their whole category path, so a rename
+     * re-indexes every product in this category and the two levels below.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Category $category): void {
+            if (! $category->wasChanged('name')) {
+                return;
+            }
+
+            $childIds = self::query()->where('parent_id', $category->id)->pluck('id');
+            $categoryIds = $childIds
+                ->merge(self::query()->whereIn('parent_id', $childIds)->pluck('id'))
+                ->push($category->id);
+
+            Product::query()->whereIn('category_id', $categoryIds)->where('status', 'active')->searchable();
+        });
+    }
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];

@@ -13,6 +13,18 @@ class Brand extends Model
 {
     use HasFactory;
 
+    /**
+     * Products are searchable by brand name; re-index them on a rename.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Brand $brand): void {
+            if ($brand->wasChanged('name')) {
+                $brand->products()->where('status', 'active')->searchable();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];

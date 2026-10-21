@@ -14,7 +14,8 @@ use App\Http\Controllers\Webhooks\SepayWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
-Route::get('san-pham', [ProductController::class, 'index'])->name('products.index');
+Route::get('san-pham', [ProductController::class, 'index'])
+    ->middleware('throttle:catalog-search')->name('products.index');
 // Customer-facing shopping-assist chat — guest-callable on purpose (see
 // ProductAssistController), never gated behind auth/permission like the
 // admin product-authoring assistant is.

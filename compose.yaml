@@ -135,6 +135,43 @@ services:
       mc anonymous set download local/${AWS_BUCKET:-fashion-store}
       "
 
+  # Full-text search for the storefront catalog (/san-pham?q=...). The app
+  # does not depend on it: if it is down, search falls back to MySQL LIKE.
+  # Dashboard at http://localhost:7700 (key: MEILISEARCH_KEY).
+  meilisearch:
+    image: getmeili/meilisearch:v1.55
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-fashion-store-dev-master-key}
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "${MEILISEARCH_FORWARD_PORT:-7700}:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  # One-shot: push the index settings (searchable fields, synonyms from
+  # config/scout.php) and import every active product, then exit. Re-run it
+  # after changing those settings: docker compose run --rm search-index
+  search-index:
+    <<: *laravel-service
+    command: ["sh", "-c", "php artisan scout:sync-index-settings && php artisan scout:import 'App\\Models\\Product'"]
+    restart: "no"
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      SCOUT_QUEUE: "false"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      meilisearch:
+        condition: service_healthy
+
   node:
     image: node:22-alpine
     working_dir: /var/www/html
@@ -183,6 +220,7 @@ services:
 
 volumes:
   bootstrap_cache:
+  meilisearch_data:
   minio_data:
   mysql_data:
   node_modules:

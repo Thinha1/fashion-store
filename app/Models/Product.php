@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 #[Fillable([
     'category_id', 'brand_id', 'name', 'slug', 'description',
@@ -16,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, Searchable, SoftDeletes;
 
     public const STATUS_LABELS = [
         'active' => 'Đang kinh doanh',
@@ -29,6 +31,52 @@ class Product extends Model
             'base_price' => 'decimal:2',
             'is_featured' => 'boolean',
         ];
+    }
+
+    /**
+     * Only products on sale are worth finding; archiving one drops it from
+     * the search index.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * The text a shopper might type to find this product. Brand, category
+     * path ("Nữ Áo Áo sơ mi") and variant colors are denormalized in so
+     * "áo sơ mi trắng" matches without a filter.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        $this->loadMissing(['brand', 'category.parent.parent', 'variants']);
+
+        $categories = [];
+        for ($category = $this->category; $category !== null; $category = $category->parent) {
+            array_unshift($categories, $category->name);
+        }
+
+        $variants = $this->variants->where('is_active', true);
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'brand' => $this->brand?->name,
+            'category' => implode(' ', $categories),
+            'colors' => $variants->pluck('color')->unique()->values()->all(),
+            'skus' => $variants->pluck('sku')->values()->all(),
+            'description' => Str::limit(trim(strip_tags((string) $this->description)), 2000, ''),
+        ];
+    }
+
+    /**
+     * @param  Builder<Product>  $query
+     */
+    protected function makeAllSearchableUsing(Builder $query): Builder
+    {
+        return $query->with(['brand', 'category.parent.parent', 'variants']);
     }
 
     /**

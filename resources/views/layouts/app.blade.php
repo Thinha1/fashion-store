@@ -28,6 +28,9 @@
                 <a href="{{ route('collections.index') }}" class="nav-link"
                     @if (request()->routeIs('collections.*')) aria-current="page" @endif>Bộ sưu tập</a>
                 <a href="{{ route('home') }}#phong-cach" class="nav-link">Gợi ý phong cách</a>
+                <a href="{{ route('products.index') }}#tim-kiem" class="nav-link" aria-label="Tìm kiếm sản phẩm" title="Tìm kiếm">
+                    <x-icon name="search" class="size-4" />
+                </a>
                 <a href="{{ route('cart.index') }}" class="nav-link relative" aria-label="Giỏ hàng ({{ $cartItemCount }} sản phẩm)"
                     @if (request()->routeIs('cart.*')) aria-current="page" @endif>
                     <x-icon name="cart" class="size-4" />
@@ -49,6 +52,9 @@
                 @endauth
             </nav>
             <div class="flex items-center gap-2 md:hidden">
+                <a href="{{ route('products.index') }}#tim-kiem" class="btn btn-secondary px-3" aria-label="Tìm kiếm sản phẩm">
+                    <x-icon name="search" />
+                </a>
                 <a href="{{ route('cart.index') }}" class="btn btn-secondary relative px-3" aria-label="Giỏ hàng ({{ $cartItemCount }} sản phẩm)">
                     <x-icon name="cart" />
                     @if ($cartItemCount > 0)

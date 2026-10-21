@@ -18,6 +18,30 @@ class ProductVariant extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * The product's search document carries its variants' colors and SKUs,
+     * so re-index the product when those change.
+     */
+    protected static function booted(): void
+    {
+        static::created(fn (ProductVariant $variant) => $variant->reindexProduct());
+        static::updated(function (ProductVariant $variant): void {
+            if ($variant->wasChanged(['color', 'sku', 'is_active'])) {
+                $variant->reindexProduct();
+            }
+        });
+        static::deleted(fn (ProductVariant $variant) => $variant->reindexProduct());
+    }
+
+    private function reindexProduct(): void
+    {
+        $product = $this->product;
+
+        if ($product?->shouldBeSearchable()) {
+            $product->unsetRelation('variants')->searchable();
+        }
+    }
+
+    /**
      * Standard apparel sizes offered across the catalog, in display order.
      */
     public const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
