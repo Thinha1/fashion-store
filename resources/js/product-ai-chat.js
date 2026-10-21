@@ -1022,6 +1022,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
             role: 'assistant',
             blocks: [{ type: 'text', text: payload.raw ?? JSON.stringify(draft) }],
             navigateLabel: this.navigate?.label ?? null,
+            notice: payload?.notice ?? null,
             setFieldsLabel,
             toolCalls,
         });
@@ -1031,7 +1032,12 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
         // A quick single/few-field edit ("giá 100k") is applied straight
         // to the live form — no draft-card review step, since it's a
         // small, explicit, easily-undone change.
-        if (setFields.length) {
+        if (setFields.length && this.navigate) {
+            // "Open product X and change the price": the edit belongs to
+            // the product being opened, so it waits for that page (init()
+            // applies pendingSetFields once the form is there).
+            this.pendingSetFields = setFields;
+        } else if (setFields.length) {
             const form = document.getElementById('product-form');
             if (form) {
                 const { restore } = applySetFields(setFields, form, window.Alpine);

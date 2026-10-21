@@ -34,5 +34,9 @@
     "discounts.index": {
         "label": "Giảm giá sản phẩm",
         "route": "admin.discounts.index"
+    },
+    "orders.index": {
+        "label": "Danh sách đơn hàng",
+        "route": "admin.orders.index"
     }
 }

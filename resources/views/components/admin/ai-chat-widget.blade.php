@@ -79,7 +79,9 @@
                     </template>
                     <template x-if="message.role === 'assistant'">
                         <div>
-                            <p x-text="message.navigateLabel
+                            <p x-text="message.notice
+                                ? message.notice
+                                : message.navigateLabel
                                 ? `Đã di chuyển đến trang ${message.navigateLabel}.`
                                 : (message.setFieldsLabel
                                     ? `Đã điền ${message.setFieldsLabel} vào form.`
