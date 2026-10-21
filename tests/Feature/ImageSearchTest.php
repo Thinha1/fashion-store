@@ -94,6 +94,21 @@ class ImageSearchTest extends TestCase
             ->assertSessionHas('error', 'Không nhận ra sản phẩm trong ảnh, bạn thử ảnh khác nhé.');
     }
 
+    public function test_an_unreadable_or_empty_reply_is_treated_as_not_recognised(): void
+    {
+        Http::fake(['internal-ai.example.test/*' => Http::sequence()
+            ->push(['choices' => [['message' => ['content' => 'Xin lỗi, tôi không chắc.']]]])
+            ->push(['choices' => [['message' => ['content' => '```json'.'
+'.'{"is_clothing": true, "keywords": "  "}'.'
+'.'```']]]])]);
+
+        foreach ([1, 2] as $attempt) {
+            $this->post(route('products.image-search'), ['image' => $this->photo()])
+                ->assertRedirect(route('products.index'))
+                ->assertSessionHas('error', 'Không nhận ra sản phẩm trong ảnh, bạn thử ảnh khác nhé.');
+        }
+    }
+
     public function test_an_ai_outage_returns_with_a_message(): void
     {
         Http::fake(['internal-ai.example.test/*' => Http::response('down', 500)]);
