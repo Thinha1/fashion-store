@@ -2,9 +2,9 @@
 
 namespace App\Actions;
 
-use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -65,14 +65,13 @@ class ChangeOrderStatus
             $lockedOrder->updated_by = $actor->id;
             $lockedOrder->save();
 
-            AuditLog::query()->create([
-                'actor_id' => $actor->id,
-                'action' => 'order.status_changed',
-                'subject_type' => $lockedOrder->getMorphClass(),
-                'subject_id' => $lockedOrder->id,
-                'old_values' => $oldValues,
-                'new_values' => $newValues,
-            ]);
+            app(AuditLogger::class)->record(
+                'order.status_changed',
+                $lockedOrder,
+                $oldValues,
+                $newValues,
+                actor: $actor,
+            );
 
             return $lockedOrder;
         });

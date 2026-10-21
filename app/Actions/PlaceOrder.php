@@ -3,12 +3,12 @@
 namespace App\Actions;
 
 use App\Models\Address;
-use App\Models\AuditLog;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use App\Services\Cart\CartException;
 use App\Services\Cart\InsufficientStockException;
 use App\Services\Cart\ShoppingCart;
@@ -132,19 +132,18 @@ class PlaceOrder
             $coupon?->increment('used_count');
             $cart->update(['status' => 'converted']);
 
-            AuditLog::query()->create([
-                'actor_id' => $customer->id,
-                'action' => 'order.placed',
-                'subject_type' => $order->getMorphClass(),
-                'subject_id' => $order->id,
-                'old_values' => null,
-                'new_values' => [
+            app(AuditLogger::class)->record(
+                'order.placed',
+                $order,
+                null,
+                [
                     'order_number' => $order->order_number,
                     'grand_total' => $quote->grandTotal,
                     'coupon_id' => $coupon?->id,
                     'stock' => $stockChanges,
                 ],
-            ]);
+                actor: $customer,
+            );
 
             return $order;
         });

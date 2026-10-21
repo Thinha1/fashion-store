@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAuditTrail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class ProductVariant extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, RecordsAuditTrail, SoftDeletes;
 
     /**
      * The product's search document carries its variants' colors and SKUs,

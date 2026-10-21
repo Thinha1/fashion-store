@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\AuditLog;
 use App\Models\Order;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -122,13 +122,11 @@ class RecordSepayTransfer
      */
     private function log(string $action, ?Order $order, array $newValues, ?array $oldValues = null): void
     {
-        AuditLog::query()->create([
-            'actor_id' => null,
-            'action' => $action,
-            'subject_type' => (new Order)->getMorphClass(),
-            'subject_id' => $order?->id,
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
-        ]);
+        app(AuditLogger::class)->record(
+            $action,
+            $order ?? Order::class,
+            $oldValues,
+            $newValues,
+        );
     }
 }
