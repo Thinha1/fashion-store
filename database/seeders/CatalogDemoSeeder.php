@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -13,6 +14,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
+/**
+ * Demo catalog built from real products of Coolmate, Yame, Nike and Puma
+ * (names, prices, sale prices, colors, sizes and photos as listed on their
+ * Vietnamese stores, see assets/catalog/SOURCES.md). For the course project
+ * only; the photos belong to the brands.
+ */
 class CatalogDemoSeeder extends Seeder
 {
     private const ASSET_DIRECTORY = 'assets/catalog';
@@ -41,25 +48,25 @@ class CatalogDemoSeeder extends Seeder
     private function seedBrands(User $admin, array $logoPaths): array
     {
         $definitions = [
-            'lang-studio' => [
-                'name' => 'Lặng Studio',
-                'description' => 'Thương hiệu giả lập theo đuổi phom dáng tối giản, bảng màu trung tính và chất liệu dễ mặc hằng ngày.',
+            'coolmate' => [
+                'name' => 'Coolmate',
+                'description' => 'Thương hiệu thời trang Việt Nam bán online, nổi tiếng với áo thun, polo và đồ thể thao cơ bản giá tốt.',
                 'country' => 'Việt Nam',
             ],
-            'moc-daily' => [
-                'name' => 'Mộc Daily',
-                'description' => 'Dòng trang phục giả lập tập trung vào cotton, linen và cảm giác thoải mái cho nhịp sống đô thị.',
+            'yame' => [
+                'name' => 'Yame',
+                'description' => 'Thương hiệu thời trang nam Việt Nam với hệ thống cửa hàng toàn quốc, phong cách trẻ trung và giá dễ tiếp cận.',
                 'country' => 'Việt Nam',
             ],
-            'dai-nang' => [
-                'name' => 'Dải Nắng',
-                'description' => 'Thương hiệu giả lập với các thiết kế mềm mại, tông màu ấm và khả năng phối lớp linh hoạt.',
-                'country' => 'Việt Nam',
+            'nike' => [
+                'name' => 'Nike',
+                'description' => 'Thương hiệu thể thao toàn cầu với các dòng Sportswear, Dri-FIT và Tech Fleece cho tập luyện lẫn mặc hằng ngày.',
+                'country' => 'Mỹ',
             ],
-            'northline' => [
-                'name' => 'Northline',
-                'description' => 'Nhãn hàng giả lập mang tinh thần smart casual, kết hợp đường nét gọn gàng với chất liệu bền.',
-                'country' => 'Nhật Bản',
+            'puma' => [
+                'name' => 'Puma',
+                'description' => 'Thương hiệu thể thao đến từ Đức, nổi bật với dòng Essentials logo lớn và trang phục tập luyện.',
+                'country' => 'Đức',
             ],
         ];
 
@@ -87,26 +94,29 @@ class CatalogDemoSeeder extends Seeder
     private function seedCategories(User $admin, array $imagePaths): array
     {
         $definitions = [
-            ['slug' => 'nam', 'name' => 'Nam', 'parent' => null, 'image' => 'bo-suu-tap-05.jpg'],
-            ['slug' => 'nu', 'name' => 'Nữ', 'parent' => null, 'image' => 'bo-suu-tap-03.jpg'],
-            ['slug' => 'unisex', 'name' => 'Unisex', 'parent' => null, 'image' => 'bo-suu-tap-01.jpg'],
+            ['slug' => 'nam', 'name' => 'Nam', 'parent' => null, 'image' => 'nike-solo-fleece-full-zip-hoodie-xam-dam.jpg'],
+            ['slug' => 'nu', 'name' => 'Nữ', 'parent' => null, 'image' => 'nike-sportswear-mid-rise-pleated-skirt-den.jpg'],
 
-            ['slug' => 'nam-ao', 'name' => 'Áo nam', 'parent' => 'nam', 'image' => 'ao-so-mi.jpg'],
-            ['slug' => 'nam-quan', 'name' => 'Quần nam', 'parent' => 'nam', 'image' => 'bo-suu-tap-04.jpg'],
-            ['slug' => 'nu-ao', 'name' => 'Áo nữ', 'parent' => 'nu', 'image' => 'bo-suu-tap-03.jpg'],
-            ['slug' => 'nu-vay', 'name' => 'Váy nữ', 'parent' => 'nu', 'image' => 'bo-suu-tap-01.jpg'],
-            ['slug' => 'unisex-ao', 'name' => 'Áo unisex', 'parent' => 'unisex', 'image' => 'ao-thun.jpg'],
+            ['slug' => 'nam-ao', 'name' => 'Áo nam', 'parent' => 'nam', 'image' => 'ao-so-mi-dai-tay-oxford-premium-xanh-dam.jpg'],
+            ['slug' => 'nam-quan', 'name' => 'Quần nam', 'parent' => 'nam', 'image' => 'quan-jeans-nam-basics-dang-slim-fit-den-wash.jpg'],
+            ['slug' => 'nu-ao', 'name' => 'Áo nữ', 'parent' => 'nu', 'image' => 'ao-khoac-the-thao-nu-studio-be.jpg'],
+            ['slug' => 'nu-quan', 'name' => 'Quần nữ', 'parent' => 'nu', 'image' => 'quan-wide-leg-nu-flex-active-den.jpg'],
+            ['slug' => 'nu-vay', 'name' => 'Váy & đầm', 'parent' => 'nu', 'image' => 'dam-wardrobe-ess-midi-cut-out-den.jpg'],
 
-            ['slug' => 'ao-thun-nam', 'name' => 'Áo thun', 'parent' => 'nam-ao', 'image' => 'ao-thun.jpg'],
-            ['slug' => 'ao-so-mi-nam', 'name' => 'Áo sơ mi', 'parent' => 'nam-ao', 'image' => 'bo-suu-tap-02.jpg'],
-            ['slug' => 'ao-len-nam', 'name' => 'Áo len', 'parent' => 'nam-ao', 'image' => 'ao-len.jpg'],
-            ['slug' => 'quan-dai-nam', 'name' => 'Quần dài', 'parent' => 'nam-quan', 'image' => 'bo-suu-tap-04.jpg'],
-            ['slug' => 'ao-thun-nu', 'name' => 'Áo thun', 'parent' => 'nu-ao', 'image' => 'bo-suu-tap-01.jpg'],
-            ['slug' => 'ao-so-mi-nu', 'name' => 'Áo sơ mi', 'parent' => 'nu-ao', 'image' => 'bo-suu-tap-04.jpg'],
-            ['slug' => 'ao-len-nu', 'name' => 'Áo len & cardigan', 'parent' => 'nu-ao', 'image' => 'bo-suu-tap-03.jpg'],
-            ['slug' => 'vay-lien-nu', 'name' => 'Váy liền', 'parent' => 'nu-vay', 'image' => 'bo-suu-tap-01.jpg'],
-            ['slug' => 'ao-thun-unisex', 'name' => 'Áo thun', 'parent' => 'unisex-ao', 'image' => 'ao-thun.jpg'],
-            ['slug' => 'ao-len-unisex', 'name' => 'Áo len', 'parent' => 'unisex-ao', 'image' => 'ao-len.jpg'],
+            ['slug' => 'ao-thun-nam', 'name' => 'Áo thun', 'parent' => 'nam-ao', 'image' => 'ao-thun-nam-premium-cotton-den.jpg'],
+            ['slug' => 'ao-polo-nam', 'name' => 'Áo polo', 'parent' => 'nam-ao', 'image' => 'ao-polo-nam-premium-pique-den.jpg'],
+            ['slug' => 'ao-so-mi-nam', 'name' => 'Áo sơ mi', 'parent' => 'nam-ao', 'image' => 'ao-so-mi-dai-tay-oxford-premium-xanh-dam.jpg'],
+            ['slug' => 'hoodie-nam', 'name' => 'Hoodie & nỉ', 'parent' => 'nam-ao', 'image' => 'ao-khoac-hoodie-nam-logo-lon-essentials-den.jpg'],
+            ['slug' => 'ao-khoac-nam', 'name' => 'Áo khoác', 'parent' => 'nam-ao', 'image' => 'ao-khoac-du-ripstop-truot-nuoc-xam-nhat.jpg'],
+            ['slug' => 'quan-jeans-nam', 'name' => 'Quần jeans', 'parent' => 'nam-quan', 'image' => 'quan-jeans-ong-suong-durabletex-xam-den.jpg'],
+            ['slug' => 'quan-dai-nam', 'name' => 'Quần dài', 'parent' => 'nam-quan', 'image' => 'quan-tay-xep-ly-easycare-xam-dam.jpg'],
+            ['slug' => 'quan-short-nam', 'name' => 'Quần short', 'parent' => 'nam-quan', 'image' => 'quan-short-lung-thun-van-noi-xam-trang.jpg'],
+            ['slug' => 'ao-thun-nu', 'name' => 'Áo thun', 'parent' => 'nu-ao', 'image' => 'nike-sportswear-women-s-t-shirt-hong-phan.jpg'],
+            ['slug' => 'hoodie-nu', 'name' => 'Hoodie & nỉ', 'parent' => 'nu-ao', 'image' => 'nike-studio-fleece-oversized-full-zip-hoodie-den.jpg'],
+            ['slug' => 'ao-khoac-nu', 'name' => 'Áo khoác', 'parent' => 'nu-ao', 'image' => 'ao-khoac-the-thao-nu-studio-be.jpg'],
+            ['slug' => 'quan-dai-nu', 'name' => 'Quần dài', 'parent' => 'nu-quan', 'image' => 'quan-ni-nu-ong-rong-wardrobe-essentials-relaxed-hong.jpg'],
+            ['slug' => 'chan-vay', 'name' => 'Chân váy', 'parent' => 'nu-vay', 'image' => 'nike-sportswear-mid-rise-pleated-skirt-den.jpg'],
+            ['slug' => 'dam-nu', 'name' => 'Đầm', 'parent' => 'nu-vay', 'image' => 'dam-wardrobe-ess-midi-cut-out-den.jpg'],
         ];
 
         $categories = [];
@@ -122,7 +132,7 @@ class CatalogDemoSeeder extends Seeder
                 [
                     'parent_id' => $parent?->id,
                     'name' => $definition['name'],
-                    'description' => 'Danh mục demo dành cho '.$definition['name'].'.',
+                    'description' => 'Danh mục '.mb_strtolower($definition['name']).($parent ? ' - '.$parent->name : '').'.',
                     'image_path' => $imagePaths[$definition['image']],
                     'is_active' => true,
                     'sort_order' => $sortOrders[$parentKey],
@@ -151,30 +161,58 @@ class CatalogDemoSeeder extends Seeder
                 'description' => $definition['description'],
                 'base_price' => $definition['price'],
                 'status' => 'active',
-                'is_featured' => true,
+                'is_featured' => (bool) ($definition['featured'] ?? false),
                 'created_by' => $admin->id,
                 'updated_by' => $admin->id,
             ]);
             $product->save();
             $product->restore();
 
-            $this->seedVariants($product, $definition, $admin);
+            $variants = $this->seedVariants($product, $definition, $admin);
+            $this->seedDiscounts($variants, $definition, $admin);
+            $this->seedImages($product, $variants, $definition, $imagePaths, $admin);
+        }
+    }
 
-            $product->images()->update(['is_primary' => false]);
-            ProductImage::query()->updateOrCreate(
-                [
-                    'product_id' => $product->id,
-                    'path' => $imagePaths[$definition['image']],
-                ],
-                [
-                    'product_variant_id' => null,
-                    'alt_text' => $definition['name'],
-                    'sort_order' => 0,
-                    'is_primary' => true,
-                    'created_by' => $admin->id,
-                    'updated_by' => $admin->id,
-                ],
-            );
+    /**
+     * One photo per color, attached to that color's first variant so the
+     * product page swaps pictures when a color is picked. The first color's
+     * photo is the primary (card) image; gallery shots follow it.
+     *
+     * @param  list<ProductVariant>  $variants
+     * @param  array<string, mixed>  $definition
+     * @param  array<string, string>  $imagePaths
+     */
+    private function seedImages(Product $product, array $variants, array $definition, array $imagePaths, User $admin): void
+    {
+        $product->images()->delete();
+        $firstColor = array_key_first($definition['colors']);
+        $variantForColor = fn (string $color): ?int => collect($variants)->firstWhere('color', $color)?->id;
+
+        foreach ($definition['color_images'] as $color => $file) {
+            ProductImage::query()->create([
+                'product_id' => $product->id,
+                'product_variant_id' => $variantForColor($color),
+                'path' => $imagePaths[$file],
+                'alt_text' => $definition['name'].' - '.mb_strtolower($color),
+                'sort_order' => 0,
+                'is_primary' => $color === $firstColor,
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ]);
+        }
+
+        foreach ($definition['gallery'] ?? [] as $index => $file) {
+            ProductImage::query()->create([
+                'product_id' => $product->id,
+                'product_variant_id' => $variantForColor($firstColor),
+                'path' => $imagePaths[$file],
+                'alt_text' => $definition['name'],
+                'sort_order' => $index + 1,
+                'is_primary' => false,
+                'created_by' => $admin->id,
+                'updated_by' => $admin->id,
+            ]);
         }
     }
 
@@ -199,12 +237,19 @@ class CatalogDemoSeeder extends Seeder
     }
 
     /**
+     * Every color in every size. Stock is derived from the SKU so re-seeding
+     * gives the same numbers: most variants are well stocked, a few are low
+     * (dashboard alert) and a few are sold out (catalog "Hết hàng").
+     *
      * @param  array<string, mixed>  $definition
+     * @return list<ProductVariant>
      */
-    private function seedVariants(Product $product, array $definition, User $admin): void
+    private function seedVariants(Product $product, array $definition, User $admin): array
     {
+        $variants = [];
+
         foreach ($definition['colors'] as $color => $colorCode) {
-            foreach (['S', 'M', 'L'] as $sizeIndex => $size) {
+            foreach ($definition['sizes'] as $size) {
                 $sku = $definition['sku'].'-'.$colorCode.'-'.$size;
                 $variant = ProductVariant::withTrashed()->firstOrNew(['sku' => $sku]);
                 $variant->fill([
@@ -212,7 +257,7 @@ class CatalogDemoSeeder extends Seeder
                     'size' => $size,
                     'color' => $color,
                     'price' => null,
-                    'stock_quantity' => 8 + ($sizeIndex * 4),
+                    'stock_quantity' => $this->stockFor($sku),
                     'low_stock_threshold' => 5,
                     'is_active' => true,
                     'created_by' => $admin->id,
@@ -220,7 +265,53 @@ class CatalogDemoSeeder extends Seeder
                 ]);
                 $variant->save();
                 $variant->restore();
+                $variants[] = $variant;
             }
+        }
+
+        return $variants;
+    }
+
+    private function stockFor(string $sku): int
+    {
+        $roll = crc32($sku) % 100;
+
+        return match (true) {
+            $roll < 6 => 0,
+            $roll < 16 => 1 + $roll % 4,
+            default => 8 + $roll % 25,
+        };
+    }
+
+    /**
+     * The brand's own sale (listed price below its original price) becomes
+     * a running percentage discount on every variant of the product.
+     *
+     * @param  list<ProductVariant>  $variants
+     * @param  array<string, mixed>  $definition
+     */
+    private function seedDiscounts(array $variants, array $definition, User $admin): void
+    {
+        foreach ($variants as $variant) {
+            if (! isset($definition['discount_percent'])) {
+                Discount::query()->where('product_variant_id', $variant->id)->where('scope', 'variant')->delete();
+
+                continue;
+            }
+
+            Discount::query()->updateOrCreate(
+                ['product_variant_id' => $variant->id, 'scope' => 'variant'],
+                [
+                    'code' => null,
+                    'discount_type' => 'percent',
+                    'discount_value' => $definition['discount_percent'],
+                    'starts_at' => now()->subDays(3)->startOfDay(),
+                    'ends_at' => now()->addMonths(2)->endOfDay(),
+                    'is_active' => true,
+                    'created_by' => $admin->id,
+                    'updated_by' => $admin->id,
+                ],
+            );
         }
     }
 
@@ -243,8 +334,12 @@ class CatalogDemoSeeder extends Seeder
             $paths[$filename] = $path;
         }
 
-        if (count($paths) !== 8) {
-            throw new RuntimeException('Bộ ảnh demo không đầy đủ. Cần đúng 8 tệp JPG.');
+        foreach ($this->productDefinitions() as $definition) {
+            foreach ([...array_values($definition['color_images']), ...($definition['gallery'] ?? [])] as $file) {
+                if (! isset($paths[$file])) {
+                    throw new RuntimeException("Thiếu ảnh demo {$file} cho sản phẩm {$definition['slug']}.");
+                }
+            }
         }
 
         return $paths;
@@ -256,10 +351,10 @@ class CatalogDemoSeeder extends Seeder
     private function publishBrandLogos(): array
     {
         $definitions = [
-            'lang-studio' => ['LS', '#17343a', '#e6f1ef'],
-            'moc-daily' => ['MD', '#5b4636', '#f1e9dd'],
-            'dai-nang' => ['DN', '#8a4938', '#fae7dc'],
-            'northline' => ['NL', '#334155', '#e2e8f0'],
+            'coolmate' => ['CM', '#1f2937', '#e0f2fe'],
+            'yame' => ['YM', '#7c2d12', '#ffedd5'],
+            'nike' => ['NK', '#111827', '#f3f4f6'],
+            'puma' => ['PM', '#991b1b', '#fee2e2'],
         ];
         $paths = [];
 
