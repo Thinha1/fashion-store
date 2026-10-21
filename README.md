@@ -140,13 +140,13 @@ docker compose exec app php artisan db:seed
 
 Trong môi trường local, lệnh trên tạo thêm catalog demo gồm sản phẩm quần áo thật của 4 thương hiệu (Coolmate, Yame, Nike, Puma): 21 danh mục Nam/Nữ, 44 sản phẩm với 463 biến thể, ảnh riêng cho từng màu và giá khuyến mãi theo trang gốc (nguồn ghi trong `database/seeders/assets/catalog/SOURCES.md`, chỉ dùng cho đồ án). Ảnh được đóng gói cùng repository rồi sao chép lên MinIO khi seed, vì vậy các lần chạy sau không cần kết nối Internet.
 
-Để chỉ tạo hoặc cập nhật catalog demo:
+Đơn hàng demo (khoảng 120 ngày) để dashboard có số liệu được tạo riêng:
 
 ```powershell
-docker compose exec app php artisan db:seed --class=CatalogDemoSeeder
+docker compose exec app php artisan db:seed --class=OrderDemoSeeder
 ```
 
-Seeder có thể chạy lại an toàn: các bản ghi demo được nhận diện bằng slug hoặc SKU và được cập nhật thay vì tạo trùng. Xem [nguồn và giấy phép ảnh](database/seeders/assets/catalog/SOURCES.md).
+`CatalogDemoSeeder` chạy lại an toàn: sản phẩm được nhận diện bằng slug, biến thể bằng SKU, nên chạy lại chỉ cập nhật chứ không tạo trùng. Seeder **không xóa** sản phẩm cũ không còn trong dữ liệu, vì vậy khi dữ liệu demo đổi hẳn (như lần chuyển sang catalog 4 thương hiệu), hãy làm theo mục [Cập nhật lên dữ liệu demo mới](#cập-nhật-lên-dữ-liệu-demo-mới). Xem [nguồn và giấy phép ảnh](database/seeders/assets/catalog/SOURCES.md).
 
 Tài khoản phát triển:
 
@@ -161,6 +161,59 @@ Chỉ dùng thông tin đăng nhập này trong môi trường phát triển. Se
 - `admin`: có toàn bộ permission;
 - `staff`: chưa có permission mặc định;
 - `customer`: tự gán khi khách hàng đăng ký.
+
+### Cập nhật lên dữ liệu demo mới
+
+Dùng khi máy bạn còn catalog cũ (thương hiệu giả lập như Lặng Studio, Mộc Daily hoặc áo thun Etsy) và muốn chuyển sang catalog Coolmate, Yame, Nike, Puma cùng tìm kiếm Meilisearch.
+
+1. Chạy `git pull`, rồi thêm khối cấu hình tìm kiếm vào `.env` (copy từ `.env.example`):
+
+   ```dotenv
+   SCOUT_DRIVER=meilisearch
+   SCOUT_QUEUE=true
+   MEILISEARCH_HOST=http://meilisearch:7700
+   MEILISEARCH_KEY=fashion-store-dev-master-key
+   CATALOG_SEARCHES_PER_MINUTE=60
+   ```
+
+   Thiếu khối này web vẫn chạy, nhưng tìm kiếm dùng MySQL (không chịu gõ sai, không có từ đồng nghĩa).
+
+2. Cài package mới và bật Meilisearch:
+
+   ```powershell
+   docker compose up -d --build
+   ```
+
+3. Làm mới cơ sở dữ liệu rồi seed lại (tài khoản quản trị, catalog, mã giảm giá), thêm đơn demo nếu cần:
+
+   ```powershell
+   docker compose exec app php artisan migrate:fresh --seed
+   docker compose exec app php artisan db:seed --class=OrderDemoSeeder
+   ```
+
+   > `migrate:fresh` xóa **toàn bộ** dữ liệu MySQL trên máy bạn: tài khoản tự tạo, đơn hàng và cấu hình AI (nhập lại API key ở **Cấu hình AI**). Tài khoản `admin@example.com` được tạo lại.
+
+4. Đưa sản phẩm vào Meilisearch và khởi động lại Vite, worker:
+
+   ```powershell
+   docker compose run --rm search-index
+   docker compose restart node queue
+   ```
+
+Muốn xóa luôn ảnh cũ trên MinIO thì thay bước 2–3 bằng `docker compose down -v`, `docker compose up -d --build`, `docker compose exec app php artisan db:seed` (xóa mọi volume rồi dựng lại từ đầu), sau đó làm bước 4.
+
+### Khi pull code có package mới
+
+Nếu gặp lỗi kiểu `Trait "Laravel\Scout\Searchable" not found` hoặc trang mất CSS sau khi đổi nhánh/pull:
+
+```powershell
+# vendor trong Docker thiếu package mới (container setup đã cài theo composer.lock cũ)
+docker compose exec -u root -e COMPOSER_ALLOW_SUPERUSER=1 app composer install
+docker compose exec app php artisan optimize:clear
+
+# Vite treo sau khi tự khởi động lại (đổi .env hoặc vite.config.js)
+docker compose restart node queue
+```
 
 ## Lệnh thường dùng
 
