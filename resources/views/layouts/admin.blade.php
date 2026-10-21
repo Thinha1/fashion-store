@@ -33,9 +33,10 @@
                     @if (auth()->user()->hasPermission('inventory.manage')) <a href="{{ route('admin.goods-receipts.index') }}" class="sidebar-link" @if(request()->routeIs('admin.goods-receipts.*')) aria-current="page" @endif><x-icon name="box" /> Phiếu nhập hàng</a> @endif
                 </div>
             @endif
-            @if (auth()->user()->hasPermission('settings.manage'))
+            @if (auth()->user()->hasPermission('settings.manage') || auth()->user()->hasPermission('audit.view'))
                 <div><p class="sidebar-label">Hệ thống</p>
-                    <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a>
+                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a> @endif
+                    @if (auth()->user()->hasPermission('audit.view')) <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link" @if(request()->routeIs('admin.audit-logs.*')) aria-current="page" @endif><x-icon name="clock" /> Nhật ký hệ thống</a> @endif
                 </div>
             @endif
             <div><p class="sidebar-label">Cửa hàng</p><a href="{{ route('home') }}" class="sidebar-link"><x-icon name="home" /> Xem trang cửa hàng <x-icon class="ml-auto size-4" /></a></div>

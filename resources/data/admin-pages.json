@@ -38,5 +38,9 @@
     "orders.index": {
         "label": "Danh sách đơn hàng",
         "route": "admin.orders.index"
+    },
+    "audit-logs.index": {
+        "label": "Nhật ký hệ thống",
+        "route": "admin.audit-logs.index"
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Actions\AdminExcel;
 use App\Http\Controllers\Admin\AiSettingController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -29,6 +30,11 @@ Route::prefix('admin')
                 Route::post('nhap', [ExcelController::class, 'import'])->middleware('throttle:10,1')->name('import');
             });
 
+        // Audit trail — read-only, needs audit.view.
+        Route::middleware('permission:audit.view')
+            ->get('nhat-ky', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::middleware('permission:audit.view')
+            ->get('nhat-ky/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         // Dashboard — needs the admin.access permission.
         Route::middleware('permission:admin.access')
             ->get('dashboard', DashboardController::class)
