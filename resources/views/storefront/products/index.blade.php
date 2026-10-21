@@ -32,15 +32,32 @@
                 </h1>
             </div>
             <form method="GET" action="{{ route('products.index') }}" role="search" class="catalog-search"
-                  x-data x-init="if (location.hash === '#tim-kiem') $refs.q.focus()"
+                  x-data="{ searchingImage: false }" x-init="if (location.hash === '#tim-kiem') $refs.q.focus()"
                   x-on:hashchange.window="if (location.hash === '#tim-kiem') $refs.q.focus()">
                 @include('storefront.products._filter-inputs', ['query' => \Illuminate\Support\Arr::except($filters->query(), ['q', 'sort'])])
                 <label for="tim-kiem" class="sr-only">Tìm sản phẩm</label>
                 <x-icon name="search" class="catalog-search-icon" />
                 <input id="tim-kiem" x-ref="q" type="search" name="q" value="{{ $filters->q }}" maxlength="100"
-                       placeholder="Tìm áo, quần, thương hiệu…" autocomplete="off" class="field catalog-search-input">
-                <button type="submit" class="btn btn-primary">Tìm</button>
+                       placeholder="Tìm áo, quần, thương hiệu…" autocomplete="off" class="field catalog-search-input"
+                       :placeholder="searchingImage ? 'Đang tìm bằng ảnh…' : 'Tìm áo, quần, thương hiệu…'" :disabled="searchingImage">
+                {{-- The photo input belongs to the POST form below (form="…"),
+                     not to this GET search form. --}}
+                <label for="tim-bang-anh" class="btn btn-secondary px-3" title="Tìm bằng hình ảnh"
+                       :class="{ 'pointer-events-none opacity-60': searchingImage }">
+                    <x-icon name="camera" class="size-4" x-show="!searchingImage" />
+                    <span x-cloak x-show="searchingImage" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+                    <span class="sr-only">Tìm bằng hình ảnh</span>
+                </label>
+                <input id="tim-bang-anh" type="file" name="image" form="image-search-form" accept="image/jpeg,image/png,image/webp"
+                       class="sr-only" x-on:change="if ($el.files.length) { searchingImage = true; $el.form.requestSubmit(); }">
+                <button type="submit" class="btn btn-primary" :disabled="searchingImage">Tìm</button>
             </form>
+            <form id="image-search-form" method="POST" action="{{ route('products.image-search') }}" enctype="multipart/form-data" class="hidden">
+                @csrf
+            </form>
+            @error('image')
+                <p class="w-full text-right text-sm text-red-600" role="alert">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="catalog-bar">

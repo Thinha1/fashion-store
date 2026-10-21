@@ -5,6 +5,7 @@ use App\Http\Controllers\Storefront\CartController;
 use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\ImageSearchController;
 use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductAssistController;
 use App\Http\Controllers\Storefront\ProductAssistStreamController;
@@ -26,6 +27,10 @@ Route::post('san-pham/goi-y-ai', ProductAssistController::class)
 // change shape; see ShoppingAssistResolver for the shared logic.
 Route::post('san-pham/goi-y-ai/stream', ProductAssistStreamController::class)
     ->middleware('throttle:shopping-assist')->name('products.assist-stream');
+// Search by photo: the AI describes the photo, then the shopper lands on the
+// catalog search for it. Same rate limiter as the other AI calls.
+Route::post('san-pham/tim-bang-anh', ImageSearchController::class)
+    ->middleware('throttle:shopping-assist')->name('products.image-search');
 Route::get('san-pham/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('bo-suu-tap', [CollectionController::class, 'index'])->name('collections.index');
 Route::get('bo-suu-tap/{brand:slug}', [CollectionController::class, 'show'])->name('collections.show');
