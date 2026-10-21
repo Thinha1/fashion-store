@@ -168,12 +168,7 @@
                                class="catalog-chip @if (! $dropdown['active']) is-active @endif">Tất cả</a>
                             @foreach ($dropdown['options'] as $option)
                                 <a href="{{ route('products.index', $option['query']) }}"
-                                   class="catalog-chip @if ($option['active']) is-active @endif">
-                                    @isset($option['swatch'])
-                                        <span class="catalog-swatch" style="background-color: {{ $option['swatch'] }}" aria-hidden="true"></span>
-                                    @endisset
-                                    {{ $option['label'] }}
-                                </a>
+                                   class="catalog-chip @if ($option['active']) is-active @endif">@isset($option['swatch'])<span class="catalog-swatch" style="background-color: {{ $option['swatch'] }}" aria-hidden="true"></span>@endisset{{ $option['label'] }}</a>
                             @endforeach
                         </div>
                     </div>
