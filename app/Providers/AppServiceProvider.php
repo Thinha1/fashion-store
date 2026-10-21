@@ -8,11 +8,14 @@ use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use App\Services\Cart\ShoppingCart;
+use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Scout\Scout;
+use Meilisearch\Client as MeilisearchClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +35,19 @@ class AppServiceProvider extends ServiceProvider
         // /admin/cai-dat/ai takes effect on the very next AI call, without
         // needing to restart the app/queue workers.
         $this->app->bind(AiSettings::class, fn () => AiSettings::current());
+
+        // Replaces Scout's own binding, which has no HTTP timeout: a hung
+        // Meilisearch would hang the catalog page instead of letting
+        // CatalogSearch fall back to the database.
+        $this->app->singleton(MeilisearchClient::class, fn (): MeilisearchClient => new MeilisearchClient(
+            (string) config('scout.meilisearch.host'),
+            config('scout.meilisearch.key'),
+            new GuzzleClient([
+                'timeout' => (float) config('scout.meilisearch.timeout'),
+                'connect_timeout' => (float) config('scout.meilisearch.timeout'),
+            ]),
+            clientAgents: [sprintf('Meilisearch Laravel Scout (v%s)', Scout::VERSION)],
+        ));
     }
 
     /**
@@ -48,6 +64,12 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+
+        // Only text searches are limited; browsing and filtering the
+        // catalog without `q` is unlimited.
+        RateLimiter::for('catalog-search', fn ($request): Limit => trim((string) $request->query('q')) === ''
+            ? Limit::none()
+            : Limit::perMinute(max(1, (int) config('scout.catalog_searches_per_minute')))->by('ip:'.$request->ip()));
 
         RateLimiter::for('supplier-tax-lookup', fn ($request): Limit => Limit::perMinute(
             max(1, (int) config('services.vietqr.business_requests_per_minute'))
