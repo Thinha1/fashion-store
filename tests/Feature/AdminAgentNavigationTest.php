@@ -6,10 +6,16 @@ use App\Models\Brand;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Catalog\ProductLocator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use Laravel\Scout\Builder;
+use Laravel\Scout\EngineManager;
+use Laravel\Scout\Engines\CollectionEngine;
+use RuntimeException;
 use Tests\TestCase;
 
 class AdminAgentNavigationTest extends TestCase
@@ -101,5 +107,38 @@ class AdminAgentNavigationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('navigate.key', 'products.edit')
             ->assertJsonPath('data.set_fields', [['field' => 'price', 'value' => '350000']]);
+    }
+
+    public function test_meilisearch_finds_a_product_despite_typos(): void
+    {
+        $this->fakeMeilisearch(fn (): Collection => collect([$this->polo->id]));
+
+        $this->assertTrue($this->polo->is(app(ProductLocator::class)->find('ao polo coolmet')));
+    }
+
+    public function test_a_meilisearch_outage_falls_back_to_the_database(): void
+    {
+        $this->fakeMeilisearch(fn () => throw new RuntimeException('Meilisearch is down'));
+
+        $this->assertTrue($this->polo->is(app(ProductLocator::class)->find('polo coolmate')));
+        $this->assertNull(app(ProductLocator::class)->find('   '));
+    }
+
+    private function fakeMeilisearch(\Closure $keys): void
+    {
+        $engine = new class($keys) extends CollectionEngine
+        {
+            public function __construct(private \Closure $result) {}
+
+            public function keys(Builder $builder): Collection
+            {
+                return ($this->result)();
+            }
+
+            public function update($models): void {}
+        };
+
+        config(['scout.driver' => 'meilisearch']);
+        $this->app->make(EngineManager::class)->extend('meilisearch', fn () => $engine);
     }
 }
