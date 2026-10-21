@@ -2,6 +2,8 @@
 
 namespace App\Services\Ai;
 
+use App\Support\ColorPalette;
+
 /**
  * Builds the system prompt sent with every call, independent of which
  * provider ends up receiving it.
@@ -19,6 +21,8 @@ class ProductDraftPromptBuilder
     {
         $categoryList = $categories === [] ? '(chưa có danh mục nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $categories));
         $brandList = $brands === [] ? '(chưa có thương hiệu nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $brands));
+
+        $colorList = implode(', ', ColorPalette::names());
 
         return <<<PROMPT
             Bạn là trợ lý soạn nội dung sản phẩm cho một shop thời trang online tại Việt Nam.
@@ -65,7 +69,7 @@ class ProductDraftPromptBuilder
               "price": "string",
               "stock_quantity": "string (số lượng tồn kho mỗi biến thể nếu nhân viên có nói, hoặc chuỗi rỗng)",
               "sizes": ["string"],
-              "colors": ["string"],
+              "colors": ["string (nguyên văn tên trong bảng màu: {$colorList}; chọn màu gần nhất nếu không có tên trùng)"],
               "category": "string (nguyên văn 1 tên trong danh sách danh mục ở trên, hoặc chuỗi rỗng)",
               "brand": "string (nguyên văn 1 tên trong danh sách thương hiệu ở trên, hoặc chuỗi rỗng)",
               "variant_images": [{"color": "string (khớp 1 giá trị trong colors)", "image_index": 0}],

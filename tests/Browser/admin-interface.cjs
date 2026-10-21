@@ -138,7 +138,7 @@ function luminance(css) {
         assert.equal((await page.$$('[data-variant-row]')).length, 2);
         await page.click('.remove-variant-row');
         assert.equal((await page.$$('[data-variant-row]')).length, 1);
-        await (await page.$('#images')).uploadFile('database/seeders/assets/catalog/ao-thun.jpg', 'database/seeders/assets/catalog/ao-so-mi.jpg');
+        await (await page.$('#images')).uploadFile('database/seeders/assets/catalog/ao-thun-nam-premium-cotton-den.jpg', 'database/seeders/assets/catalog/ao-so-mi-dai-tay-oxford-premium-trang.jpg');
         await page.waitForFunction(() => document.querySelectorAll('img[alt="Ảnh sản phẩm mới chọn"]').length === 2);
         // Empty required fields make this submission invalid, so no product is created.
         await page.$eval('.admin-form', form => { form.noValidate = true; });

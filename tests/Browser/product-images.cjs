@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const puppeteer = require(process.env.PUPPETEER_MODULE || 'puppeteer');
 const base = process.env.ADMIN_TEST_URL || 'http://localhost:8080';
-const photos = ['database/seeders/assets/catalog/ao-thun.jpg', 'database/seeders/assets/catalog/ao-so-mi.jpg'];
+const photos = ['database/seeders/assets/catalog/ao-thun-nam-premium-cotton-den.jpg', 'database/seeders/assets/catalog/ao-so-mi-dai-tay-oxford-premium-trang.jpg'];
 
 (async () => {
     const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -51,7 +51,7 @@ const photos = ['database/seeders/assets/catalog/ao-thun.jpg', 'database/seeders
         await page.waitForFunction(selector => document.querySelectorAll(selector + ' img[alt="Ảnh biến thể mới chọn"]').length === 2, {}, row);
         await page.click(`${row} .admin-image-remove`);
         await page.waitForFunction(selector => document.querySelector(selector + ' input[type=file]').files.length === 1, {}, row);
-        assert.equal(await upload.evaluate(input => input.files[0].name), 'ao-so-mi.jpg');
+        assert.equal(await upload.evaluate(input => input.files[0].name), 'ao-so-mi-dai-tay-oxford-premium-trang.jpg');
         assert.equal((await page.$$(`${row} img[alt="Ảnh biến thể mới chọn"]`)).length, 1);
         await (await page.$('#images')).uploadFile(...photos);
         await page.waitForFunction(() => document.querySelectorAll('img[alt="Ảnh sản phẩm mới chọn"]').length === 2);

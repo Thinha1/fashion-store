@@ -18,15 +18,6 @@
             'variantId' => $image->product_variant_id,
             'color' => $image->variant?->color,
         ])->values();
-        $colorSwatches = [
-            'Đen' => '#17343a',
-            'Xám đậm' => '#4b5563',
-            'Xanh navy' => '#1f2a44',
-            'Xanh dương' => '#2563eb',
-            'Trắng' => '#ffffff',
-            'Nâu' => '#5c4033',
-            'Đỏ' => '#dc2626',
-        ];
         $sizeOrder = array_flip(\App\Models\ProductVariant::SIZES);
         $sizes = $product->variants->pluck('size')->unique()->sortBy(fn ($size) => $sizeOrder[$size] ?? count($sizeOrder))->values();
         $colors = $product->variants->pluck('color')->unique()->values();
@@ -120,7 +111,7 @@
                     <p class="text-sm font-medium text-gray-900">Màu <span class="font-normal text-gray-500" x-text="selectedColor"></span></p>
                     <div class="mt-2.5 flex flex-wrap gap-2.5">
                         @foreach ($colors as $color)
-                            <button type="button" class="color-swatch" style="--swatch-color: {{ $colorSwatches[$color] ?? '#e5e7eb' }}"
+                            <button type="button" class="color-swatch" style="--swatch-color: {{ \App\Support\ColorPalette::hex($color) }}"
                                     x-on:click="pickColor({{ Js::from($color) }})"
                                     :aria-pressed="selectedColor === {{ Js::from($color) }}"
                                     aria-label="Màu {{ $color }}"></button>
