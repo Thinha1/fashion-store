@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAuditTrail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +19,7 @@ use Laravel\Scout\Searchable;
 ])]
 class Product extends Model
 {
-    use HasFactory, Searchable, SoftDeletes;
+    use HasFactory, RecordsAuditTrail, Searchable, SoftDeletes;
 
     public const STATUS_LABELS = [
         'active' => 'Đang kinh doanh',

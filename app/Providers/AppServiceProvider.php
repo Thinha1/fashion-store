@@ -7,9 +7,12 @@ use App\Services\Address\AdministrativeDivisions;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
+use App\Services\Audit\AuditLogger;
 use App\Services\Cart\ShoppingCart;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -55,6 +58,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Staff sign-ins go to the audit log; customers' do not.
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->user instanceof User && $event->user->hasPermission('admin.access')) {
+                app(AuditLogger::class)->record('auth.login', $event->user, actor: $event->user);
+            }
+        });
+
         // Any Policy/Gate ability whose name matches a permission code (e.g. "products.view")
         // is granted automatically to a user whose role carries that permission (or "*").
         Gate::before(fn (User $user, string $ability): ?bool => $user->hasPermission($ability) ? true : null);

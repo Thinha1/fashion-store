@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAuditTrail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'slug', 'description', 'logo_path', 'country', 'is_active', 'created_by', 'updated_by'])]
 class Brand extends Model
 {
-    use HasFactory;
+    use HasFactory, RecordsAuditTrail;
 
     /**
      * Products are searchable by brand name; re-index them on a rename.

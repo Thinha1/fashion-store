@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveAiSettingRequest;
 use App\Models\AiSetting;
-use App\Models\AuditLog;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -173,13 +173,12 @@ class AiSettingController extends Controller
 
     private function audit(string $action, AiSetting $setting, bool $apiKeyChanged = false): void
     {
-        AuditLog::query()->create([
-            'actor_id' => Auth::id(),
-            'action' => $action,
-            'subject_type' => $setting->getMorphClass(),
-            'subject_id' => $setting->id,
-            // Never the key itself — only whether this save touched it.
-            'new_values' => [
+        // Never the key itself — only whether this save touched it.
+        app(AuditLogger::class)->record(
+            $action,
+            $setting,
+            null,
+            [
                 'name' => $setting->name,
                 'endpoint' => $setting->endpoint,
                 'model' => $setting->model,
@@ -187,6 +186,6 @@ class AiSettingController extends Controller
                 'is_primary' => $setting->is_primary,
                 'api_key_changed' => $apiKeyChanged,
             ],
-        ]);
+        );
     }
 }

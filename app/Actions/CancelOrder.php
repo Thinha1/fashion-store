@@ -2,12 +2,12 @@
 
 namespace App\Actions;
 
-use App\Models\AuditLog;
 use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,7 +30,9 @@ class CancelOrder
      */
     public function execute(Order $order, User $actor, string $note, array $cancellableStatuses = ['pending'], bool $allowPaid = false): Order
     {
-        return DB::transaction(function () use ($order, $actor, $note, $cancellableStatuses, $allowPaid): Order {
+        // Restocking saves each variant (and gives a coupon use back); this
+        // action logs one detailed entry, so the per-model entries are muted.
+        return AuditLogger::quietly(fn (): Order => DB::transaction(function () use ($order, $actor, $note, $cancellableStatuses, $allowPaid): Order {
             $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
 
             if (! in_array($lockedOrder->status, $cancellableStatuses, true)) {
@@ -85,16 +87,15 @@ class CancelOrder
 
             $lockedOrder->save();
 
-            AuditLog::query()->create([
-                'actor_id' => $actor->id,
-                'action' => 'order.cancelled',
-                'subject_type' => $lockedOrder->getMorphClass(),
-                'subject_id' => $lockedOrder->id,
-                'old_values' => ['status' => $previousStatus],
-                'new_values' => ['status' => 'cancelled', 'note' => $note, 'stock' => $stockChanges],
-            ]);
+            app(AuditLogger::class)->record(
+                'order.cancelled',
+                $lockedOrder,
+                ['status' => $previousStatus],
+                ['status' => 'cancelled', 'note' => $note, 'stock' => $stockChanges],
+                actor: $actor,
+            );
 
             return $lockedOrder;
-        });
+        }));
     }
 }

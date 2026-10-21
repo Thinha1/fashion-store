@@ -2,10 +2,10 @@
 
 namespace App\Actions;
 
-use App\Models\AuditLog;
 use App\Models\GoodsReceipt;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +25,9 @@ class ConfirmGoodsReceipt
      */
     public function execute(GoodsReceipt $receipt, User $actor): array
     {
-        $result = DB::transaction(function () use ($receipt, $actor) {
+        // Adding stock saves each variant; this action logs one detailed
+        // entry, so the per-model entries are muted.
+        $result = AuditLogger::quietly(fn () => DB::transaction(function () use ($receipt, $actor) {
             // Re-fetch with a row lock to prevent concurrent confirms.
             $lockedReceipt = GoodsReceipt::query()
                 ->whereKey($receipt->id)
@@ -74,13 +76,11 @@ class ConfirmGoodsReceipt
             $lockedReceipt->confirmed_at = now();
             $lockedReceipt->save();
 
-            AuditLog::query()->create([
-                'actor_id' => $actor->id,
-                'action' => 'goods_receipt.confirmed',
-                'subject_type' => $lockedReceipt->getMorphClass(),
-                'subject_id' => $lockedReceipt->id,
-                'old_values' => ['status' => 'draft'],
-                'new_values' => [
+            app(AuditLogger::class)->record(
+                'goods_receipt.confirmed',
+                $lockedReceipt,
+                ['status' => 'draft'],
+                [
                     'status' => 'confirmed',
                     'confirmed_by' => $actor->id,
                     'confirmed_at' => $lockedReceipt->confirmed_at->toIso8601String(),
@@ -90,10 +90,11 @@ class ConfirmGoodsReceipt
                         'cost_price' => (float) $item->cost_price,
                     ])->all(),
                 ],
-            ]);
+                actor: $actor,
+            );
 
             return ['receipt' => $lockedReceipt, 'error' => null];
-        });
+        }));
 
         return $result;
     }

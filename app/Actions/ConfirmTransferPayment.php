@@ -2,9 +2,9 @@
 
 namespace App\Actions;
 
-use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -44,14 +44,13 @@ class ConfirmTransferPayment
                 'updated_by' => $staff->id,
             ])->save();
 
-            AuditLog::query()->create([
-                'actor_id' => $staff->id,
-                'action' => 'payment.confirmed_manually',
-                'subject_type' => $lockedOrder->getMorphClass(),
-                'subject_id' => $lockedOrder->id,
-                'old_values' => ['payment_status' => 'unpaid'],
-                'new_values' => ['payment_status' => 'paid'],
-            ]);
+            app(AuditLogger::class)->record(
+                'payment.confirmed_manually',
+                $lockedOrder,
+                ['payment_status' => 'unpaid'],
+                ['payment_status' => 'paid'],
+                actor: $staff,
+            );
 
             return $lockedOrder;
         });
