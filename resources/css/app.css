@@ -140,6 +140,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .catalog-dropdown { @apply relative; }
     .catalog-dropdown-btn { @apply inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium whitespace-nowrap text-gray-600 transition-colors hover:border-brand/40 hover:text-brand; }
     .catalog-dropdown-btn.is-active { @apply border-brand/30 bg-brand-soft text-brand; }
+    .catalog-swatch { @apply mr-1 inline-block size-2.5 rounded-full border border-gray-300 align-[-1px]; }
     .catalog-dropdown-panel { @apply absolute left-0 z-20 mt-2 flex w-64 max-w-[calc(100vw-2.5rem)] flex-wrap gap-1 rounded-xl border border-gray-200 bg-white p-2 shadow-lg; }
     .density-btn { @apply flex size-8 items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-400 transition-colors hover:text-brand; }
     .density-btn[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
