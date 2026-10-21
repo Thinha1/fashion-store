@@ -20,7 +20,7 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         $size = fake()->randomElement(ProductVariant::SIZES);
-        $color = fake()->randomElement(['Đen', 'Trắng', 'Xanh', 'Đỏ', 'Be']);
+        $color = fake()->randomElement(['Đen', 'Trắng', 'Xanh dương', 'Đỏ', 'Be']);
 
         return [
             'product_id' => Product::factory(),

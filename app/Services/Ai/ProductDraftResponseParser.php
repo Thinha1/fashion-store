@@ -2,6 +2,8 @@
 
 namespace App\Services\Ai;
 
+use App\Support\ColorPalette;
+
 /**
  * Extracts and validates the product-draft JSON object from the AI's raw
  * text reply. Kept separate from the provider classes so that both
@@ -52,7 +54,7 @@ class ProductDraftResponseParser
             'seo_title' => trim($stringField($decoded['seo_title'])),
             'price' => trim($stringField($decoded['price'])),
             'sizes' => $this->stringList($decoded['sizes']),
-            'colors' => $this->stringList($decoded['colors']),
+            'colors' => $this->paletteColors($decoded['colors']),
             'category' => trim($stringField($decoded['category'])),
             'brand' => trim($stringField($decoded['brand'])),
             'variant_images' => $this->variantImages($decoded['variant_images']),
@@ -74,6 +76,20 @@ class ProductDraftResponseParser
     /**
      * @return array<int, string>
      */
+    /**
+     * Colors must be palette names (the form's color field is a select);
+     * free-text ones are matched to the palette, the rest dropped.
+     *
+     * @return array<int, string>
+     */
+    private function paletteColors(mixed $value): array
+    {
+        return array_values(array_unique(array_filter(array_map(
+            ColorPalette::match(...),
+            $this->stringList($value),
+        ))));
+    }
+
     private function stringList(mixed $value): array
     {
         if (! is_array($value)) {
@@ -118,7 +134,9 @@ class ProductDraftResponseParser
                 // An empty list is kept, not dropped — it's how the model
                 // clears a field ("xoá hết size"), distinct from the field
                 // simply not being mentioned this turn (no entry at all).
-                $entries[] = ['field' => $field, 'value' => $this->stringList($item['value'] ?? null)];
+                $entries[] = ['field' => $field, 'value' => $field === 'colors'
+                    ? $this->paletteColors($item['value'] ?? null)
+                    : $this->stringList($item['value'] ?? null)];
             } elseif (in_array($field, $stringFields, true)) {
                 // Same reasoning: a present-but-empty "value" is a deliberate
                 // clear signal, so it's kept as long as it's actually a
@@ -159,7 +177,7 @@ class ProductDraftResponseParser
             if (! is_array($item)) {
                 continue;
             }
-            $color = is_string($item['color'] ?? null) ? trim($item['color']) : '';
+            $color = ColorPalette::match(is_string($item['color'] ?? null) ? $item['color'] : null) ?? '';
             $index = $item['image_index'] ?? null;
             if ($color === '' || ! is_numeric($index) || (int) $index < 0) {
                 continue;

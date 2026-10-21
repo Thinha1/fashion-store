@@ -1,7 +1,6 @@
 @props(['rowKey', 'variant' => [], 'images' => []])
 @php
     $fields = [
-        'color' => ['Màu', 'text', '', true],
         'sku' => ['SKU', 'text', '', true], 'price' => ['Giá (VNĐ)', 'number', '', false],
         'stock_quantity' => ['Tồn kho', 'number', 0, true], 'low_stock_threshold' => ['Cảnh báo tồn', 'number', 5, true],
     ];
@@ -17,6 +16,25 @@
             @endforeach
         </select>
         <x-input-error :messages="$errors->get('variants.'.$rowKey.'.size')" />
+    </div>
+    @php($currentColor = (string) data_get($variant, 'color', ''))
+    <div x-data="{ color: @js($currentColor), palette: @js(\App\Support\ColorPalette::COLORS) }">
+        <label for="variant-{{ $rowKey }}-color" class="block text-sm font-medium text-gray-700">Màu</label>
+        <div class="mt-1 flex items-center gap-2">
+            <span class="size-6 shrink-0 rounded-full border border-gray-300" aria-hidden="true"
+                  :style="{ backgroundColor: palette[color] ?? 'transparent' }"></span>
+            <select id="variant-{{ $rowKey }}-color" name="variants[{{ $rowKey }}][color]" required x-model="color"
+                    class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                <option value="">— Chọn màu —</option>
+                @if ($currentColor !== '' && ! array_key_exists($currentColor, \App\Support\ColorPalette::COLORS))
+                    <option value="{{ $currentColor }}" selected>{{ $currentColor }} (ngoài bảng màu, chọn lại)</option>
+                @endif
+                @foreach (\App\Support\ColorPalette::COLORS as $name => $hex)
+                    <option value="{{ $name }}" @selected($currentColor === $name)>{{ $name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <x-input-error :messages="$errors->get('variants.'.$rowKey.'.color')" />
     </div>
     @foreach ($fields as $field => [$label, $type, $default, $required])
         <div>

@@ -93,7 +93,7 @@ function flashField(el) {
  */
 function setFieldValue(el, value) {
     if (!el) return;
-    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const proto = { TEXTAREA: HTMLTextAreaElement, SELECT: HTMLSelectElement }[el.tagName]?.prototype ?? HTMLInputElement.prototype;
     Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -448,7 +448,7 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
         // (guarded by an internal marker), so this is safe either way.
         alpine.initTree(row);
         const sizeSelect = row.querySelector('select[name$="[size]"]');
-        const colorInput = row.querySelector('input[name$="[color]"]');
+        const colorInput = row.querySelector('[name$="[color]"]');
         if (sizeSelect) {
             sizeSelect.value = size;
             sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));

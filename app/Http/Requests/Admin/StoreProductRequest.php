@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Support\ColorPalette;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -56,7 +57,7 @@ class StoreProductRequest extends BaseAdminRequest
 
             'variants' => ['array'],
             'variants.*.size' => ['required', Rule::in(ProductVariant::SIZES)],
-            'variants.*.color' => ['required', 'string', 'max:100'],
+            'variants.*.color' => ['required', 'string', Rule::in(ColorPalette::names())],
             'variants.*.sku' => ['required', 'string', 'max:100'],
             'variants.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999999999'],
             'variants.*.stock_quantity' => ['required', 'integer', 'min:0', 'max:999999'],
@@ -78,6 +79,7 @@ class StoreProductRequest extends BaseAdminRequest
     public function messages(): array
     {
         return [
+            'variants.*.color.in' => 'Màu phải chọn trong bảng màu.',
             'images.*.mimes' => 'Ảnh phải là JPG, JPEG, PNG hoặc WebP.',
             'images.*.max' => 'Ảnh không được vượt quá 4MB.',
             'variants.*.images.*.mimes' => 'Ảnh biến thể phải là JPG, JPEG, PNG hoặc WebP.',

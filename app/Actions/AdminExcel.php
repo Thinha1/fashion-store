@@ -21,6 +21,7 @@ use App\Models\GoodsReceipt;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Supplier;
+use App\Support\ColorPalette;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -491,6 +492,11 @@ class AdminExcel
                 }
                 if (in_array($field, ['phone', 'sku', '_sku', '_key', '_category_name', '_brand_name', 'tax_code', 'size', 'color'], true) && $value !== null) {
                     $value = (string) $value;
+                }
+                // Spreadsheets carry free-text colors ("Blue", "den"); snap
+                // them to the palette the product form validates against.
+                if ($field === 'color' && $value !== null && $value !== '') {
+                    $value = ColorPalette::match($value) ?? $value;
                 }
                 $data[$field] = $value === '' ? null : $value;
             }
