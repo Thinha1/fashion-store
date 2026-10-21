@@ -13,7 +13,7 @@ use App\Support\ColorPalette;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>, variant_price: string, variant_stock: string}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>, variant_price: string, variant_stock: string}
      *
      * @throws InvalidAiResponseException
      */
@@ -61,6 +61,9 @@ class ProductDraftResponseParser
             // Raw key as the model returned it — AdminPageDirectory (called
             // by the controller) is what validates it against real pages.
             'navigate' => trim($stringField($decoded['navigate'] ?? '')),
+            // How the staff member named a product to open; ProductLocator
+            // (called by the resolver) finds the real product.
+            'navigate_product' => trim($stringField($decoded['navigate_product'] ?? '')),
             // Quick single/few-field edits (see ProductDraftPromptBuilder) —
             // applied straight to the live form, no draft-card review step,
             // so only a small whitelisted set of simple fields is accepted.

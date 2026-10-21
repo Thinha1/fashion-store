@@ -74,6 +74,7 @@ class ProductDraftPromptBuilder
               "brand": "string (nguyên văn 1 tên trong danh sách thương hiệu ở trên, hoặc chuỗi rỗng)",
               "variant_images": [{"color": "string (khớp 1 giá trị trong colors)", "image_index": 0}],
               "navigate": "string (đúng key trong danh sách trang ở trên nếu nhân viên yêu cầu chuyển trang, hoặc chuỗi rỗng)",
+              "navigate_product": "string (tên, SKU hoặc mô tả sản phẩm mà nhân viên muốn MỞ để xem/chỉnh sửa, giữ đúng cách nhân viên gọi; hoặc chuỗi rỗng)",
               "set_fields": [{"field": "string", "value": "string hoặc mảng string tùy field"}],
               "variant_price": "string (giá RIÊNG cho mỗi biến thể size/màu, khác với \"price\" ở trên là giá chung của cả sản phẩm; để trống nếu biến thể dùng chung giá với sản phẩm)",
               "variant_stock": "string (số lượng tồn kho cho mỗi biến thể được tạo lượt này; để trống nếu nhân viên không nói tới tồn kho)"
@@ -84,6 +85,13 @@ class ProductDraftPromptBuilder
 
             "navigate" chỉ điền khi nhân viên RÕ RÀNG yêu cầu chuyển trang trong lượt nhắn gần nhất — không tự ý
             gợi ý chuyển trang, và không lặp lại "navigate" ở các lượt trả lời sau nếu nhân viên không yêu cầu lại.
+
+            "navigate_product" dùng khi nhân viên muốn mở MỘT sản phẩm cụ thể đã có trong hệ thống (ví dụ "mở áo polo
+            Coolmate", "sửa sản phẩm Nike Club Hooded Jacket", "vào sản phẩm SKU CM-AOPONAPR"). Ghi lại tên/SKU đúng như
+            nhân viên nói (sửa lỗi chính tả rõ ràng nếu có), KHÔNG tự bịa tên hay mã sản phẩm; hệ thống sẽ tự tìm sản phẩm.
+            Khi điền "navigate_product" thì để "navigate" là chuỗi rỗng. Nếu nhân viên vừa mở sản phẩm vừa yêu cầu sửa
+            (ví dụ "mở áo polo Coolmate rồi đổi giá 350k"), điền cả "navigate_product" lẫn "set_fields"; các thay đổi sẽ
+            được áp vào sản phẩm đó sau khi mở. Không lặp lại "navigate_product" ở lượt sau nếu nhân viên không yêu cầu lại.
 
             "set_fields" dùng khi nhân viên CHỈ yêu cầu chỉnh một hoặc vài giá trị đơn giản của sản phẩm (ví dụ
             "giá 100k", "đổi tên thành Áo sơ mi nam", "thêm size XL", "đổi danh mục thành Áo thun", "tồn kho mỗi
