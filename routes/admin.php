@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
@@ -170,5 +171,10 @@ Route::prefix('admin')
                 Route::put('ai/{aiSetting}', [AiSettingController::class, 'update'])->name('ai.update');
                 Route::post('ai/{aiSetting}/chinh', [AiSettingController::class, 'makePrimary'])->name('ai.primary');
                 Route::delete('ai/{aiSetting}', [AiSettingController::class, 'destroy'])->name('ai.destroy');
+                // Bank account for the VietQR code + the SePay webhook key.
+                Route::get('thanh-toan', [PaymentSettingController::class, 'edit'])->name('payment.edit');
+                Route::put('thanh-toan', [PaymentSettingController::class, 'update'])->name('payment.update');
+                Route::post('thanh-toan/kiem-tra', [PaymentSettingController::class, 'test'])
+                    ->middleware('throttle:6,1')->name('payment.test');
             });
     });

@@ -35,7 +35,8 @@
             @endif
             @if (auth()->user()->hasPermission('settings.manage') || auth()->user()->hasPermission('audit.view'))
                 <div><p class="sidebar-label">Hệ thống</p>
-                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a> @endif
+                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.ai.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a> @endif
+                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.payment.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.payment.*')) aria-current="page" @endif><x-icon name="revenue" /> Thanh toán QR</a> @endif
                     @if (auth()->user()->hasPermission('audit.view')) <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link" @if(request()->routeIs('admin.audit-logs.*')) aria-current="page" @endif><x-icon name="clock" /> Nhật ký hệ thống</a> @endif
                 </div>
             @endif

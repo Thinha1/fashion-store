@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Webhooks;
 
 use App\Actions\RecordSepayTransfer;
 use App\Http\Controllers\Controller;
+use App\Services\Payments\BankTransfer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 /**
  * POST /webhooks/sepay — SePay reports each transfer into the shop account.
  * No session and no CSRF token (SePay is a server), so the request must
- * carry "Authorization: Apikey <SEPAY_WEBHOOK_API_KEY>". A 2xx with
+ * carry "Authorization: Apikey <key>" (see BankTransfer::webhookApiKey). A 2xx with
  * {"success": true} tells SePay to stop retrying, so it is also returned for
  * transfers that match no order — those are kept in the audit log instead.
  */
@@ -45,7 +46,8 @@ class SepayWebhookController extends Controller
 
     private function hasValidApiKey(Request $request): bool
     {
-        $expected = (string) config('services.sepay.webhook_api_key');
+        // Saved at /admin/cai-dat/thanh-toan, else SEPAY_WEBHOOK_API_KEY.
+        $expected = app(BankTransfer::class)->webhookApiKey();
         $header = (string) $request->header('Authorization');
 
         if ($expected === '' || ! preg_match('/^Apikey\s+(\S+)$/i', $header, $match)) {
