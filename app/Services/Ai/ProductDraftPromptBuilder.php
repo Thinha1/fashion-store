@@ -16,9 +16,15 @@ class ProductDraftPromptBuilder
      * @param  array<int, string>  $brands  active brand names, same rule.
      * @param  string  $pageList  "- key: label" lines from AdminPageDirectory::describeForPrompt(),
      *                            the fixed set of pages the model may send the staff member to.
+     * @param  string  $formContext  the product form on screen (ProductFormContextDescriber), or "" when
+     *                               the staff member is not on a product form.
      */
-    public function build(array $categories, array $brands, string $pageList): string
+    public function build(array $categories, array $brands, string $pageList, string $formContext = ''): string
     {
+        $formBlock = $formContext === '' ? '' : '
+
+'.$formContext;
+
         $categoryList = $categories === [] ? '(chưa có danh mục nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $categories));
         $brandList = $brands === [] ? '(chưa có thương hiệu nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $brands));
 
@@ -75,7 +81,7 @@ class ProductDraftPromptBuilder
               "variant_images": [{"color": "string (khớp 1 giá trị trong colors)", "image_index": 0}],
               "navigate": "string (đúng key trong danh sách trang ở trên nếu nhân viên yêu cầu chuyển trang, hoặc chuỗi rỗng)",
               "navigate_product": "string (tên, SKU hoặc mô tả sản phẩm mà nhân viên muốn MỞ để xem/chỉnh sửa, giữ đúng cách nhân viên gọi; hoặc chuỗi rỗng)",
-              "set_fields": [{"field": "string", "value": "string hoặc mảng string tùy field"}],
+              "set_fields": [{"field": "string", "value": "string hoặc mảng string tùy field (xem quy tắc bên dưới)"}],
               "variant_price": "string (giá RIÊNG cho mỗi biến thể size/màu, khác với \"price\" ở trên là giá chung của cả sản phẩm; để trống nếu biến thể dùng chung giá với sản phẩm)",
               "variant_stock": "string (số lượng tồn kho cho mỗi biến thể được tạo lượt này; để trống nếu nhân viên không nói tới tồn kho)"
             }
@@ -98,23 +104,33 @@ class ProductDraftPromptBuilder
             biến thể 20 cái", "sửa mô tả thành...", "ngừng bán sản phẩm này") — KHÔNG phải yêu cầu soạn cả nội
             dung sản phẩm từ ảnh/mô tả. Field được phép: "name", "price", "category", "brand", "variant_price",
             "variant_stock", "description" (value là string), "status" (value là "active" nếu nhân viên nói
-            đang kinh doanh/đang bán, "archived" nếu ngừng bán/ẩn sản phẩm), "sizes", "colors" (value là mảng
-            string, thay thế toàn bộ danh sách cũ chứ không cộng dồn). KHÔNG dùng "set_fields" cho
-            "bullets"/"seo_title"/"variant_images" — những phần đó luôn phải soạn qua các field chính ở trên để
-            nhân viên xem trước khi điền vào form. Khi trả lời bằng "set_fields", để trống "name" và các field
-            chính khác (không soạn lại toàn bộ nội dung). Để mảng rỗng [] nếu không có yêu cầu chỉnh field nào.
+            đang kinh doanh/đang bán, "archived" nếu ngừng bán/ẩn sản phẩm), "sizes", "colors" (xem bên dưới).
+            KHÔNG dùng "set_fields" cho "bullets"/"seo_title"/"variant_images" — những phần đó luôn phải soạn qua
+            các field chính ở trên để nhân viên xem trước khi điền vào form. Khi trả lời bằng "set_fields", để
+            trống "name" và các field chính khác (không soạn lại toàn bộ nội dung). Để mảng rỗng [] nếu không có
+            yêu cầu chỉnh field nào.
+
+            "sizes"/"colors" trong "set_fields" là THAO TÁC trên danh sách biến thể đang có, không phải danh sách
+            thay thế. Biến thể không bị nhắc tới được GIỮ NGUYÊN (cả SKU, giá, tồn kho, ảnh):
+            - Thêm: {"field": "sizes", "add": ["XL"]} — "thêm size XL"; {"field": "colors", "add": ["Đen"]}.
+            - Bỏ: {"field": "sizes", "remove": ["S"]} — "bỏ size S"; {"field": "colors", "remove": ["Trắng"]}.
+            - Thay toàn bộ: {"field": "sizes", "value": ["M", "L"]} — CHỈ khi nhân viên nói rõ "chỉ còn M, L",
+              "đổi hết size thành...". "xoá hết size/màu" là "value": [].
+            Size dùng đúng các giá trị: S, M, L, XL, 2XL, 3XL, 4XL (XXL = 2XL, XXXL = 3XL). Màu dùng đúng tên
+            trong bảng màu: {$colorList}.
+
+            "variant_price"/"variant_stock" là giá riêng / tồn kho của biến thể. Khi nhân viên chỉ nhắc tới MỘT
+            SỐ biến thể (ví dụ "giá size 2XL là 350k", "màu đen size L còn 5 cái"), thêm "match" để chỉ sửa đúng
+            các biến thể đó: {"field": "variant_price", "value": "350000", "match": {"sizes": ["2XL"]}},
+            {"field": "variant_stock", "value": "5", "match": {"sizes": ["L"], "colors": ["Đen"]}}. Mỗi nhóm giá
+            khác nhau là một entry riêng ("2XL 350k, 3XL 380k" là 2 entry). KHÔNG có "match" nghĩa là áp cho TẤT
+            CẢ biến thể đang có (ví dụ "tồn kho mỗi biến thể 20"); nếu cùng lượt có thêm biến thể mới bằng
+            "sizes"/"colors" "add" thì entry không có "match" chỉ áp cho các biến thể MỚI thêm đó.
 
             Nếu nhân viên yêu cầu XOÁ/bỏ trống một giá trị đã điền (ví dụ "xoá giá đi", "bỏ trống tên sản phẩm",
-            "xoá hết size", "xoá mô tả đi"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là
-            chuỗi rỗng "" (cho "name"/"price"/"category"/"brand"/"variant_price"/"variant_stock"/"description")
-            hoặc mảng rỗng [] (cho "sizes"/"colors") — đây là tín hiệu XOÁ rõ ràng, khác với việc không nhắc tới
-            field đó (không có entry = không đổi gì). "status" không có khái niệm xoá — chỉ nhận "active" hoặc
-            "archived".
-
-            "variant_price"/"variant_stock" trong "set_fields": nếu lượt này KHÔNG có "sizes"/"colors" đi kèm,
-            giá trị được áp dụng cho TẤT CẢ biến thể đang có sẵn trên form (ví dụ nhân viên chỉ nói "tồn kho 20"
-            sau khi đã tạo biến thể từ trước). Nếu lượt này CÓ "sizes"/"colors" đi kèm (đang tạo biến thể mới),
-            giá trị được áp dụng cho các biến thể MỚI đó.
+            "xoá mô tả đi"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là chuỗi rỗng "" —
+            đây là tín hiệu XOÁ rõ ràng, khác với việc không nhắc tới field đó (không có entry = không đổi gì).
+            "status" không có khái niệm xoá — chỉ nhận "active" hoặc "archived".{$formBlock}
             PROMPT;
     }
 }

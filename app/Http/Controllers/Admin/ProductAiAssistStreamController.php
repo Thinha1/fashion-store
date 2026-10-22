@@ -10,6 +10,7 @@ use App\Services\Ai\AdminPageDirectory;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\ProductDraftPromptBuilder;
 use App\Services\Ai\ProductDraftResolver;
+use App\Services\Ai\ProductFormContextDescriber;
 use App\Services\Ai\SseAssistStream;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -34,12 +35,13 @@ class ProductAiAssistStreamController extends Controller
         ProductDraftPromptBuilder $promptBuilder,
         ProductDraftResolver $resolver,
         AdminPageDirectory $pages,
+        ProductFormContextDescriber $formContext,
         SseAssistStream $stream,
     ): StreamedResponse {
         $messages = $request->validated('messages');
         $categories = Category::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
-        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt());
+        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')));
 
         return $stream->respond(
             $provider,
