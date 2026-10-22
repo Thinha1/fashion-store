@@ -353,25 +353,6 @@ export function buildFillPlan(draft) {
     };
 }
 
-/**
- * Detaches (not deletes) every existing variant row — used by `applySetFields`
- * before laying out its replacement list. Returns the live nodes so an undo
- * can put the exact same nodes back, rather than rebuilding them from data:
- * a manually-attached photo lives on the row's `<input type="file">` as a
- * live `.files` property that only survives if the original node itself is
- * reused, never a rebuild from a size/color/price snapshot.
- */
-function detachVariantRows(form) {
-    const list = form.querySelector('#variants-list');
-    if (!list) return [];
-
-    return [...list.querySelectorAll('[data-variant-row]')].map((row) => {
-        list.removeChild(row);
-
-        return row;
-    });
-}
-
 /** Current value of every simple field a fill/set_fields write can touch — captured before the write so it can be restored on undo. */
 function snapshotSimpleFields(form) {
     const priceCanonical = form.querySelector('#base_price')?.closest('.currency-input')?.querySelector('input[type="hidden"]');
@@ -432,13 +413,15 @@ function setVariantRowPriceAndStock(row, price, stock) {
  * edit), since both boil down to the same size/color cartesian product.
  */
 function applyVariantRows(rows, form, alpine, gallery = []) {
-    if (!rows.length) return;
+    const created = [];
+    if (!rows.length) return created;
     const component = alpine.$data(form);
     const list = form.querySelector('#variants-list');
-    for (const { size, color, imageIndex, price, stock } of rows) {
+    for (const { size, color, sku, imageIndex, price, stock } of rows) {
         component.addVariant();
         const row = list?.lastElementChild;
         if (!row) continue;
+        created.push(row);
         // The freshly-cloned row's own `x-data="currencyInput(...)"` (its
         // price field) hasn't run yet — Alpine only discovers and inits new
         // DOM via a MutationObserver, which fires on a later microtask, so
@@ -455,11 +438,14 @@ function applyVariantRows(rows, form, alpine, gallery = []) {
             flashField(sizeSelect);
         }
         if (color) setFieldValue(colorInput, color);
+        if (sku) setFieldValue(row.querySelector('input[name$="[sku]"]'), sku);
         setVariantRowPriceAndStock(row, price, stock);
         if (typeof imageIndex === 'number' && gallery[imageIndex]) {
             assignImageFile(row.querySelector('input[type="file"]'), gallery[imageIndex], `ai-chat-anh-${imageIndex}.jpg`);
         }
     }
+
+    return created;
 }
 
 /**
@@ -496,6 +482,173 @@ export function applyFillPlan(plan, form, alpine, gallery = []) {
     };
 }
 
+/** The variant rows currently on the product form, with the values a staff member would read off them. */
+export function readVariantRows(form) {
+    return [...(form?.querySelectorAll?.('#variants-list [data-variant-row]') ?? [])].map((row) => ({
+        row,
+        size: row.querySelector('select[name$="[size]"]')?.value ?? '',
+        color: row.querySelector('[name$="[color]"]')?.value ?? '',
+        sku: row.querySelector('input[name$="[sku]"]')?.value ?? '',
+        price: row.querySelector('.currency-input input[type="hidden"]')?.value ?? '',
+        stock: row.querySelector('input[name$="[stock_quantity]"]')?.value ?? '',
+    }));
+}
+
+const MAX_CONTEXT_VARIANTS = 60;
+
+/**
+ * A compact snapshot of the product form (unsaved edits included) sent with
+ * every assistant turn, so the AI knows what is already there before it
+ * changes anything. Null when the page has no product form.
+ */
+export function describeProductForm(form) {
+    if (!form?.querySelector) return null;
+    const value = (selector) => form.querySelector(selector)?.value?.trim() ?? '';
+    const selectedLabel = (selector) => {
+        const select = form.querySelector(selector);
+        if (!select?.value) return '';
+        const option = select.selectedOptions?.[0] ?? select.options?.[select.selectedIndex];
+
+        return option?.textContent?.trim() ?? '';
+    };
+
+    return {
+        mode: form.querySelector('input[name="_method"]')?.value?.toUpperCase() === 'PUT' ? 'edit' : 'create',
+        name: value('#name'),
+        price: form.querySelector('#base_price')?.closest('.currency-input')?.querySelector('input[type="hidden"]')?.value ?? '',
+        category: selectedLabel('#category_id'),
+        brand: selectedLabel('#brand_id-native'),
+        status: form.querySelector('#status')?.checked ? 'active' : 'archived',
+        description: value('#description').slice(0, 300),
+        variants: readVariantRows(form).slice(0, MAX_CONTEXT_VARIANTS).map(({ size, color, sku, price, stock }) => ({ size, color, sku, price, stock })),
+    };
+}
+
+const sizeKey = (size) => String(size ?? '').trim().toUpperCase();
+const colorKey = (color) => String(color ?? '').trim().toLowerCase();
+
+/**
+ * Works out which variant rows a sizes/colors edit adds and removes, keeping
+ * every row that stays (so its id, SKU, stock, price and photos survive the
+ * save). Each op is `{add?, remove?, value?}`; `value` is the full wanted
+ * list, turned into adds/removes against what the form has. A dimension the
+ * edit does not mention keeps its current values. Pure: no DOM.
+ *
+ * @param  Array<{size: string, color: string}>  rows  current rows, in form order
+ * @return {{add: Array<{size: string, color: string}>, remove: number[], truncated: boolean}} `remove` holds row indexes
+ */
+export function planVariantChanges(rows, { sizes: sizeOp = {}, colors: colorOp = {} } = {}, limit = MAX_VARIANT_ROWS) {
+    const unique = (values, key) => {
+        const map = new Map();
+        for (const value of values) {
+            const k = key(value);
+            if (k && !map.has(k)) map.set(k, String(value).trim());
+        }
+
+        return map;
+    };
+    const resolve = (current, op, key) => {
+        const add = new Map();
+        const remove = new Set((op.remove ?? []).map(key).filter(Boolean));
+        if (Array.isArray(op.value)) {
+            const wanted = unique(op.value, key);
+            for (const k of current.keys()) if (!wanted.has(k)) remove.add(k);
+            for (const [k, v] of wanted) if (!current.has(k)) add.set(k, v);
+        }
+        for (const value of op.add ?? []) {
+            const k = key(value);
+            if (k && !current.has(k)) add.set(k, String(value).trim());
+        }
+        for (const k of add.keys()) remove.delete(k);
+
+        return { add, remove };
+    };
+
+    const currentSizes = unique(rows.map((row) => row.size), sizeKey);
+    const currentColors = unique(rows.map((row) => row.color), colorKey);
+    const sizes = resolve(currentSizes, sizeOp, sizeKey);
+    const colors = resolve(currentColors, colorOp, colorKey);
+    // Size-only rows (no color yet) are placeholders: once colors are given
+    // they are replaced by real size × color rows.
+    const fillPlaceholders = colors.add.size > 0;
+
+    const remove = [];
+    rows.forEach((row, index) => {
+        if (sizes.remove.has(sizeKey(row.size)) || colors.remove.has(colorKey(row.color)) || (fillPlaceholders && !colorKey(row.color))) {
+            remove.push(index);
+        }
+    });
+
+    const finalSizes = [...[...currentSizes].filter(([k]) => !sizes.remove.has(k)).map(([, v]) => v), ...sizes.add.values()];
+    const finalColors = [...[...currentColors].filter(([k]) => !colors.remove.has(k)).map(([, v]) => v), ...colors.add.values()];
+    const taken = new Set(rows.filter((_, index) => !remove.includes(index)).map((row) => `${sizeKey(row.size)}|${colorKey(row.color)}`));
+    const add = [];
+    let truncated = false;
+    const push = (size, color) => {
+        const k = `${sizeKey(size)}|${colorKey(color)}`;
+        if (taken.has(k)) return;
+        if (add.length >= limit) {
+            truncated = true;
+            return;
+        }
+        taken.add(k);
+        add.push({ size, color });
+    };
+    for (const size of sizes.add.values()) {
+        if (finalColors.length) finalColors.forEach((color) => push(size, color));
+        else push(size, '');
+    }
+    for (const color of colors.add.values()) finalSizes.forEach((size) => push(size, color));
+
+    return { add, remove, truncated };
+}
+
+/** "Xanh navy" -> "XN", the color part of the demo SKUs. */
+function colorCode(color) {
+    return String(color ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'D')
+        .split(/\s+/).filter(Boolean).map((word) => word[0].toUpperCase()).join('') || 'X';
+}
+
+/**
+ * SKU for a variant the assistant adds: the product's existing SKU stem
+ * (CM-AOPONAPR from CM-AOPONAPR-D-M), else the product name's initials, then
+ * color code and size; suffixed when it would repeat one on the form.
+ */
+export function suggestSku(existingSkus, { size, color }, productName = '') {
+    const stem = existingSkus.map((sku) => String(sku).split('-')).find((parts) => parts.length >= 3)?.slice(0, -2).join('-')
+        || colorCode(productName).slice(0, 6);
+    const taken = new Set(existingSkus.map((sku) => String(sku).toUpperCase()));
+    const base = `${stem}-${colorCode(color)}-${sizeKey(size)}`;
+    let sku = base;
+    for (let n = 2; taken.has(sku.toUpperCase()); n++) sku = `${base}-${n}`;
+
+    return sku;
+}
+
+/** "size 2XL, màu Đen" — how a variant_price/variant_stock `match` reads in the bubble. */
+function describeMatch({ sizes = [], colors = [] } = {}) {
+    return [sizes.length ? `size ${sizes.join(', ')}` : '', colors.length ? `màu ${colors.join(', ')}` : ''].filter(Boolean).join(', ');
+}
+
+/** Bubble line telling the staff member what a set_fields edit did to the variant list. */
+export function describeVariantChanges({ added = 0, removed = 0, truncated = false, updated = 0, unmatched = [] }) {
+    const parts = [];
+    if (added) parts.push(`thêm ${added} biến thể${truncated ? ` (tối đa ${MAX_VARIANT_ROWS} mỗi lần)` : ''}`);
+    if (removed) parts.push(`gỡ ${removed} biến thể`);
+    if (updated) parts.push(`cập nhật giá/tồn kho ${updated} biến thể`);
+    const missing = unmatched.map((match) => `Không có biến thể nào ${describeMatch(match)} trên form.`);
+    if (!parts.length) return missing.length ? missing.join(' ') : 'Không có biến thể nào cần thêm hay gỡ.';
+    const text = [`Đã ${parts.join(', ')}.`, ...missing].join(' ');
+
+    return removed ? `${text} Biến thể bị gỡ sẽ bị xóa khi bấm Lưu; bấm Hoàn tác nếu nhầm.` : text;
+}
+
+/** Whether a variant row is one a variant_price/variant_stock `match` names; an empty side matches any. */
+export function matchesVariant({ size, color }, { sizes = [], colors = [] } = {}) {
+    return (!sizes.length || sizes.some((wanted) => sizeKey(wanted) === sizeKey(size)))
+        && (!colors.length || colors.some((wanted) => colorKey(wanted) === colorKey(color)));
+}
+
 const SET_FIELD_LABELS = {
     name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
     variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể', description: 'mô tả', status: 'trạng thái kinh doanh',
@@ -508,26 +661,28 @@ const SET_FIELD_LABELS = {
  * server-side by ProductDraftResponseParser), so blindly trusting `field`
  * here is safe.
  *
- * @param  Array<{field: string, value: string|string[]}>  fields
- * @return {{applied: string[], restore: () => void}} `applied` is the
- *         Vietnamese labels of the fields actually applied, for the chat
- *         bubble. `restore` undoes this exact call: simple fields go back to
- *         their prior value, and any variant rows this call replaced come
- *         back as the exact same DOM nodes (preserving a manually-attached
- *         photo — see `detachVariantRows`) rather than being rebuilt.
+ * @param  Array<{field: string, value?: string|string[], add?: string[], remove?: string[], match?: {sizes?: string[], colors?: string[]}}>  fields
+ * @return {{applied: string[], variantChanges: object|null, restore: () => void}}
+ *         `applied` is the Vietnamese labels of the fields actually applied,
+ *         for the chat bubble; `variantChanges` feeds describeVariantChanges.
+ *         `restore` undoes this exact call: simple fields and variant
+ *         price/stock go back to their prior values, added rows are removed
+ *         and removed rows come back as the very same DOM nodes (keeping
+ *         their id, SKU and any attached photo).
  */
 export function applySetFields(fields, form, alpine) {
     const applied = [];
     const fieldSnapshot = snapshotSimpleFields(form);
     let sizes;
     let colors;
-    let variantPrice;
-    let variantStock;
-    for (const { field, value } of fields) {
-        if (field === 'sizes') sizes = value;
-        else if (field === 'colors') colors = value;
-        else if (field === 'variant_price') variantPrice = value;
-        else if (field === 'variant_stock') variantStock = value;
+    // Each entry: {price} or {stock}, optionally scoped by `match`.
+    const variantEdits = [];
+    for (const entry of fields) {
+        const { field, value } = entry;
+        if (field === 'sizes') sizes = { value: entry.value, add: entry.add, remove: entry.remove };
+        else if (field === 'colors') colors = { value: entry.value, add: entry.add, remove: entry.remove };
+        else if (field === 'variant_price') variantEdits.push({ price: value, match: entry.match });
+        else if (field === 'variant_stock') variantEdits.push({ stock: value, match: entry.match });
         else if (field === 'price') setCurrencyFieldValue(form.querySelector('#base_price'), value);
         else if (field === 'name') setFieldValue(form.querySelector('#name'), value);
         else if (field === 'description') setFieldValue(form.querySelector('#description'), value);
@@ -538,46 +693,62 @@ export function applySetFields(fields, form, alpine) {
         applied.push(SET_FIELD_LABELS[field] ?? field);
     }
 
-    let restoreVariants = () => {};
-    if (sizes !== undefined || colors !== undefined) {
-        // "sizes"/"colors" replace the whole variant list rather than adding
-        // to it (see ProductDraftPromptBuilder) — including clearing every
-        // row when the resolved list ends up empty ("xoá hết size"). Any
-        // variant_price/variant_stock this same turn applies to the newly
-        // created rows.
-        const removedRows = detachVariantRows(form);
-        applyVariantRows(
-            buildFillPlan({ sizes: sizes ?? [], colors: colors ?? [], variant_price: variantPrice, variant_stock: variantStock }).variantRows,
-            form, alpine,
-        );
-        restoreVariants = () => {
-            const list = form.querySelector('#variants-list');
-            if (!list) return;
-            list.querySelectorAll('[data-variant-row]').forEach((row) => row.remove());
-            removedRows.forEach((row) => list.appendChild(row));
-        };
-    } else if (variantPrice !== undefined || variantStock !== undefined) {
-        // No size/color change this turn, so there's nothing new to lay
-        // out — apply straight to every variant row already on the form
-        // instead (e.g. the staff member just said "tồn kho 20" for
-        // variants created earlier in the conversation).
-        const rows = [...form.querySelectorAll('#variants-list [data-variant-row]')];
-        const rowSnapshots = rows.map((row) => ({
-            row,
-            price: row.querySelector('.currency-input input[type="text"]')?.value ?? '',
-            stock: row.querySelector('input[name$="[stock_quantity]"]')?.value ?? '',
-        }));
-        for (const row of rows) setVariantRowPriceAndStock(row, variantPrice, variantStock);
-        restoreVariants = () => {
-            rowSnapshots.forEach(({ row, price, stock }) => setVariantRowPriceAndStock(row, price, stock));
-        };
+    const list = form.querySelector('#variants-list');
+    const changesRows = sizes !== undefined || colors !== undefined;
+    const originalOrder = list && changesRows ? [...list.children] : [];
+    let added = [];
+    let variantChanges = null;
+    if (changesRows) {
+        // Diffed against the rows already on the form (planVariantChanges):
+        // rows that stay are never rebuilt, so their id, SKU, stock, price
+        // and photos survive the save. Added rows get a generated SKU.
+        const current = readVariantRows(form);
+        const plan = planVariantChanges(current, { sizes, colors });
+        plan.remove.forEach((index) => current[index].row.remove());
+        const skus = current.map((row) => row.sku).filter(Boolean);
+        const productName = form.querySelector('#name')?.value ?? '';
+        added = applyVariantRows(plan.add.map(({ size, color }) => {
+            const sku = suggestSku(skus, { size, color }, productName);
+            skus.push(sku);
+
+            return { size, color, sku };
+        }), form, alpine);
+        variantChanges = { added: plan.add.length, removed: plan.remove.length, truncated: plan.truncated };
+    }
+
+    // Price/stock edits: a `match` reaches the rows it names; no match
+    // means the rows added this turn, or every row when none were added.
+    const rowsNow = variantEdits.length ? readVariantRows(form) : [];
+    const priceStockSnapshot = rowsNow.filter(({ row }) => !added.includes(row)).map(({ row }) => ({
+        row,
+        price: row.querySelector('.currency-input input[type="text"]')?.value ?? '',
+        stock: row.querySelector('input[name$="[stock_quantity]"]')?.value ?? '',
+    }));
+    const touched = new Set();
+    const unmatched = [];
+    for (const { price, stock, match } of variantEdits) {
+        const targets = match ? rowsNow.filter((row) => matchesVariant(row, match))
+            : rowsNow.filter(({ row }) => !added.length || added.includes(row));
+        if (match && !targets.length) unmatched.push(match);
+        for (const { row } of targets) {
+            setVariantRowPriceAndStock(row, price, stock);
+            if (!added.includes(row)) touched.add(row);
+        }
+    }
+    if (variantEdits.some(({ match }) => match)) {
+        variantChanges = { ...(variantChanges ?? {}), updated: touched.size, unmatched };
     }
 
     return {
         applied,
+        variantChanges,
         restore: () => {
             restoreSimpleFields(fieldSnapshot, form, alpine);
-            restoreVariants();
+            priceStockSnapshot.forEach(({ row, price, stock }) => setVariantRowPriceAndStock(row, price, stock));
+            if (changesRows) {
+                added.forEach((row) => row.remove());
+                originalOrder.forEach((row) => list?.appendChild(row));
+            }
         },
     };
 }
@@ -965,7 +1136,8 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
         this.loading = true;
         this.requestId++;
         const requestId = this.requestId;
-        const body = JSON.stringify({ messages: toWireMessages(this.messages) });
+        const formContext = describeProductForm(document.getElementById('product-form'));
+        const body = JSON.stringify({ messages: toWireMessages(this.messages), ...(formContext ? { form_context: formContext } : {}) });
 
         await sendAssistTurn({
             jsonUrl: assistUrl,
@@ -1040,7 +1212,8 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
         } else if (setFields.length) {
             const form = document.getElementById('product-form');
             if (form) {
-                const { restore } = applySetFields(setFields, form, window.Alpine);
+                const { restore, variantChanges } = applySetFields(setFields, form, window.Alpine);
+                if (variantChanges) this.messages.at(-1).variantNote = describeVariantChanges(variantChanges);
                 this.lastFormChange = { restore };
                 this.lastFormChangeMessageIndex = this.messages.length - 1;
             } else if (productCreateUrl) {
@@ -1104,7 +1277,8 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
     },
 
     applySetFieldsToForm(form) {
-        const { restore } = applySetFields(this.pendingSetFields ?? [], form, window.Alpine);
+        const { restore, variantChanges } = applySetFields(this.pendingSetFields ?? [], form, window.Alpine);
+        if (variantChanges && this.messages.length) this.messages.at(-1).variantNote = describeVariantChanges(variantChanges);
         this.pendingSetFields = null;
         this.lastFormChange = { restore };
         this.lastFormChangeMessageIndex = this.messages.length - 1;

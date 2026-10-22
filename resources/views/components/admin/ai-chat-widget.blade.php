@@ -86,6 +86,8 @@
                                 : (message.setFieldsLabel
                                     ? `Đã điền ${message.setFieldsLabel} vào form.`
                                     : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
+                            <p class="mt-1 text-xs" x-show="message.variantNote" x-text="message.variantNote"
+                               :class="/gỡ|Không có biến thể/.test(message.variantNote ?? '') ? 'font-medium text-amber-700' : 'text-gray-600'"></p>
                             <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
                                     x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
                                     x-on:click="undoLastFormChange()">

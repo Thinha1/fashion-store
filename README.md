@@ -2,7 +2,7 @@
 
 # Fashion Store
 
-**Cửa hàng thời trang server-rendered bằng Laravel, kèm khu vực quản trị catalog và nhập kho.**
+**Cửa hàng thời trang server-rendered bằng Laravel: mua hàng, thanh toán VietQR qua SePay, trợ lý AI và khu quản trị.**
 
 [![CI](https://github.com/Thinha1/fashion-store/actions/workflows/ci.yml/badge.svg)](https://github.com/Thinha1/fashion-store/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Thinha1_fashion-store&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Thinha1_fashion-store)
@@ -15,39 +15,46 @@
 
 Fashion Store là ứng dụng Laravel monolith phục vụ hai nhóm người dùng:
 
-- **Khách hàng** duyệt sản phẩm, lọc theo danh mục hoặc thương hiệu, xem biến thể và quản lý tài khoản.
-- **Nhân viên quản trị** quản lý catalog, nhà cung cấp, giảm giá và phiếu nhập trong phạm vi quyền được cấp.
+- **Khách hàng** tìm sản phẩm (bằng chữ hoặc bằng ảnh), hỏi trợ lý AI, đặt hàng, thanh toán COD hoặc chuyển khoản VietQR và theo dõi đơn.
+- **Nhân viên quản trị** quản lý catalog, nhập kho, đơn hàng và thanh toán trong phạm vi quyền được cấp, có trợ lý AI soạn và sửa sản phẩm.
 
 Ứng dụng dùng Blade để render phía server. Tailwind CSS, Alpine.js và Font Awesome cung cấp giao diện cùng các tương tác nhẹ; dữ liệu nghiệp vụ được lưu trong MySQL.
 
-Các model cho giỏ hàng, đơn hàng, đánh giá, yêu thích và trả hàng đã có trong nền tảng dữ liệu. Luồng mua hàng hoàn chỉnh và giao diện cho các phần này chưa được triển khai.
+Bảng đánh giá, yêu thích và đổi/trả đã có trong schema nhưng chưa có giao diện.
 
 ## Chức năng hiện có
 
 ### Cửa hàng
 
-- Trang chủ với sản phẩm nổi bật.
+- Trang chủ với sản phẩm nổi bật; trang bộ sưu tập theo thương hiệu.
 - Danh sách sản phẩm có phân trang, lọc danh mục ba cấp, lọc thương hiệu và sắp xếp.
-- Tìm kiếm sản phẩm bằng Meilisearch (chấp nhận gõ sai, gõ không dấu, từ đồng nghĩa như đầm/váy) và bộ lọc size, màu, khoảng giá theo giá đã giảm, còn hàng. Meilisearch không chạy thì tìm bằng MySQL.
-- Chi tiết sản phẩm với thư viện ảnh, màu sắc, kích thước, SKU, tồn kho và sản phẩm liên quan.
-- Trang bộ sưu tập theo thương hiệu.
-- Đăng ký, đăng nhập, xác minh email và đặt lại mật khẩu.
-- Cập nhật hồ sơ cá nhân.
-
-Nút thêm vào giỏ hàng hiện hiển thị trạng thái sắp ra mắt.
+- Tìm kiếm bằng Meilisearch: chấp nhận gõ sai, gõ không dấu, từ đồng nghĩa như đầm/váy. Bộ lọc size, màu (bảng màu chuẩn, có ô màu), khoảng giá theo giá đã giảm và còn hàng. Meilisearch không chạy thì tìm bằng MySQL.
+- **Tìm bằng hình ảnh**: khách tải ảnh lên, AI (model đọc được ảnh) mô tả loại đồ, màu và kiểu dáng, rồi hệ thống tìm sản phẩm khớp trong catalog.
+- Chi tiết sản phẩm với thư viện ảnh, ảnh đổi theo màu đang chọn, kích thước, SKU, tồn kho và sản phẩm liên quan.
+- **Trợ lý mua sắm AI**: khung chat gợi ý sản phẩm có thật trong catalog, trả lời dạng stream.
+- Giỏ hàng và thanh toán (bắt buộc đăng nhập). Giá và giảm giá tính tập trung ở `PriceCalculator`. Tồn kho được khóa khi đặt nên hai đơn cùng lúc không làm âm kho.
+- Sổ địa chỉ theo đơn vị hành chính hai cấp mới (tỉnh, phường/xã), lấy từ `provinces.open-api.vn`.
+- Thanh toán **COD** hoặc **chuyển khoản VietQR**: trang đơn hiện mã QR đã điền sẵn số tiền và nội dung là mã đơn. Webhook SePay tự đối soát, đơn chỉ chuyển "Đã thanh toán" khi khớp **cả mã đơn lẫn số tiền**. Trang đơn tự cập nhật khi tiền về.
+- Danh sách và chi tiết đơn của chính mình; tự hủy được khi đơn còn chờ xác nhận và chưa thanh toán.
+- Đăng ký, đăng nhập, xác minh email, đặt lại mật khẩu, cập nhật hồ sơ.
 
 ### Quản trị
 
-- Kiểm soát truy cập theo vai trò và permission.
-- Dashboard tổng hợp doanh thu, tổng đơn hàng và tổng sản phẩm theo toàn thời gian. Doanh thu tính tổng tiền (gồm phí vận chuyển) của đơn đã giao và đã thanh toán; tổng sản phẩm không tính bản ghi đã xoá và biến thể.
-- Quản lý thương hiệu, danh mục, sản phẩm, biến thể và hình ảnh.
-- Bật/tắt sản phẩm nổi bật ngay trong danh sách bằng nút ngôi sao.
-- Quản lý nhà cung cấp và giảm giá theo biến thể.
+- Kiểm soát truy cập theo vai trò và permission; sidebar thích ứng theo quyền của tài khoản.
+- Dashboard tổng hợp doanh thu, tổng đơn hàng và tổng sản phẩm, kèm biểu đồ doanh thu.
+- Quản lý thương hiệu, danh mục, sản phẩm, biến thể và hình ảnh (ảnh riêng cho từng biến thể). Bật/tắt sản phẩm nổi bật ngay trong danh sách.
+- Quản lý nhà cung cấp (tra cứu theo mã số thuế), giảm giá theo biến thể.
 - Lập phiếu nhập ở trạng thái nháp, sau đó xác nhận để cập nhật tồn kho.
-- Ghi nhật ký thao tác quản trị.
-- Sidebar quản trị thích ứng theo quyền của tài khoản.
-- Phân trang dùng chung cho sáu danh sách quản trị, có chọn 10/20/50 bản ghi mỗi trang, số trang và điều hướng Trước/Sau.
-- Bấm tiêu đề cột để sắp xếp tăng dần, giảm dần hoặc về mặc định; mũi tên Font Awesome thể hiện chiều đang chọn. Sắp xếp áp dụng trên toàn bộ dữ liệu và giữ nguyên khi chuyển trang.
+- **Đơn hàng**: lọc theo trạng thái đơn, trạng thái và hình thức thanh toán; chuyển trạng thái theo luồng `pending → confirmed → preparing → shipping → delivered` (kèm hủy), có lịch sử. Nút **Xác nhận đã nhận tiền** cho giao dịch chuyển khoản mà webhook không khớp được.
+- **Trợ lý AI soạn sản phẩm** (khung chat trong khu quản trị):
+  - soạn tên, mô tả, giá, size, màu, danh mục, thương hiệu từ ảnh, mô tả tự do hoặc file PDF (catalog, báo giá), rồi điền vào form để nhân viên xem lại trước khi lưu;
+  - sửa nhanh từng trường bằng lời ("giá 199k", "ngừng bán sản phẩm này"). AI nhìn thấy trạng thái form hiện tại nên sửa đúng chỗ: "thêm size XL" chỉ thêm biến thể mới, giữ nguyên SKU, tồn kho, ảnh của biến thể cũ; "giá size 2XL là 350k" chỉ sửa biến thể 2XL;
+  - chuyển trang ("sang trang đơn hàng") và mở sản phẩm theo tên hoặc SKU ("mở áo polo Coolmate");
+  - mọi thay đổi có nút **Hoàn tác**; khi gỡ biến thể, khung chat hiện cảnh báo.
+- **Nhật ký hệ thống** (`/admin/nhat-ky`): ai làm gì, lúc nào, trên dữ liệu nào, giá trị trước và sau; lọc theo hành động, người thực hiện, loại dữ liệu và ngày. Chỉ xem, không sửa hay xóa được.
+- **Cấu hình AI**: lưu nhiều backend tương thích OpenAI (endpoint, model, key mã hóa), chọn cấu hình chính, kiểm tra kết nối trước khi lưu.
+- **Cấu hình thanh toán QR**: ngân hàng, số tài khoản, tên chủ tài khoản, URL và API key webhook SePay; có xem trước mã QR và nút **Kiểm tra webhook**. Mục để trống dùng giá trị trong `.env`.
+- Phân trang dùng chung (chọn 10/20/50 bản ghi mỗi trang); bấm tiêu đề cột để sắp xếp trên toàn bộ dữ liệu.
 
 ### Nhập và xuất Excel
 
@@ -88,6 +95,8 @@ Luồng xử lý HTTP chính:
 | File | Laravel Filesystem, MinIO/S3 |
 | Excel | PhpSpreadsheet 5 |
 | Tìm kiếm | Laravel Scout 11, Meilisearch 1.55 |
+| AI | API tương thích OpenAI (DeepSeek), JSON mode, stream SSE |
+| Thanh toán | VietQR, webhook SePay |
 | Email phát triển | Mailpit |
 | Chất lượng mã | Laravel Pint, PHPUnit 12, SonarQube Cloud |
 | Môi trường | Docker Compose, Nginx, PHP-FPM |
@@ -202,6 +211,19 @@ Dùng khi máy bạn còn catalog cũ (thương hiệu giả lập như Lặng S
 
 Muốn xóa luôn ảnh cũ trên MinIO thì thay bước 2–3 bằng `docker compose down -v`, `docker compose up -d --build`, `docker compose exec app php artisan db:seed` (xóa mọi volume rồi dựng lại từ đầu), sau đó làm bước 4.
 
+### Nối thanh toán chuyển khoản SePay
+
+1. Vào **Hệ thống → Thanh toán QR** (`/admin/cai-dat/thanh-toan`), nhập ngân hàng, số tài khoản và tên chủ tài khoản. Quét mã QR xem trước bằng app ngân hàng để kiểm tra lại.
+2. SePay chỉ gọi được địa chỉ https công khai. Khi chạy trên máy cá nhân, mở riêng đường dẫn webhook qua Tailscale Funnel:
+
+   ```powershell
+   tailscale funnel --bg --set-path /webhooks/sepay http://127.0.0.1:8080/webhooks/sepay
+   ```
+
+   Nhập URL đó (VD: `https://ten-may.ts.net/webhooks/sepay`) vào ô **URL webhook**, bấm **Tạo key**, chép key rồi bấm **Lưu**.
+3. Bấm **Kiểm tra webhook**; khi báo "Webhook hoạt động", vào my.sepay.vn → **Webhooks** → thêm webhook cho sự kiện "Có tiền vào", kiểu chứng thực **API Key**, dán đúng URL và key ở trên.
+4. Đặt thử một đơn chuyển khoản nhỏ và quét QR. Tiền về thì trang đơn tự chuyển sang "Đã thanh toán". Giao dịch không khớp được ghi ở **Nhật ký hệ thống**.
+
 ### Khi pull code có package mới
 
 Nếu gặp lỗi kiểu `Trait "Laravel\Scout\Searchable" not found` hoặc trang mất CSS sau khi đổi nhánh/pull:
@@ -226,6 +248,7 @@ docker compose exec app php artisan route:list
 
 # Chạy test
 docker compose exec app php artisan test --compact
+node --test tests/JavaScript/*.test.js
 
 # Kiểm tra định dạng PHP
 docker compose exec app vendor/bin/pint --test
@@ -254,7 +277,7 @@ Lệnh `docker compose down -v` xóa toàn bộ volume cục bộ của dự án
 
 ## Mô hình dữ liệu
 
-Schema hiện tại gồm 20 bảng nghiệp vụ chính và hai bảng bổ sung cho permission:
+Các bảng nghiệp vụ chính (chưa kể bảng hệ thống của Laravel như `sessions`, `jobs`, `cache`):
 
 | Nhóm | Bảng |
 | --- | --- |
@@ -263,18 +286,19 @@ Schema hiện tại gồm 20 bảng nghiệp vụ chính và hai bảng bổ sun
 | Nhập kho | `suppliers`, `goods_receipts`, `goods_receipt_items` |
 | Thương mại | `carts`, `cart_items`, `orders`, `order_items` |
 | Tương tác | `reviews`, `wishlists`, `return_requests` |
-| Kiểm soát | `audit_logs` |
+| Kiểm soát và cấu hình | `audit_logs`, `ai_settings`, `payment_settings` |
 
 ## Cấu trúc repository
 
 ```text
 app/
-├── Actions/             # Nghiệp vụ được tách khỏi controller
+├── Actions/             # Nghiệp vụ được tách khỏi controller (đặt hàng, hủy đơn, đối soát SePay...)
 ├── Http/
-│   ├── Controllers/     # Storefront, tài khoản và quản trị
+│   ├── Controllers/     # Storefront, tài khoản, quản trị và webhook
 │   ├── Middleware/      # Kiểm tra permission
 │   └── Requests/        # Validation
-└── Models/              # Eloquent models
+├── Models/              # Eloquent models
+└── Services/            # AI, tìm kiếm catalog, giá, giỏ hàng, thanh toán, nhật ký
 database/
 ├── migrations/
 └── seeders/
@@ -290,6 +314,7 @@ routes/
 └── auth.php
 tests/
 ├── Feature/
+├── JavaScript/          # node --test tests/JavaScript/*.test.js
 └── Unit/
 docs/
 ├── architecture.mmd

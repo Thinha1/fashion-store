@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Models\ProductVariant;
 use App\Support\ColorPalette;
 
 /**
@@ -13,7 +14,7 @@ use App\Support\ColorPalette;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array{field: string, value: string|array<int, string>}>, variant_price: string, variant_stock: string}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array<string, mixed>>, variant_price: string, variant_stock: string}
      *
      * @throws InvalidAiResponseException
      */
@@ -41,8 +42,13 @@ class ProductDraftResponseParser
         // is increasingly likely to simply omit one it isn't using, and
         // that shouldn't hard-fail the whole turn — a missing key means the
         // same thing as an explicitly empty one ("no tool used this turn").
+        // A reply that is a tool call (a quick edit or a page change) leaves
+        // the compose fields empty anyway, and models sometimes drop them.
+        $isToolReply = ! empty($decoded['set_fields']) || ! empty($decoded['navigate']) || ! empty($decoded['navigate_product']);
         foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
-            if (! array_key_exists($key, $decoded)) {
+            if ($isToolReply) {
+                $decoded[$key] ??= in_array($key, ['bullets', 'sizes', 'colors', 'variant_images'], true) ? [] : '';
+            } elseif (! array_key_exists($key, $decoded)) {
                 throw new InvalidAiResponseException("AI response is missing the \"{$key}\" field.");
             }
         }
@@ -109,7 +115,11 @@ class ProductDraftResponseParser
      * Malformed entries and anything outside the fixed field whitelist are
      * dropped rather than failing the whole response.
      *
-     * @return array<int, array{field: string, value: string|array<int, string>}>
+     * "sizes"/"colors" are edits of the variant list: any of value (the full
+     * wanted list — [] clears it), add, remove. "variant_price"/"variant_stock"
+     * may carry match {sizes, colors} to reach only some variants.
+     *
+     * @return array<int, array<string, mixed>>
      */
     private function setFields(mixed $value): array
     {
@@ -117,12 +127,10 @@ class ProductDraftResponseParser
             return [];
         }
 
-        // "sizes"/"colors" edit the variant rows (a list), everything else
-        // is a single form field (a string). Deliberately excludes
-        // bullets/seo_title/variant_images — those only ever exist as part
-        // of a full composed draft (no dedicated form field of their own to
-        // write straight into), so they stay behind the draft card's review
-        // step instead.
+        // Deliberately excludes bullets/seo_title/variant_images — those only
+        // ever exist as part of a full composed draft (no dedicated form field
+        // of their own to write straight into), so they stay behind the draft
+        // card's review step instead.
         $listFields = ['sizes', 'colors'];
         $stringFields = ['name', 'price', 'category', 'brand', 'variant_price', 'variant_stock', 'description', 'status'];
 
@@ -134,12 +142,19 @@ class ProductDraftResponseParser
             $field = is_string($item['field'] ?? null) ? trim($item['field']) : '';
 
             if (in_array($field, $listFields, true)) {
-                // An empty list is kept, not dropped — it's how the model
-                // clears a field ("xoá hết size"), distinct from the field
-                // simply not being mentioned this turn (no entry at all).
-                $entries[] = ['field' => $field, 'value' => $field === 'colors'
-                    ? $this->paletteColors($item['value'] ?? null)
-                    : $this->stringList($item['value'] ?? null)];
+                $normalize = $field === 'colors' ? $this->paletteColors(...) : $this->sizes(...);
+                $entry = ['field' => $field];
+                foreach (['value', 'add', 'remove'] as $op) {
+                    // A present-but-empty "value" is kept: it is how the model
+                    // clears the list ("xoá hết size"), distinct from the field
+                    // not being mentioned this turn (no entry at all).
+                    if (is_array($item[$op] ?? null)) {
+                        $entry[$op] = $normalize($item[$op]);
+                    }
+                }
+                if (count($entry) > 1) {
+                    $entries[] = $entry;
+                }
             } elseif (in_array($field, $stringFields, true)) {
                 // Same reasoning: a present-but-empty "value" is a deliberate
                 // clear signal, so it's kept as long as it's actually a
@@ -156,11 +171,42 @@ class ProductDraftResponseParser
                 if ($field === 'status' && ! in_array($fieldValue, ['active', 'archived'], true)) {
                     continue;
                 }
-                $entries[] = ['field' => $field, 'value' => $fieldValue];
+                $entry = ['field' => $field, 'value' => $fieldValue];
+                if (in_array($field, ['variant_price', 'variant_stock'], true) && is_array($item['match'] ?? null)) {
+                    $match = array_filter([
+                        'sizes' => $this->sizes($item['match']['sizes'] ?? null),
+                        'colors' => $this->paletteColors($item['match']['colors'] ?? null),
+                    ]);
+                    // A match that names nothing real would silently widen
+                    // to "every variant" — drop the entry instead.
+                    if ($match === []) {
+                        continue;
+                    }
+                    $entry['match'] = $match;
+                }
+                $entries[] = $entry;
             }
         }
 
         return $entries;
+    }
+
+    /**
+     * Sizes the variant select offers (ProductVariant::SIZES); XXL/XXXL are
+     * read as 2XL/3XL, anything else is dropped.
+     *
+     * @return array<int, string>
+     */
+    private function sizes(mixed $value): array
+    {
+        $aliases = ['XXL' => '2XL', 'XXXL' => '3XL', 'XXXXL' => '4XL'];
+
+        return array_values(array_unique(array_filter(array_map(function (string $size) use ($aliases): ?string {
+            $size = strtoupper(str_replace(' ', '', $size));
+            $size = $aliases[$size] ?? $size;
+
+            return in_array($size, ProductVariant::SIZES, true) ? $size : null;
+        }, $this->stringList($value)))));
     }
 
     /**

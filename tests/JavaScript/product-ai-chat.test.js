@@ -754,34 +754,11 @@ test('init() finishes a pending fill once the product-form page has loaded', () 
  * `<input type="file">`'s live `.files`, which only survives reusing the
  * same node, never rebuilding one from a data snapshot.
  */
-function fakeVariantList(initialRows) {
-    let children = [...initialRows];
-
-    return {
-        querySelectorAll: (selector) => (selector === '[data-variant-row]' ? [...children] : []),
-        removeChild: (row) => { children = children.filter((r) => r !== row); return row; },
-        appendChild: (row) => { children.push(row); return row; },
-        get rows() { return children; },
-    };
-}
-
 test('applySetFields returns a restore that undoes a simple field edit', () => {
     const fakeForm = { querySelector: () => null, querySelectorAll: () => [] };
     const { applied, restore } = applySetFields([{ field: 'price', value: '100000' }], fakeForm, {});
     assert.deepEqual(applied, ['giá']);
     assert.doesNotThrow(() => restore());
-});
-
-test('applySetFields undo restores the exact same variant row nodes a sizes/colors clear removed', () => {
-    const row = { querySelector: () => null };
-    const list = fakeVariantList([row]);
-    const form = { querySelector: (selector) => (selector === '#variants-list' ? list : null), querySelectorAll: () => [] };
-
-    const { restore } = applySetFields([{ field: 'sizes', value: [] }], form, {});
-    assert.deepEqual(list.rows, []); // "xoá hết size" clears every row
-
-    restore();
-    assert.deepEqual(list.rows, [row]); // undo brings back the exact same node, not a rebuilt one
 });
 
 test('applySetFields undo restores prior variant price/stock text when only those were overwritten', () => {
