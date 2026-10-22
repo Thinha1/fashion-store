@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
 #[Fillable([
-    'category_id', 'brand_id', 'name', 'slug', 'description',
+    'category_id', 'brand_id', 'size_chart_id', 'name', 'slug', 'description',
     'base_price', 'status', 'is_featured', 'created_by', 'updated_by',
 ])]
 class Product extends Model
@@ -99,6 +99,14 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * The chart picked for this product by hand; null means "automatic" (see SizeChartResolver).
+     */
+    public function sizeChart(): BelongsTo
+    {
+        return $this->belongsTo(SizeChart::class);
     }
 
     public function variants(): HasMany

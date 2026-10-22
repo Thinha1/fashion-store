@@ -1,0 +1,756 @@
+[
+    {
+        "name": "Coolmate – Áo nam",
+        "brand": "coolmate",
+        "category": "nam-ao",
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Dài áo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 48,
+                "weight_max": 55,
+                "values": [
+                    "86-90",
+                    "66"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 162,
+                "height_max": 168,
+                "weight_min": 55,
+                "weight_max": 62,
+                "values": [
+                    "90-94",
+                    "68"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 168,
+                "height_max": 174,
+                "weight_min": 62,
+                "weight_max": 69,
+                "values": [
+                    "94-98",
+                    "70"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 174,
+                "height_max": 178,
+                "weight_min": 69,
+                "weight_max": 76,
+                "values": [
+                    "98-102",
+                    "72"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 178,
+                "height_max": 182,
+                "weight_min": 76,
+                "weight_max": 83,
+                "values": [
+                    "102-106",
+                    "74"
+                ]
+            },
+            {
+                "size": "3XL",
+                "height_min": 182,
+                "height_max": 186,
+                "weight_min": 83,
+                "weight_max": 90,
+                "values": [
+                    "106-110",
+                    "76"
+                ]
+            },
+            {
+                "size": "4XL",
+                "height_min": 184,
+                "height_max": 190,
+                "weight_min": 90,
+                "weight_max": 98,
+                "values": [
+                    "110-116",
+                    "78"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Coolmate – Quần nam",
+        "brand": "coolmate",
+        "category": "nam-quan",
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Vòng eo (cm)",
+            "Vòng mông (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 48,
+                "weight_max": 55,
+                "values": [
+                    "70-74",
+                    "88-92"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 162,
+                "height_max": 168,
+                "weight_min": 55,
+                "weight_max": 62,
+                "values": [
+                    "74-78",
+                    "92-96"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 168,
+                "height_max": 174,
+                "weight_min": 62,
+                "weight_max": 69,
+                "values": [
+                    "78-82",
+                    "96-100"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 174,
+                "height_max": 178,
+                "weight_min": 69,
+                "weight_max": 76,
+                "values": [
+                    "82-86",
+                    "100-104"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 178,
+                "height_max": 182,
+                "weight_min": 76,
+                "weight_max": 83,
+                "values": [
+                    "86-90",
+                    "104-108"
+                ]
+            },
+            {
+                "size": "3XL",
+                "height_min": 182,
+                "height_max": 186,
+                "weight_min": 83,
+                "weight_max": 90,
+                "values": [
+                    "90-94",
+                    "108-112"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Coolmate – Nữ",
+        "brand": "coolmate",
+        "category": "nu",
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)",
+            "Vòng mông (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 150,
+                "height_max": 155,
+                "weight_min": 41,
+                "weight_max": 46,
+                "values": [
+                    "80-84",
+                    "62-66",
+                    "86-90"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 155,
+                "height_max": 160,
+                "weight_min": 46,
+                "weight_max": 51,
+                "values": [
+                    "84-88",
+                    "66-70",
+                    "90-94"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 160,
+                "height_max": 165,
+                "weight_min": 51,
+                "weight_max": 56,
+                "values": [
+                    "88-92",
+                    "70-74",
+                    "94-98"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 165,
+                "height_max": 170,
+                "weight_min": 56,
+                "weight_max": 62,
+                "values": [
+                    "92-96",
+                    "74-78",
+                    "98-102"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 168,
+                "height_max": 173,
+                "weight_min": 62,
+                "weight_max": 68,
+                "values": [
+                    "96-100",
+                    "78-82",
+                    "102-106"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Yame – Áo nam",
+        "brand": "yame",
+        "category": "nam-ao",
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Ngang ngực áo (cm)",
+            "Dài áo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 160,
+                "weight_min": 45,
+                "weight_max": 52,
+                "values": [
+                    "48",
+                    "66"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 160,
+                "height_max": 165,
+                "weight_min": 52,
+                "weight_max": 58,
+                "values": [
+                    "50",
+                    "68"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 165,
+                "height_max": 170,
+                "weight_min": 58,
+                "weight_max": 65,
+                "values": [
+                    "52",
+                    "70"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 170,
+                "height_max": 175,
+                "weight_min": 65,
+                "weight_max": 72,
+                "values": [
+                    "54",
+                    "72"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 175,
+                "height_max": 180,
+                "weight_min": 72,
+                "weight_max": 80,
+                "values": [
+                    "56",
+                    "74"
+                ]
+            },
+            {
+                "size": "3XL",
+                "height_min": 178,
+                "height_max": 184,
+                "weight_min": 80,
+                "weight_max": 88,
+                "values": [
+                    "58",
+                    "76"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Yame – Quần nam",
+        "brand": "yame",
+        "category": "nam-quan",
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Vòng eo (cm)",
+            "Dài quần (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 160,
+                "weight_min": 45,
+                "weight_max": 52,
+                "values": [
+                    "70",
+                    "96"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 160,
+                "height_max": 165,
+                "weight_min": 52,
+                "weight_max": 58,
+                "values": [
+                    "74",
+                    "98"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 165,
+                "height_max": 170,
+                "weight_min": 58,
+                "weight_max": 65,
+                "values": [
+                    "78",
+                    "100"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 170,
+                "height_max": 175,
+                "weight_min": 65,
+                "weight_max": 72,
+                "values": [
+                    "82",
+                    "102"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 175,
+                "height_max": 180,
+                "weight_min": 72,
+                "weight_max": 80,
+                "values": [
+                    "86",
+                    "104"
+                ]
+            },
+            {
+                "size": "3XL",
+                "height_min": 178,
+                "height_max": 184,
+                "weight_min": 80,
+                "weight_max": 88,
+                "values": [
+                    "90",
+                    "106"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Nike – Nam",
+        "brand": "nike",
+        "category": "nam",
+        "note": "Số đo cơ thể theo bảng size quốc tế của hãng; form áo thể thao có thể ôm hơn, cân nhắc lên 1 size nếu thích rộng.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 160,
+                "height_max": 167,
+                "weight_min": 50,
+                "weight_max": 60,
+                "values": [
+                    "88-96",
+                    "73-81"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 167,
+                "height_max": 173,
+                "weight_min": 60,
+                "weight_max": 70,
+                "values": [
+                    "96-104",
+                    "81-89"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 173,
+                "height_max": 178,
+                "weight_min": 70,
+                "weight_max": 80,
+                "values": [
+                    "104-112",
+                    "89-97"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 178,
+                "height_max": 183,
+                "weight_min": 80,
+                "weight_max": 90,
+                "values": [
+                    "112-124",
+                    "97-109"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 183,
+                "height_max": 188,
+                "weight_min": 90,
+                "weight_max": 100,
+                "values": [
+                    "124-136",
+                    "109-121"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Nike – Nữ",
+        "brand": "nike",
+        "category": "nu",
+        "note": "Số đo cơ thể theo bảng size quốc tế của hãng; form áo thể thao có thể ôm hơn, cân nhắc lên 1 size nếu thích rộng.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)",
+            "Vòng mông (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 45,
+                "weight_max": 52,
+                "values": [
+                    "83-88",
+                    "65-70",
+                    "90-95"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 160,
+                "height_max": 167,
+                "weight_min": 52,
+                "weight_max": 60,
+                "values": [
+                    "88-94",
+                    "70-76",
+                    "95-101"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 165,
+                "height_max": 172,
+                "weight_min": 60,
+                "weight_max": 68,
+                "values": [
+                    "94-101",
+                    "76-83",
+                    "101-108"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 168,
+                "height_max": 175,
+                "weight_min": 68,
+                "weight_max": 78,
+                "values": [
+                    "101-109",
+                    "83-91",
+                    "108-116"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 170,
+                "height_max": 178,
+                "weight_min": 78,
+                "weight_max": 88,
+                "values": [
+                    "109-118",
+                    "91-100",
+                    "116-125"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Puma – Nam",
+        "brand": "puma",
+        "category": "nam",
+        "note": "Số đo cơ thể theo bảng size quốc tế của hãng; form áo thể thao có thể ôm hơn, cân nhắc lên 1 size nếu thích rộng.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 160,
+                "height_max": 167,
+                "weight_min": 50,
+                "weight_max": 60,
+                "values": [
+                    "88-94",
+                    "76-82"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 167,
+                "height_max": 173,
+                "weight_min": 60,
+                "weight_max": 70,
+                "values": [
+                    "94-100",
+                    "82-88"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 173,
+                "height_max": 178,
+                "weight_min": 70,
+                "weight_max": 80,
+                "values": [
+                    "100-106",
+                    "88-94"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 178,
+                "height_max": 183,
+                "weight_min": 80,
+                "weight_max": 90,
+                "values": [
+                    "106-112",
+                    "94-100"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 183,
+                "height_max": 188,
+                "weight_min": 90,
+                "weight_max": 100,
+                "values": [
+                    "112-118",
+                    "100-106"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Puma – Nữ",
+        "brand": "puma",
+        "category": "nu",
+        "note": "Số đo cơ thể theo bảng size quốc tế của hãng; form áo thể thao có thể ôm hơn, cân nhắc lên 1 size nếu thích rộng.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)",
+            "Vòng mông (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 45,
+                "weight_max": 52,
+                "values": [
+                    "82-86",
+                    "66-70",
+                    "90-94"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 160,
+                "height_max": 167,
+                "weight_min": 52,
+                "weight_max": 60,
+                "values": [
+                    "86-90",
+                    "70-74",
+                    "94-98"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 165,
+                "height_max": 172,
+                "weight_min": 60,
+                "weight_max": 68,
+                "values": [
+                    "90-96",
+                    "74-80",
+                    "98-104"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 168,
+                "height_max": 175,
+                "weight_min": 68,
+                "weight_max": 78,
+                "values": [
+                    "96-102",
+                    "80-86",
+                    "104-110"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 170,
+                "height_max": 178,
+                "weight_min": 78,
+                "weight_max": 88,
+                "values": [
+                    "102-108",
+                    "86-92",
+                    "110-116"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Bảng size chung",
+        "brand": null,
+        "category": null,
+        "note": "Số đo tham khảo theo cơ thể người mặc. Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 48,
+                "weight_max": 55,
+                "values": [
+                    "86-90",
+                    "70-74"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 162,
+                "height_max": 168,
+                "weight_min": 55,
+                "weight_max": 62,
+                "values": [
+                    "90-94",
+                    "74-78"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 168,
+                "height_max": 174,
+                "weight_min": 62,
+                "weight_max": 69,
+                "values": [
+                    "94-98",
+                    "78-82"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 174,
+                "height_max": 178,
+                "weight_min": 69,
+                "weight_max": 76,
+                "values": [
+                    "98-102",
+                    "82-86"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 178,
+                "height_max": 182,
+                "weight_min": 76,
+                "weight_max": 83,
+                "values": [
+                    "102-106",
+                    "86-90"
+                ]
+            },
+            {
+                "size": "3XL",
+                "height_min": 182,
+                "height_max": 186,
+                "weight_min": 83,
+                "weight_max": 90,
+                "values": [
+                    "106-110",
+                    "90-94"
+                ]
+            }
+        ]
+    }
+]

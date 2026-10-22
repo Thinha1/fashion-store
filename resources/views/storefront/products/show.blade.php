@@ -124,7 +124,9 @@
                 <div class="mt-6">
                     <div class="flex items-center justify-between">
                         <p class="text-sm font-medium text-gray-900">Size</p>
-                        <a href="#" class="text-xs text-brand hover:underline" x-on:click.prevent="$dispatch('notify', 'Bảng size đang được cập nhật.')">Xem hướng dẫn chọn size</a>
+                        @if ($sizeChart)
+                            @include('storefront.products._size-guide', ['sizeChart' => $sizeChart])
+                        @endif
                     </div>
                     <div class="mt-2.5 flex flex-wrap gap-2">
                         @foreach ($sizes as $size)
