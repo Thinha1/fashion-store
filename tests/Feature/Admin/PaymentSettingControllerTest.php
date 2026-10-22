@@ -112,7 +112,8 @@ class PaymentSettingControllerTest extends TestCase
         $this->save(['bank_id' => 'VCB', 'account_number' => '0123456789', 'sepay_webhook_api_key' => self::KEY]);
 
         $log = AuditLog::query()->where('action', 'payment_settings.updated')->sole();
-        $this->assertSame(['bank_id' => 'VCB', 'account_number' => '0123456789', 'account_name' => null, 'webhook_url' => null, 'api_key_changed' => true], $log->new_values);
+        // assertEquals: MySQL's JSON column does not keep key order.
+        $this->assertEquals(['bank_id' => 'VCB', 'account_number' => '0123456789', 'account_name' => null, 'webhook_url' => null, 'api_key_changed' => true], $log->new_values);
         $this->assertStringNotContainsString(self::KEY, json_encode($log->toArray()));
     }
 
