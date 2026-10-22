@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\PaymentSetting;
 use App\Models\User;
 use App\Services\Address\AdministrativeDivisions;
 use App\Services\Ai\AiProviderContract;
@@ -9,6 +10,7 @@ use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use App\Services\Audit\AuditLogger;
 use App\Services\Cart\ShoppingCart;
+use App\Services\Payments\BankTransfer;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         // /admin/cai-dat/ai takes effect on the very next AI call, without
         // needing to restart the app/queue workers.
         $this->app->bind(AiSettings::class, fn () => AiSettings::current());
+        $this->app->bind(BankTransfer::class, fn () => new BankTransfer(PaymentSetting::current()));
 
         // Replaces Scout's own binding, which has no HTTP timeout: a hung
         // Meilisearch would hang the catalog page instead of letting

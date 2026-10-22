@@ -34,6 +34,7 @@ class AuditLog extends Model
         'Order' => 'Đơn hàng',
         'GoodsReceipt' => 'Phiếu nhập',
         'AiSetting' => 'Cấu hình AI',
+        'PaymentSetting' => 'Cấu hình thanh toán',
         'User' => 'Tài khoản',
     ];
 
@@ -56,6 +57,7 @@ class AuditLog extends Model
         'ai_settings.updated' => 'Sửa cấu hình AI',
         'ai_settings.primary_changed' => 'Đổi cấu hình AI chính',
         'ai_settings.deleted' => 'Xóa cấu hình AI',
+        'payment_settings.updated' => 'Sửa cấu hình thanh toán',
     ];
 
     private const VERBS = ['created' => 'Tạo', 'updated' => 'Sửa', 'deleted' => 'Xóa'];
@@ -95,6 +97,7 @@ class AuditLog extends Model
             $subject instanceof Discount => route('admin.discounts.edit', $subject),
             $subject instanceof Order => route('admin.orders.show', $subject),
             $subject instanceof GoodsReceipt => route('admin.goods-receipts.show', $subject),
+            $subject instanceof PaymentSetting => route('admin.settings.payment.edit'),
             default => null,
         };
     }
