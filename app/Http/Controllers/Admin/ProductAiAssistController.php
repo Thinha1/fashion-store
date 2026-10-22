@@ -11,6 +11,7 @@ use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\InvalidAiResponseException;
 use App\Services\Ai\ProductDraftPromptBuilder;
 use App\Services\Ai\ProductDraftResolver;
+use App\Services\Ai\ProductFormContextDescriber;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,7 @@ class ProductAiAssistController extends Controller
         ProductDraftPromptBuilder $promptBuilder,
         ProductDraftResolver $resolver,
         AdminPageDirectory $pages,
+        ProductFormContextDescriber $formContext,
     ): JsonResponse {
         $messages = $request->validated('messages');
 
@@ -38,7 +40,7 @@ class ProductAiAssistController extends Controller
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
 
         try {
-            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt()));
+            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context'))));
         } catch (ConnectionException|RuntimeException) {
             abort(503, self::UNAVAILABLE);
         }

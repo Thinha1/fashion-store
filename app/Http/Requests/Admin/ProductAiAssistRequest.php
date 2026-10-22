@@ -33,6 +33,22 @@ class ProductAiAssistRequest extends BaseAdminRequest
             'messages.*.content.*.text' => ['required_if:messages.*.content.*.type,text', 'nullable', 'string', 'max:4000'],
             'messages.*.content.*.media_type' => ['required_if:messages.*.content.*.type,image', 'nullable', Rule::in(['image/jpeg', 'image/png', 'image/webp'])],
             'messages.*.content.*.data' => ['required_if:messages.*.content.*.type,image', 'nullable', 'string'],
+            // Snapshot of the product form on screen (describeProductForm in
+            // product-ai-chat.js) — see ProductFormContextDescriber.
+            'form_context' => ['nullable', 'array'],
+            'form_context.mode' => ['nullable', Rule::in(['create', 'edit'])],
+            'form_context.name' => ['nullable', 'string', 'max:255'],
+            'form_context.price' => ['nullable', 'string', 'max:30'],
+            'form_context.category' => ['nullable', 'string', 'max:255'],
+            'form_context.brand' => ['nullable', 'string', 'max:255'],
+            'form_context.status' => ['nullable', Rule::in(['active', 'archived'])],
+            'form_context.description' => ['nullable', 'string', 'max:1000'],
+            'form_context.variants' => ['nullable', 'array', 'max:60'],
+            'form_context.variants.*.size' => ['nullable', 'string', 'max:20'],
+            'form_context.variants.*.color' => ['nullable', 'string', 'max:50'],
+            'form_context.variants.*.sku' => ['nullable', 'string', 'max:100'],
+            'form_context.variants.*.price' => ['nullable', 'string', 'max:30'],
+            'form_context.variants.*.stock' => ['nullable', 'string', 'max:20'],
         ];
     }
 
