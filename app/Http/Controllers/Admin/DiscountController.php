@@ -89,7 +89,7 @@ class DiscountController extends Controller
 
     public function destroy(Discount $discount): RedirectResponse
     {
-        abort_unless(auth()->user()->can('products.manage'), 403);
+        abort_unless(auth()->user()->can('discounts.manage'), 403);
 
         $discount->delete();
 

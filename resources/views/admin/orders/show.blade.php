@@ -11,7 +11,13 @@
     @php
         $nextSteps = collect($order->nextStaffStatuses());
         $forwardSteps = $nextSteps->reject(fn ($next) => $next === 'cancelled');
-        $canCancel = $nextSteps->contains('cancelled');
+        $canChangeStatus = auth()->user()->hasPermission('orders.manage');
+        // Cancelling a paid order means refunding it: payments.confirm.
+        $canCancel = $canChangeStatus && $nextSteps->contains('cancelled')
+            && ($order->payment_status !== 'paid' || auth()->user()->hasPermission('payments.confirm'));
+        if (! $canChangeStatus) {
+            $forwardSteps = collect();
+        }
     @endphp
 
     <div class="admin-detail-grid">
@@ -87,6 +93,8 @@
                             </form>
                         @endforeach
                     </div>
+                @elseif (! $canChangeStatus)
+                    <p class="mt-3 text-xs text-gray-500">Bạn chỉ có quyền xem đơn hàng.</p>
                 @elseif (! $canCancel)
                     <p class="mt-3 text-xs text-gray-500">Đơn đã ở trạng thái cuối, không còn bước xử lý nào.</p>
                 @endif
@@ -135,12 +143,14 @@
                     @endif
                     @if ($order->payment_method === 'bank_transfer' && $order->payment_status === 'unpaid' && $order->status !== 'cancelled')
                         <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Chưa nhận được tiền chuyển khoản — nên chờ thanh toán trước khi chuẩn bị hàng. SePay tự xác nhận khi khách giữ đúng nội dung chuyển khoản.</p>
+                        @if (auth()->user()->hasPermission('payments.confirm'))
                         <form method="POST" action="{{ route('admin.orders.confirm-payment', $order) }}"
                               x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: {{ Js::from('Xác nhận đã nhận '.number_format((float) $order->grand_total, 0, ',', '.').' ₫ cho đơn '.$order->order_number.'? Chỉ xác nhận khi đã thấy tiền vào tài khoản cửa hàng.') }} })">
                             @csrf
                             @method('PATCH')
                             <x-admin.action type="submit" variant="secondary" icon="check" class="w-full">Xác nhận đã nhận tiền</x-admin.action>
                         </form>
+                        @endif
                     @endif
                     @if ($order->status === 'cancelled' && $order->payment_status === 'paid')
                         <p class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">Đơn đã hủy nhưng khách đã thanh toán — cần hoàn tiền cho khách.</p>

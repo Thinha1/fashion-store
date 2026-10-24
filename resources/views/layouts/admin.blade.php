@@ -14,35 +14,16 @@
     <aside id="admin-navigation" class="admin-sidebar" data-open="false" :data-open="sidebarOpen ? 'true' : 'false'" x-bind:inert="!sidebarOpen && !desktop">
         <div class="flex items-center justify-between border-b border-white/10 px-5 py-5"><x-brand /><button type="button" x-ref="closeMenu" class="rounded-lg p-2 text-gray-500 lg:hidden" aria-label="Đóng menu" x-on:click="sidebarOpen = false; $nextTick(() => $refs.menuButton.focus())"><x-icon name="close" /></button></div>
         <nav aria-label="Điều hướng quản trị" tabindex="0" class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-            <div><p class="sidebar-label">Điều hành</p><a href="{{ route('admin.dashboard') }}" class="sidebar-link" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif><x-icon name="grid" /> Tổng quan</a></div>
-            @if (auth()->user()->hasPermission('orders.manage'))
-                <div><p class="sidebar-label">Bán hàng</p>
-                    <a href="{{ route('admin.orders.index') }}" class="sidebar-link" @if(request()->routeIs('admin.orders.*')) aria-current="page" @endif><x-icon name="orders" /> Đơn hàng</a>
-                </div>
-            @endif
-            @if (auth()->user()->hasPermission('products.manage'))
-                <div><p class="sidebar-label">Sản phẩm & thương hiệu</p>
-                    @foreach ([['products', 'shirt', 'Sản phẩm'], ['categories', 'layers', 'Danh mục'], ['brands', 'tag', 'Thương hiệu'], ['size-charts', 'table', 'Bảng size'], ['discounts', 'percent', 'Giảm giá']] as [$section, $icon, $label])
-                        <a href="{{ route('admin.'.$section.'.index') }}" class="sidebar-link" @if(request()->routeIs('admin.'.$section.'.*')) aria-current="page" @endif><x-icon :name="$icon" /> {{ $label }}</a>
+            @foreach (\App\Support\AdminNavigation::for(auth()->user()) as $group => $links)
+                <div><p class="sidebar-label">{{ $group }}</p>
+                    @foreach ($links as $link)
+                        <a href="{{ route($link['route']) }}" class="sidebar-link" @if(request()->routeIs($link['pattern'])) aria-current="page" @endif><x-icon :name="$link['icon']" /> {{ $link['label'] }}</a>
                     @endforeach
                 </div>
-            @endif
-            @if (auth()->user()->hasPermission('suppliers.manage') || auth()->user()->hasPermission('inventory.manage'))
-                <div><p class="sidebar-label">Kho & cung ứng</p>
-                    @if (auth()->user()->hasPermission('suppliers.manage')) <a href="{{ route('admin.suppliers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.suppliers.*')) aria-current="page" @endif><x-icon name="truck" /> Nhà cung cấp</a> @endif
-                    @if (auth()->user()->hasPermission('inventory.manage')) <a href="{{ route('admin.goods-receipts.index') }}" class="sidebar-link" @if(request()->routeIs('admin.goods-receipts.*')) aria-current="page" @endif><x-icon name="box" /> Phiếu nhập hàng</a> @endif
-                </div>
-            @endif
-            @if (auth()->user()->hasPermission('settings.manage') || auth()->user()->hasPermission('audit.view'))
-                <div><p class="sidebar-label">Hệ thống</p>
-                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.ai.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.ai.*')) aria-current="page" @endif><x-icon name="settings" /> Cấu hình AI</a> @endif
-                    @if (auth()->user()->hasPermission('settings.manage')) <a href="{{ route('admin.settings.payment.edit') }}" class="sidebar-link" @if(request()->routeIs('admin.settings.payment.*')) aria-current="page" @endif><x-icon name="revenue" /> Thanh toán QR</a> @endif
-                    @if (auth()->user()->hasPermission('audit.view')) <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link" @if(request()->routeIs('admin.audit-logs.*')) aria-current="page" @endif><x-icon name="clock" /> Nhật ký hệ thống</a> @endif
-                </div>
-            @endif
+            @endforeach
             <div><p class="sidebar-label">Cửa hàng</p><a href="{{ route('home') }}" class="sidebar-link"><x-icon name="home" /> Xem trang cửa hàng <x-icon class="ml-auto size-4" /></a></div>
         </nav>
-        <div class="mx-4 mb-4 flex items-center gap-3 border-t border-white/10 pt-4"><span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{{ mb_substr(auth()->user()->name, 0, 1) }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ auth()->user()->name }}</p><p class="text-xs text-slate-300">Quản trị cửa hàng</p></div></div>
+        <div class="mx-4 mb-4 flex items-center gap-3 border-t border-white/10 pt-4"><span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{{ mb_substr(auth()->user()->name, 0, 1) }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ auth()->user()->name }}</p><p class="truncate text-xs text-slate-300">{{ auth()->user()->role?->name }}</p></div></div>
     </aside>
     <div class="admin-frame min-w-0" x-bind:inert="sidebarOpen && !desktop">
         <header class="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4  sm:px-8">
@@ -53,7 +34,7 @@
         <footer class="px-4 pb-6 text-xs text-gray-400 sm:px-8">&copy; {{ now()->year }} {{ config('app.name', 'Fashion Store') }} · Quản lý cửa hàng</footer>
     </div>
     <x-admin.confirm-dialog />
-    @if (auth()->user()->hasPermission('products.manage'))
+    @if (auth()->user()->hasPermission('ai.assistant'))
         <x-admin.ai-chat-widget />
     @endif
 </body>

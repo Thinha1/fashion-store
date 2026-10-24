@@ -10,7 +10,7 @@ class StoreDiscountRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
-        return 'products.manage';
+        return 'discounts.manage';
     }
 
     protected function prepareForValidation(): void

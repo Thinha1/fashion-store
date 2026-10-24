@@ -79,10 +79,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Determine whether the user's role grants the given permission code.
+     * Whether the user's role grants the given permission code. A locked
+     * account (status "locked", set at /admin/nhan-vien) keeps its role but
+     * holds no permission until it is unlocked.
      */
     public function hasPermission(string $code): bool
     {
-        return $this->role !== null && $this->role->hasPermission($code);
+        return $this->isActive() && $this->role !== null && $this->role->hasPermission($code);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status !== 'locked';
     }
 }

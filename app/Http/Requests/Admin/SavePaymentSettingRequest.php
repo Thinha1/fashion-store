@@ -9,7 +9,7 @@ class SavePaymentSettingRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
-        return 'settings.manage';
+        return 'settings.payment';
     }
 
     /**
