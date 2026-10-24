@@ -23,6 +23,17 @@
         $colors = $product->variants->pluck('color')->unique()->values();
     @endphp
 
+    @push('head')
+        <meta property="og:type" content="product">
+        <meta property="og:title" content="{{ $product->name }}">
+        @if ($imagesForJs->isNotEmpty())
+            <meta property="og:image" content="{{ $imagesForJs->first()['url'] }}">
+        @endif
+        @if (config('store.anywear_domain'))
+            <script src="https://anywear.decart.ai/widget/latest/anywear.js?domain={{ urlencode(config('store.anywear_domain')) }}" async></script>
+        @endif
+    @endpush
+
     <nav aria-label="Breadcrumb" class="mb-6 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
         <a href="{{ route('home') }}" class="hover:text-brand">Trang chủ</a>
         <x-icon name="arrow" class="size-2.5 rotate-0" />
