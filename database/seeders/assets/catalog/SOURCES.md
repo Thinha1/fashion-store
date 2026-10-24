@@ -1,8 +1,8 @@
 # Nguồn dữ liệu catalog demo
 
-Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Việt Nam của Coolmate, Yame, Nike và Puma (tháng 10/2026): tên, giá niêm yết và giá khuyến mãi, màu, size, mô tả và ảnh. Dữ liệu được lấy theo `robots.txt` của từng trang (Coolmate: trang sản phẩm; Yame: `products.json` của Shopify; Nike: trang danh sách `/w/`, không vào trang chi tiết bị chặn; Puma: JSON-LD trên trang sản phẩm). Adidas Việt Nam chặn truy cập tự động nên không có trong catalog.
+Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Việt Nam của Coolmate, Yame, Nike, Puma, Uniqlo và Teelab (tháng 10/2026): tên, giá niêm yết và giá khuyến mãi, màu, size, mô tả và ảnh. Dữ liệu được lấy theo `robots.txt` của từng trang (Coolmate: trang sản phẩm; Yame: `products.json` của Shopify; Nike: trang danh sách `/w/`, không vào trang chi tiết bị chặn; Puma: JSON-LD trên trang sản phẩm; Uniqlo: API sản phẩm của trang web; Teelab: `products.json` của Sapo). Adidas Việt Nam chặn truy cập tự động nên không có trong catalog.
 
-Ảnh đã cắt về tỉ lệ 4:5 (640×800). Mỗi màu có một ảnh riêng, đặt tên `<slug>-<màu>.jpg`; ảnh phụ là `<slug>-2.jpg`, `<slug>-3.jpg`. Mô tả sản phẩm Nike do nhóm tự viết vì trang danh sách không có mô tả. Size số của quần (29, 30…) được quy về S–XL cho khớp danh sách size của hệ thống. Tồn kho là số giả lập.
+Ảnh đã cắt về tỉ lệ 4:5 (640×800). Mỗi màu có một ảnh riêng, đặt tên `<slug>-<màu>.jpg`; ảnh phụ là `<slug>-2.jpg`, `<slug>-3.jpg`. Mô tả được rút gọn từ nội dung trang gốc; mô tả Nike đợt đầu do nhóm tự viết, đợt sau dịch từ trang sản phẩm. Mỗi sản phẩm lấy tối đa 4 màu. Size số của quần (29, 30…) được quy về S–XL cho khớp danh sách size của hệ thống. Tồn kho là số giả lập.
 
 **Ảnh và nội dung thuộc bản quyền của các thương hiệu, chỉ dùng cho đồ án môn học, không dùng cho mục đích thương mại hay triển khai công khai.**
 
@@ -52,3 +52,77 @@ Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Vi
 | Puma | Áo thun croptop logo Essentials nữ | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-thun-croptop-logo-essentials-n%E1%BB%AF/586866.html) |
 | Puma | Đầm WARDROBE ESS Midi Cut-Out | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C4%91%E1%BA%A7m-wardrobe-ess-midi-cut-out/629769.html) |
 | Puma | Quần nỉ nữ ống rộng Wardrobe Essentials Relaxed | [vn.puma.com](https://vn.puma.com/vn/vi/pd/qu%E1%BA%A7n-n%E1%BB%89-n%E1%BB%AF-%E1%BB%91ng-r%E1%BB%99ng-wardrobe-essentials-relaxed/629754.html) |
+| Uniqlo | AIRism Cotton Áo Thun Dáng Rộng / Tay Lỡ | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E465185-000) |
+| Uniqlo | SUPIMA COTTON Áo Thun | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E455365-000) |
+| Uniqlo | AIRism Cotton Áo Polo Vải Pique | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E475367-000) |
+| Uniqlo | DRY-EX Áo Polo | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E482305-000) |
+| Uniqlo | Áo Sơ Mi Vải Linen Cao Cấp Dài Tay | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E455957-000) |
+| Uniqlo | Áo Sơ Mi Vải Dạ | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E486600-000) |
+| Uniqlo | Áo Hoodie Nỉ Chui Đầu Dáng Rộng | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E471808-000) |
+| Uniqlo | Áo Nỉ | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E486117-000) |
+| Uniqlo | Áo Khoác Giả Lông Cừu Kéo Khóa | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E450195-000) |
+| Uniqlo | PUFFTECH Áo Khoác Chần Bông | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E486171-000) |
+| Uniqlo | Quần Jeans EZY Siêu Co Giãn | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E455476-000) |
+| Uniqlo | Quần Dài Vải Pha Linen Dáng Relax | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E482920-000) |
+| Uniqlo | Quần Shorts Thể Thao Siêu Co Giãn | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E475386-000) |
+| Uniqlo | AIRism Cotton Áo Thun | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E465755-000) |
+| Uniqlo | Áo Thun Vải Gân Cổ Henley | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E487908-000) |
+| Uniqlo | Áo Sơ Mi Vải Linen Cao Cấp | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E475647-000) |
+| Uniqlo | AIRism Áo Khoác Chống Tia UV Siêu Co Giãn Kéo Khóa | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E483281-000) |
+| Uniqlo | Áo Khoác Giả Lông Cừu Loại Dày Kéo Khóa | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E449753-000) |
+| Uniqlo | Quần Jeans EZY Dáng Rộng Ống Suông | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E482281-000) |
+| Uniqlo | Quần Cotton Dáng Relax Dài Đến Mắt Cá | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E482243-000) |
+| Uniqlo | Chân Váy Xếp Ly Vải Nylon | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E487995-000) |
+| Uniqlo | Đầm Kiểu Xếp Tầng | [www.uniqlo.com](https://www.uniqlo.com/vn/vi/products/E489239-000) |
+| Teelab | Teelab Alter Regular Cotton Essentials FW26 Tee TS437 | [teelab.vn](https://teelab.vn/tee-ts437) |
+| Teelab | Teelab Alter Oversized Cotton Essentials FW26 Tee TS438 | [teelab.vn](https://teelab.vn/tee-ts438) |
+| Teelab | Teelab Alter Oversized Cotton Solid Tee TS382 | [teelab.vn](https://teelab.vn/ao-thun-tron-ts382) |
+| Teelab | Teelab Alter Baby Slub-Cotton Tee TS427 | [teelab.vn](https://teelab.vn/tee-ts427) |
+| Teelab | Teelab Alter Baby Cotton Tee TS426 | [teelab.vn](https://teelab.vn/tee-ts426) |
+| Teelab | Teelab Alter Regular Pique Animal Polo AP079 | [teelab.vn](https://teelab.vn/polo-ap079) |
+| Teelab | Teelab Alter Oversized Cotton Essentials Polo AP075 | [teelab.vn](https://teelab.vn/ao-polo-ap075) |
+| Teelab | Teelab Alter Long Sleeve Oxford Essentials Shirt SS092 | [teelab.vn](https://teelab.vn/ao-so-mi-ss092) |
+| Teelab | Teelab Alter Cuban Oxford Essentials Shirt SS093 | [teelab.vn](https://teelab.vn/ao-so-mi-ss093) |
+| Teelab | Teelab Alter Semi Fleece World Tour Hoodie HD130 | [teelab.vn](https://teelab.vn/ao-hoodie-local-brand-unisex-teelab-world-tour-hd130) |
+| Teelab | Teelab Alter Relaxed Fit Fleece Essentials FW26 Hoodie HD145 | [teelab.vn](https://teelab.vn/hoodie-hd145) |
+| Teelab | Teelab Alter Loose-Fit Nylon Essentials FW26 Windbreaker AK152 | [teelab.vn](https://teelab.vn/windbreaker-ak152) |
+| Teelab | Teelab Alter Oversized Nylon Essentials FW26 Bomber AK151 | [teelab.vn](https://teelab.vn/bomber-ak151) |
+| Teelab | Teelab Alter Oversized Denim Tapered Pants PS142 | [teelab.vn](https://teelab.vn/quan-jeans-ps142) |
+| Teelab | Teelab Alter Relaxed Fit Fleece Essentials FW26 Pants PS148 | [teelab.vn](https://teelab.vn/pants-ps148) |
+| Teelab | Teelab Alter Jogger Khaki Essentials Shorts SH011 | [teelab.vn](https://teelab.vn/quan-short-sh011) |
+| Yame | Áo polo Cool Comfort thun 2 mặt | [yame.vn](https://yame.vn/products/ao-polo-cool-comfort-vai-thun-hai-mat-phom-rong-f4-the-no-style-257-mau-xam-dam-2625154) |
+| Yame | Áo polo IceVibes mát lạnh | [yame.vn](https://yame.vn/products/ao-polo-cool-comfort-vai-thun-hai-mat-phom-hop-rong-f5-the-no-style-250-mau-xanh-duong-2625212) |
+| Yame | Sơ mi cổ Cuban nhung tăm EasyCare | [yame.vn](https://yame.vn/products/ao-so-mi-tay-ngan-vai-nhung-ke-phom-vua-f3-seventy-seven-066-mau-be-nhat-2625128) |
+| Yame | Áo thun Henley tay dài vải waffle | [yame.vn](https://yame.vn/products/ao-thun-henley-tay-dai-giu-am-vai-to-ong-phom-vua-f3-the-weekend-052-mau-xanh-duong-dam-2625275) |
+| Yame | Áo thun in chữ Typography | [yame.vn](https://yame.vn/products/ao-thun-in-chu-phom-rong-f4-the-no-style-265-mau-do-dam-2625312) |
+| Yame | Quần jogger thể thao Double Face | [yame.vn](https://yame.vn/products/quan-jogger-the-thao-quick-dry-the-beginner-007-xanh-xam-0024501) |
+| Yame | Quần Easy Pant ống siêu rộng | [yame.vn](https://yame.vn/products/quan-easy-pant-baggy-fit-day-thoang-dung-dang-the-no-style-246-mau-trang-phom-sieu-rong-f5-2625093) |
+| Yame | Quần short jeans DurableTex | [yame.vn](https://yame.vn/products/quan-dui-jeans-durabletex-mem-lung-cong-chong-ho-the-original-059-mau-xanh-den-phom-vua-van-f3-2625094) |
+| Yame | Quần short Easy Pant IceVibes | [yame.vn](https://yame.vn/products/quan-dui-easy-pant-icevibes-lung-thun-vai-tan-nhiet-mat-lanh-the-minimalist-033-mau-beige-phom-vua-van-f3-2625266) |
+| Coolmate | Áo Sơ Mi Dài Tay Premium Poplin | [www.coolmate.me](https://www.coolmate.me/product/ao-so-mi-nam-dai-tay-premium-poplin-100-cotton-chong-nhan-truot-nuoc) |
+| Coolmate | Áo thun cotton compact logo COOLMATE | [www.coolmate.me](https://www.coolmate.me/product/ao-thun-cotton-compact-logo-coolmate) |
+| Coolmate | Áo Polo nam Premium Cotton Linen | [www.coolmate.me](https://www.coolmate.me/product/ao-polo-nam-premium-cotton-linen) |
+| Coolmate | Áo Polo Nam Cafe Essentials | [www.coolmate.me](https://www.coolmate.me/product/ao-polo-nam-cafe-essentials-thoang-mat-chong-uv) |
+| Coolmate | Áo khoác WindBreaker Nylon Taslan | [www.coolmate.me](https://www.coolmate.me/product/ao-khoac-windbreaker-nylon-taslan) |
+| Coolmate | Quần Jeans Nam Relaxed dáng Straight | [www.coolmate.me](https://www.coolmate.me/product/quan-jeans-nam-relaxed-dang-straight) |
+| Coolmate | Quần dài nam TechComfort | [www.coolmate.me](https://www.coolmate.me/product/quan-dai-nam-techcomfort) |
+| Coolmate | Áo thun nữ Baby Tee 100% Cotton Chill like a Cat | [www.coolmate.me](https://www.coolmate.me/product/ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat) |
+| Coolmate | Áo Tshirt Regular fit | [www.coolmate.me](https://www.coolmate.me/product/ao-nu-t-shirt-regular-fit) |
+| Coolmate | Áo khoác nữ chống nắng Slim Cooling Sun Protection UPF50 | [www.coolmate.me](https://www.coolmate.me/product/ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50) |
+| Coolmate | Quần dài thể thao nữ Studio Pants | [www.coolmate.me](https://www.coolmate.me/product/quan-dai-the-thao-nu-studio-pants) |
+| Puma | Áo Thun Logo Nhỏ Essentials Nam | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-thun-logo-nh%E1%BB%8F-essentials-nam/586669.html) |
+| Puma | Áo polo nam Classics | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-polo-nam-classics/686481.html) |
+| Puma | Áo hoodie nam có khóa kéo đầy đủ OPEN ROAD | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-hoodie-nam-c%C3%B3-kh%C3%B3a-k%C3%A9o-%C4%91%E1%BA%A7y-%C4%91%E1%BB%A7-open-road/681654.html) |
+| Puma | Áo Khoác Chạy Bộ Dệt RUN FAVOURITE Nam | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-kho%C3%A1c-ch%E1%BA%A1y-b%E1%BB%99-d%E1%BB%87t-run-favourite-nam/523155.html) |
+| Puma | Quần short nam Classics | [vn.puma.com](https://vn.puma.com/vn/vi/pd/qu%E1%BA%A7n-short-nam-classics/686482.html) |
+| Puma | Áo hoodie logo Essentials nữ | [vn.puma.com](https://vn.puma.com/vn/vi/pd/%C3%A1o-hoodie-logo-essentials-n%E1%BB%AF/586791.html) |
+| Puma | Váy phối chất liệu nữ | [vn.puma.com](https://vn.puma.com/vn/vi/pd/v%C3%A1y-ph%E1%BB%91i-ch%E1%BA%A5t-li%E1%BB%87u-n%E1%BB%AF/628272.html) |
+| Nike | Nike Stride Dri-FIT ADV Running Top | [www.nike.com](https://www.nike.com/vn/t/stride-mens-dri-fit-adv-short-sleeve-running-top-wBPHXUOp/IO1418-100) |
+| Nike | Nike Solo Fleece Crew-Neck Sweatshirt | [www.nike.com](https://www.nike.com/vn/t/solo-fleece-mens-crew-neck-sweatshirt-UVynyCWb/IX1937-063) |
+| Nike | Nike Sportswear Club Lightweight Full-Zip Jacket | [www.nike.com](https://www.nike.com/vn/t/sportswear-club-mens-lightweight-full-zip-jacket-q0ztJnfq/IF0767-010) |
+| Nike | Nike Tech Helios Dri-FIT Trousers | [www.nike.com](https://www.nike.com/vn/t/tech-helios-mens-dri-fit-trousers-gd7HAsbf/IF1283-010) |
+| Nike | NikeCourt Victory Dri-FIT Tennis Shorts | [www.nike.com](https://www.nike.com/vn/t/nikecourt-victory-mens-dri-fit-18cm-approx-tennis-shorts-SWCBQw/FD5381-010) |
+| Nike | Nike One Relaxed Dri-FIT Long-Sleeve Top | [www.nike.com](https://www.nike.com/vn/t/one-relaxed-womens-dri-fit-long-sleeve-top-KgpSG12p/IU1423-580) |
+| Nike | Nike Studio Fleece Oversized Crew-Neck Sweatshirt | [www.nike.com](https://www.nike.com/vn/t/studio-fleece-lightweight-womens-oversized-crew-neck-sweatshirt-r5Fh4PQC/IM8510-133) |
+| Nike | NikeCourt Advantage Pleated Tennis Skirt | [www.nike.com](https://www.nike.com/vn/t/nikecourt-advantage-womens-dri-fit-pleated-tennis-skirt-bC6d18/FZ6513-010) |
+| Nike | Nike Zenvy High-Waisted Flared Leggings | [www.nike.com](https://www.nike.com/vn/t/zenvy-womens-high-waisted-flared-leggings-with-no-front-seam-LbranU7F/II5224-630) |

@@ -676,6 +676,202 @@
         ]
     },
     {
+        "name": "Uniqlo – Nam",
+        "brand": "uniqlo",
+        "category": "nam",
+        "note": "Số đo cơ thể theo bảng size của hãng (size quốc tế). Dòng dáng rộng (oversized, relaxed) có thể chọn đúng size hoặc giảm 1 size.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 160,
+                "height_max": 167,
+                "weight_min": 50,
+                "weight_max": 58,
+                "values": [
+                    "85-91",
+                    "70-76"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 165,
+                "height_max": 172,
+                "weight_min": 57,
+                "weight_max": 65,
+                "values": [
+                    "88-96",
+                    "76-84"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 170,
+                "height_max": 177,
+                "weight_min": 64,
+                "weight_max": 72,
+                "values": [
+                    "96-104",
+                    "84-94"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 175,
+                "height_max": 182,
+                "weight_min": 71,
+                "weight_max": 80,
+                "values": [
+                    "104-112",
+                    "94-104"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 180,
+                "height_max": 187,
+                "weight_min": 79,
+                "weight_max": 90,
+                "values": [
+                    "112-120",
+                    "104-114"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Uniqlo – Nữ",
+        "brand": "uniqlo",
+        "category": "nu",
+        "note": "Số đo cơ thể theo bảng size của hãng (size quốc tế). Dòng dáng rộng (oversized, relaxed) có thể chọn đúng size hoặc giảm 1 size.",
+        "columns": [
+            "Vòng ngực (cm)",
+            "Vòng eo (cm)",
+            "Vòng mông (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 150,
+                "height_max": 157,
+                "weight_min": 42,
+                "weight_max": 48,
+                "values": [
+                    "76-82",
+                    "58-64",
+                    "84-90"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 155,
+                "height_max": 162,
+                "weight_min": 47,
+                "weight_max": 53,
+                "values": [
+                    "82-88",
+                    "64-70",
+                    "87-93"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 158,
+                "height_max": 165,
+                "weight_min": 52,
+                "weight_max": 59,
+                "values": [
+                    "88-94",
+                    "70-76",
+                    "90-96"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 160,
+                "height_max": 168,
+                "weight_min": 58,
+                "weight_max": 66,
+                "values": [
+                    "94-100",
+                    "76-82",
+                    "96-102"
+                ]
+            },
+            {
+                "size": "2XL",
+                "height_min": 163,
+                "height_max": 170,
+                "weight_min": 65,
+                "weight_max": 74,
+                "values": [
+                    "100-106",
+                    "82-88",
+                    "102-108"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Teelab – Unisex",
+        "brand": "teelab",
+        "category": null,
+        "note": "Form unisex rộng rãi. Nếu thích mặc vừa người, chọn giảm 1 size so với bảng.",
+        "columns": [
+            "Dài áo (cm)",
+            "Rộng áo (cm)"
+        ],
+        "rows": [
+            {
+                "size": "S",
+                "height_min": 150,
+                "height_max": 160,
+                "weight_min": 40,
+                "weight_max": 52,
+                "values": [
+                    "67",
+                    "52"
+                ]
+            },
+            {
+                "size": "M",
+                "height_min": 160,
+                "height_max": 168,
+                "weight_min": 52,
+                "weight_max": 62,
+                "values": [
+                    "70",
+                    "55"
+                ]
+            },
+            {
+                "size": "L",
+                "height_min": 168,
+                "height_max": 175,
+                "weight_min": 62,
+                "weight_max": 72,
+                "values": [
+                    "73",
+                    "58"
+                ]
+            },
+            {
+                "size": "XL",
+                "height_min": 175,
+                "height_max": 185,
+                "weight_min": 72,
+                "weight_max": 85,
+                "values": [
+                    "76",
+                    "61"
+                ]
+            }
+        ]
+    },
+    {
         "name": "Bảng size chung",
         "brand": null,
         "category": null,

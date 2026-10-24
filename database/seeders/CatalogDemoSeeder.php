@@ -68,6 +68,16 @@ class CatalogDemoSeeder extends Seeder
                 'description' => 'Thương hiệu thể thao đến từ Đức, nổi bật với dòng Essentials logo lớn và trang phục tập luyện.',
                 'country' => 'Đức',
             ],
+            'uniqlo' => [
+                'name' => 'Uniqlo',
+                'description' => 'Thương hiệu Nhật Bản với trang phục cơ bản chất lượng cao cho nam và nữ: AIRism, Supima Cotton, quần jeans EZY và áo khoác PUFFTECH.',
+                'country' => 'Nhật Bản',
+            ],
+            'teelab' => [
+                'name' => 'Teelab',
+                'description' => 'Local brand Việt Nam phong cách streetwear unisex, nổi tiếng với áo thun, hoodie và áo khoác form rộng giá trẻ.',
+                'country' => 'Việt Nam',
+            ],
         ];
 
         $brands = [];
@@ -111,6 +121,8 @@ class CatalogDemoSeeder extends Seeder
             ['slug' => 'quan-jeans-nam', 'name' => 'Quần jeans', 'parent' => 'nam-quan', 'image' => 'quan-jeans-ong-suong-durabletex-xam-den.jpg'],
             ['slug' => 'quan-dai-nam', 'name' => 'Quần dài', 'parent' => 'nam-quan', 'image' => 'quan-tay-xep-ly-easycare-xam-dam.jpg'],
             ['slug' => 'quan-short-nam', 'name' => 'Quần short', 'parent' => 'nam-quan', 'image' => 'quan-short-lung-thun-van-noi-xam-trang.jpg'],
+            ['slug' => 'ao-so-mi-nu', 'name' => 'Áo sơ mi', 'parent' => 'nu-ao', 'image' => 'ao-so-mi-vai-linen-cao-cap-trang.jpg'],
+            ['slug' => 'quan-jeans-nu', 'name' => 'Quần jeans', 'parent' => 'nu-quan', 'image' => 'quan-jeans-ezy-dang-rong-ong-suong-xanh-duong.jpg'],
             ['slug' => 'ao-thun-nu', 'name' => 'Áo thun', 'parent' => 'nu-ao', 'image' => 'nike-sportswear-women-s-t-shirt-hong-phan.jpg'],
             ['slug' => 'hoodie-nu', 'name' => 'Hoodie & nỉ', 'parent' => 'nu-ao', 'image' => 'nike-studio-fleece-oversized-full-zip-hoodie-den.jpg'],
             ['slug' => 'ao-khoac-nu', 'name' => 'Áo khoác', 'parent' => 'nu-ao', 'image' => 'ao-khoac-the-thao-nu-studio-be.jpg'],
@@ -355,6 +367,8 @@ class CatalogDemoSeeder extends Seeder
             'yame' => ['YM', '#7c2d12', '#ffedd5'],
             'nike' => ['NK', '#111827', '#f3f4f6'],
             'puma' => ['PM', '#991b1b', '#fee2e2'],
+            'uniqlo' => ['UQ', '#ffffff', '#dc2626'],
+            'teelab' => ['TL', '#f9fafb', '#111827'],
         ];
         $paths = [];
 

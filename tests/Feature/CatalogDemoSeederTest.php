@@ -22,19 +22,20 @@ class CatalogDemoSeederTest extends TestCase
         $this->seed();
         $this->seed();
 
-        $this->assertDatabaseCount('brands', 4);
-        $this->assertDatabaseCount('categories', 21);
-        $this->assertDatabaseCount('products', 44);
-        $this->assertDatabaseCount('product_variants', 463);
-        $this->assertDatabaseCount('product_images', 150);
+        $this->assertDatabaseCount('brands', 6);
+        $this->assertDatabaseCount('categories', 23);
+        $this->assertDatabaseCount('products', 118);
+        $this->assertDatabaseCount('product_variants', 1447);
+        $this->assertDatabaseCount('product_images', 426);
         $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('size_charts', 13);
 
-        $this->assertSame(10, Product::query()->where('is_featured', true)->count());
+        $this->assertSame(23, Product::query()->where('is_featured', true)->count());
         $this->assertSame(2, Category::query()->whereNull('parent_id')->count());
-        $this->assertSame(['Coolmate', 'Nike', 'Puma', 'Yame'], Brand::query()->orderBy('name')->pluck('name')->all());
-        $this->assertSame(20, Product::query()->whereHas('variants.activeDiscounts')->count());
+        $this->assertSame(['Coolmate', 'Nike', 'Puma', 'Teelab', 'Uniqlo', 'Yame'], Brand::query()->orderBy('name')->pluck('name')->all());
+        $this->assertSame(53, Product::query()->whereHas('variants.activeDiscounts')->count());
         $this->assertSame(0, Product::query()->whereDoesntHave('images', fn ($query) => $query->where('is_primary', true))->count());
-        $this->assertSame(101, ProductImage::query()->where('sort_order', 0)->whereNotNull('product_variant_id')->count());
+        $this->assertSame(323, ProductImage::query()->where('sort_order', 0)->whereNotNull('product_variant_id')->count());
         $this->assertTrue(ProductVariant::query()->where('stock_quantity', 0)->exists());
         $this->assertTrue(ProductVariant::query()->whereBetween('stock_quantity', [1, 5])->exists());
         $this->assertSame(0, Category::query()->whereNotNull('parent_id')->whereDoesntHave('children')->whereDoesntHave('products')->count());

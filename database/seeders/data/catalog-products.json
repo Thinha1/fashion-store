@@ -1301,5 +1301,2261 @@
             "XL"
         ],
         "source_url": "https://vn.puma.com/vn/vi/pd/qu%E1%BA%A7n-n%E1%BB%89-n%E1%BB%AF-%E1%BB%91ng-r%E1%BB%99ng-wardrobe-essentials-relaxed/629754.html"
+    },
+    {
+        "slug": "airism-cotton-ao-thun-dang-rong-tay-lo",
+        "name": "AIRism Cotton Áo Thun Dáng Rộng | Tay Lỡ",
+        "category": "ao-thun-nam",
+        "brand": "uniqlo",
+        "description": "Áo thun dòng Uniqlo U, vải AIRism trơn mịn nhưng trông như cotton. Cổ tròn ôm nhẹ, dáng rộng tay lỡ, mặc được cho cả nam và nữ. Chất liệu 53% bông, 47% polyester.",
+        "price": 391000,
+        "image": "airism-cotton-ao-thun-dang-rong-tay-lo-trang.jpg",
+        "gallery": [
+            "airism-cotton-ao-thun-dang-rong-tay-lo-2.jpg"
+        ],
+        "sku": "UQ-AICOAOTH",
+        "colors": {
+            "Trắng": "T",
+            "Xám nhạt": "XN",
+            "Xám": "X",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "airism-cotton-ao-thun-dang-rong-tay-lo-trang.jpg",
+            "Xám nhạt": "airism-cotton-ao-thun-dang-rong-tay-lo-xam-nhat.jpg",
+            "Xám": "airism-cotton-ao-thun-dang-rong-tay-lo-xam.jpg",
+            "Đen": "airism-cotton-ao-thun-dang-rong-tay-lo-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E465185-000",
+        "discount_percent": 25,
+        "featured": true
+    },
+    {
+        "slug": "supima-cotton-ao-thun",
+        "name": "SUPIMA COTTON Áo Thun",
+        "category": "ao-thun-nam",
+        "brand": "uniqlo",
+        "description": "Áo thun cotton Supima cao cấp, màu lên nổi và bề mặt hơi bóng nhẹ đặc trưng. Chất liệu 100% bông.",
+        "price": 391000,
+        "image": "supima-cotton-ao-thun-be.jpg",
+        "gallery": [
+            "supima-cotton-ao-thun-2.jpg"
+        ],
+        "sku": "UQ-SUCOAOTH",
+        "colors": {
+            "Be": "B",
+            "Trắng": "T",
+            "Xám": "X",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "supima-cotton-ao-thun-be.jpg",
+            "Trắng": "supima-cotton-ao-thun-trang.jpg",
+            "Xám": "supima-cotton-ao-thun-xam.jpg",
+            "Đen": "supima-cotton-ao-thun-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E455365-000"
+    },
+    {
+        "slug": "airism-cotton-ao-polo-vai-pique",
+        "name": "AIRism Cotton Áo Polo Vải Pique",
+        "category": "ao-polo-nam",
+        "brand": "uniqlo",
+        "description": "Áo polo vải pique AIRism Cotton, chạm vào thấy mát và thoải mái. Dáng thanh lịch, sơ vin hay mặc ngoài đều đẹp. Thân 57% bông, 43% nylon.",
+        "price": 588000,
+        "image": "airism-cotton-ao-polo-vai-pique-nau.jpg",
+        "gallery": [
+            "airism-cotton-ao-polo-vai-pique-2.jpg"
+        ],
+        "sku": "UQ-AICOAOPO",
+        "colors": {
+            "Nâu": "N",
+            "Trắng": "T",
+            "Xám nhạt": "XN",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Nâu": "airism-cotton-ao-polo-vai-pique-nau.jpg",
+            "Trắng": "airism-cotton-ao-polo-vai-pique-trang.jpg",
+            "Xám nhạt": "airism-cotton-ao-polo-vai-pique-xam-nhat.jpg",
+            "Đen": "airism-cotton-ao-polo-vai-pique-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E475367-000"
+    },
+    {
+        "slug": "dry-ex-ao-polo",
+        "name": "DRY-EX Áo Polo",
+        "category": "ao-polo-nam",
+        "brand": "uniqlo",
+        "description": "Áo polo DRY-EX khô nhanh, có lớp lưới ở nách và giữa lưng là những chỗ dễ ra mồ hôi. Tay raglan, cổ có lớp lót. Thân 65% polyester, 35% nylon.",
+        "price": 588000,
+        "image": "dry-ex-ao-polo-xam.jpg",
+        "gallery": [
+            "dry-ex-ao-polo-2.jpg"
+        ],
+        "sku": "UQ-DREXAOPO",
+        "colors": {
+            "Xám": "X",
+            "Trắng": "T",
+            "Đen": "D",
+            "Vàng": "V"
+        },
+        "color_images": {
+            "Xám": "dry-ex-ao-polo-xam.jpg",
+            "Trắng": "dry-ex-ao-polo-trang.jpg",
+            "Đen": "dry-ex-ao-polo-den.jpg",
+            "Vàng": "dry-ex-ao-polo-vang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E482305-000"
+    },
+    {
+        "slug": "ao-so-mi-vai-linen-cao-cap-dai-tay",
+        "name": "Áo Sơ Mi Vải Linen Cao Cấp Dài Tay",
+        "category": "ao-so-mi-nam",
+        "brand": "uniqlo",
+        "description": "Sơ mi linen dài tay, sợi lanh không đều được loại bỏ thủ công nên bề mặt trơn mịn. Sơ vin hay bỏ ngoài đều hợp. Chất liệu 100% lanh.",
+        "price": 882000,
+        "image": "ao-so-mi-vai-linen-cao-cap-dai-tay-xanh-navy.jpg",
+        "gallery": [
+            "ao-so-mi-vai-linen-cao-cap-dai-tay-2.jpg"
+        ],
+        "sku": "UQ-AOSOMIVA",
+        "colors": {
+            "Xanh navy": "XN",
+            "Trắng": "T",
+            "Đen": "D",
+            "Kem": "K"
+        },
+        "color_images": {
+            "Xanh navy": "ao-so-mi-vai-linen-cao-cap-dai-tay-xanh-navy.jpg",
+            "Trắng": "ao-so-mi-vai-linen-cao-cap-dai-tay-trang.jpg",
+            "Đen": "ao-so-mi-vai-linen-cao-cap-dai-tay-den.jpg",
+            "Kem": "ao-so-mi-vai-linen-cao-cap-dai-tay-kem.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E455957-000"
+    },
+    {
+        "slug": "ao-so-mi-vai-da",
+        "name": "Áo Sơ Mi Vải Dạ",
+        "category": "ao-so-mi-nam",
+        "brand": "uniqlo",
+        "description": "Sơ mi vải dạ dáng cổ điển, vừa vặn, đuôi áo bầu kiểu sơ mi. Mặc riêng hoặc khoác ngoài phối lớp đều được. Chất liệu 100% bông.",
+        "price": 686000,
+        "image": "ao-so-mi-vai-da-cam.jpg",
+        "gallery": [
+            "ao-so-mi-vai-da-2.jpg"
+        ],
+        "sku": "UQ-AOSOMIVA2",
+        "colors": {
+            "Cam": "C",
+            "Đỏ đô": "DD",
+            "Nâu": "N",
+            "Xanh lá": "XL"
+        },
+        "color_images": {
+            "Cam": "ao-so-mi-vai-da-cam.jpg",
+            "Đỏ đô": "ao-so-mi-vai-da-do-do.jpg",
+            "Nâu": "ao-so-mi-vai-da-nau.jpg",
+            "Xanh lá": "ao-so-mi-vai-da-xanh-la.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E486600-000"
+    },
+    {
+        "slug": "ao-hoodie-ni-chui-dau-dang-rong",
+        "name": "Áo Hoodie Nỉ Chui Đầu Dáng Rộng",
+        "category": "hoodie-nam",
+        "brand": "uniqlo",
+        "description": "Hoodie nỉ chui đầu phom rộng thoải mái, mũ và túi trước. Thân 67% polyester, 33% bông, bo tay 82% bông.",
+        "price": 784000,
+        "image": "ao-hoodie-ni-chui-dau-dang-rong-be.jpg",
+        "gallery": [
+            "ao-hoodie-ni-chui-dau-dang-rong-2.jpg"
+        ],
+        "sku": "UQ-AOHONICH",
+        "colors": {
+            "Be": "B",
+            "Xám": "X",
+            "Xám đậm": "XD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "ao-hoodie-ni-chui-dau-dang-rong-be.jpg",
+            "Xám": "ao-hoodie-ni-chui-dau-dang-rong-xam.jpg",
+            "Xám đậm": "ao-hoodie-ni-chui-dau-dang-rong-xam-dam.jpg",
+            "Đen": "ao-hoodie-ni-chui-dau-dang-rong-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E471808-000"
+    },
+    {
+        "slug": "ao-ni",
+        "name": "Áo Nỉ",
+        "category": "hoodie-nam",
+        "brand": "uniqlo",
+        "description": "Áo nỉ cổ tròn phong cách thường ngày, phom tiêu chuẩn cổ điển. Thân 100% bông, bo tay và gấu 84% bông.",
+        "price": 588000,
+        "image": "ao-ni-trang-nga.jpg",
+        "gallery": [
+            "ao-ni-2.jpg"
+        ],
+        "sku": "UQ-AONI",
+        "colors": {
+            "Trắng ngà": "TN",
+            "Xám": "X",
+            "Xám đậm": "XD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng ngà": "ao-ni-trang-nga.jpg",
+            "Xám": "ao-ni-xam.jpg",
+            "Xám đậm": "ao-ni-xam-dam.jpg",
+            "Đen": "ao-ni-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E486117-000"
+    },
+    {
+        "slug": "ao-khoac-gia-long-cuu-keo-khoa",
+        "name": "Áo Khoác Giả Lông Cừu Kéo Khóa",
+        "category": "ao-khoac-nam",
+        "brand": "uniqlo",
+        "description": "Áo khoác lông cừu nhân tạo (fleece) kéo khóa, nhẹ và ấm, có túi hai bên. Chất liệu 100% polyester, một phần từ sợi tái chế.",
+        "price": 588000,
+        "image": "ao-khoac-gia-long-cuu-keo-khoa-xam-dam.jpg",
+        "gallery": [
+            "ao-khoac-gia-long-cuu-keo-khoa-2.jpg"
+        ],
+        "sku": "UQ-AOKHGILO",
+        "colors": {
+            "Xám đậm": "XD",
+            "Đen": "D",
+            "Đỏ": "DX",
+            "Kem": "K"
+        },
+        "color_images": {
+            "Xám đậm": "ao-khoac-gia-long-cuu-keo-khoa-xam-dam.jpg",
+            "Đen": "ao-khoac-gia-long-cuu-keo-khoa-den.jpg",
+            "Đỏ": "ao-khoac-gia-long-cuu-keo-khoa-do.jpg",
+            "Kem": "ao-khoac-gia-long-cuu-keo-khoa-kem.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E450195-000"
+    },
+    {
+        "slug": "pufftech-ao-khoac-chan-bong",
+        "name": "PUFFTECH Áo Khoác Chần Bông",
+        "category": "ao-khoac-nam",
+        "brand": "uniqlo",
+        "description": "Áo khoác chần bông PUFFTECH, vải dệt hai lớp mật độ dày giúp cản gió và hạn chế bông xù ra ngoài. Lớp lót chống tĩnh điện, giữ ấm tới khoảng 0°C. Mặt ngoài 100% nylon.",
+        "price": 1471000,
+        "image": "pufftech-ao-khoac-chan-bong-den.jpg",
+        "gallery": [
+            "pufftech-ao-khoac-chan-bong-2.jpg"
+        ],
+        "sku": "UQ-PUAOKHCH",
+        "colors": {
+            "Đen": "D",
+            "Đỏ đô": "DD",
+            "Be": "B",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Đen": "pufftech-ao-khoac-chan-bong-den.jpg",
+            "Đỏ đô": "pufftech-ao-khoac-chan-bong-do-do.jpg",
+            "Be": "pufftech-ao-khoac-chan-bong-be.jpg",
+            "Xanh rêu": "pufftech-ao-khoac-chan-bong-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E486171-000",
+        "featured": true
+    },
+    {
+        "slug": "quan-jeans-ezy-sieu-co-gian",
+        "name": "Quần Jeans EZY Siêu Co Giãn",
+        "category": "quan-jeans-nam",
+        "brand": "uniqlo",
+        "description": "Quần jeans EZY dáng thon gọn, vải siêu co giãn mặc thoải mái như quần thun. Màu navy được nhuộm đặc biệt để hạn chế phai. Thân chủ yếu là bông pha lyocell.",
+        "price": 980000,
+        "image": "quan-jeans-ezy-sieu-co-gian-xanh-duong.jpg",
+        "gallery": [
+            "quan-jeans-ezy-sieu-co-gian-2.jpg"
+        ],
+        "sku": "UQ-QUJEEZSI",
+        "colors": {
+            "Xanh dương": "XD",
+            "Đen": "D",
+            "Be": "B",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Xanh dương": "quan-jeans-ezy-sieu-co-gian-xanh-duong.jpg",
+            "Đen": "quan-jeans-ezy-sieu-co-gian-den.jpg",
+            "Be": "quan-jeans-ezy-sieu-co-gian-be.jpg",
+            "Xanh rêu": "quan-jeans-ezy-sieu-co-gian-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E455476-000"
+    },
+    {
+        "slug": "quan-dai-vai-pha-linen-dang-relax",
+        "name": "Quần Dài Vải Pha Linen Dáng Relax",
+        "category": "quan-dai-nam",
+        "brand": "uniqlo",
+        "description": "Quần dài vải pha linen dáng relax, ống suông thẳng, eo rộng rãi thoải mái. Thân 63% bông, 35% lanh, 2% elastane.",
+        "price": 784000,
+        "image": "quan-dai-vai-pha-linen-dang-relax-kem.jpg",
+        "gallery": [
+            "quan-dai-vai-pha-linen-dang-relax-2.jpg"
+        ],
+        "sku": "UQ-QUDAVAPH",
+        "colors": {
+            "Kem": "K",
+            "Be": "B",
+            "Nâu": "N",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Kem": "quan-dai-vai-pha-linen-dang-relax-kem.jpg",
+            "Be": "quan-dai-vai-pha-linen-dang-relax-be.jpg",
+            "Nâu": "quan-dai-vai-pha-linen-dang-relax-nau.jpg",
+            "Xanh rêu": "quan-dai-vai-pha-linen-dang-relax-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E482920-000"
+    },
+    {
+        "slug": "quan-shorts-the-thao-sieu-co-gian",
+        "name": "Quần Shorts Thể Thao Siêu Co Giãn",
+        "category": "quan-short-nam",
+        "brand": "uniqlo",
+        "description": "Quần short thể thao DRY-EX tản ẩm nhanh, vải siêu co giãn đa chiều và sợi siêu mảnh trơn mịn. Túi hông có khóa kéo giữ đồ cá nhân an toàn. Chất liệu 100% polyester.",
+        "price": 391000,
+        "image": "quan-shorts-the-thao-sieu-co-gian-xanh-la.jpg",
+        "gallery": [
+            "quan-shorts-the-thao-sieu-co-gian-2.jpg"
+        ],
+        "sku": "UQ-QUSHTHTH",
+        "colors": {
+            "Xanh lá": "XL",
+            "Xám nhạt": "XN",
+            "Xám đậm": "XD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh lá": "quan-shorts-the-thao-sieu-co-gian-xanh-la.jpg",
+            "Xám nhạt": "quan-shorts-the-thao-sieu-co-gian-xam-nhat.jpg",
+            "Xám đậm": "quan-shorts-the-thao-sieu-co-gian-xam-dam.jpg",
+            "Đen": "quan-shorts-the-thao-sieu-co-gian-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E475386-000"
+    },
+    {
+        "slug": "airism-cotton-ao-thun",
+        "name": "AIRism Cotton Áo Thun",
+        "category": "ao-thun-nu",
+        "brand": "uniqlo",
+        "description": "Áo thun nữ AIRism Cotton dáng đơn giản, độ dài linh hoạt, dễ phối cùng quần hay chân váy. Chất liệu 70% bông, 30% polyester.",
+        "price": 293000,
+        "image": "airism-cotton-ao-thun-hong.jpg",
+        "gallery": [
+            "airism-cotton-ao-thun-2.jpg"
+        ],
+        "sku": "UQ-AICOAOTH2",
+        "colors": {
+            "Hồng": "H",
+            "Trắng": "T",
+            "Đen": "D",
+            "Đỏ": "DX"
+        },
+        "color_images": {
+            "Hồng": "airism-cotton-ao-thun-hong.jpg",
+            "Trắng": "airism-cotton-ao-thun-trang.jpg",
+            "Đen": "airism-cotton-ao-thun-den.jpg",
+            "Đỏ": "airism-cotton-ao-thun-do.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E465755-000",
+        "discount_percent": 17
+    },
+    {
+        "slug": "ao-thun-vai-gan-co-henley",
+        "name": "Áo Thun Vải Gân Cổ Henley",
+        "category": "ao-thun-nu",
+        "brand": "uniqlo",
+        "description": "Áo thun nữ vải gân cổ Henley, dáng ôm vừa vặn gọn gàng. Mặc riêng hoặc phối nhiều lớp. Chất liệu 96% bông, 4% elastane.",
+        "price": 391000,
+        "image": "ao-thun-vai-gan-co-henley-tim.jpg",
+        "gallery": [
+            "ao-thun-vai-gan-co-henley-2.jpg"
+        ],
+        "sku": "UQ-AOTHVAGA",
+        "colors": {
+            "Tím": "T",
+            "Trắng ngà": "TN",
+            "Xám nhạt": "XN",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Tím": "ao-thun-vai-gan-co-henley-tim.jpg",
+            "Trắng ngà": "ao-thun-vai-gan-co-henley-trang-nga.jpg",
+            "Xám nhạt": "ao-thun-vai-gan-co-henley-xam-nhat.jpg",
+            "Đen": "ao-thun-vai-gan-co-henley-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E487908-000",
+        "featured": true
+    },
+    {
+        "slug": "ao-so-mi-vai-linen-cao-cap",
+        "name": "Áo Sơ Mi Vải Linen Cao Cấp",
+        "category": "ao-so-mi-nu",
+        "brand": "uniqlo",
+        "description": "Sơ mi nữ vải linen cao cấp, thoáng mát cho ngày nóng. Chất liệu 100% lanh.",
+        "price": 784000,
+        "image": "ao-so-mi-vai-linen-cao-cap-hong.jpg",
+        "gallery": [
+            "ao-so-mi-vai-linen-cao-cap-2.jpg"
+        ],
+        "sku": "UQ-AOSOMIVA3",
+        "colors": {
+            "Hồng": "H",
+            "Trắng": "T",
+            "Kem": "K",
+            "Vàng": "V"
+        },
+        "color_images": {
+            "Hồng": "ao-so-mi-vai-linen-cao-cap-hong.jpg",
+            "Trắng": "ao-so-mi-vai-linen-cao-cap-trang.jpg",
+            "Kem": "ao-so-mi-vai-linen-cao-cap-kem.jpg",
+            "Vàng": "ao-so-mi-vai-linen-cao-cap-vang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E475647-000"
+    },
+    {
+        "slug": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa",
+        "name": "AIRism Áo Khoác Chống Tia UV Siêu Co Giãn Kéo Khóa",
+        "category": "ao-khoac-nu",
+        "brand": "uniqlo",
+        "description": "Áo khoác AIRism chống tia UV, vải siêu co giãn mỏng nhẹ, kéo khóa toàn thân. Thân nylon pha elastane (màu trắng là polyester pha elastane).",
+        "price": 588000,
+        "image": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-den.jpg",
+        "gallery": [
+            "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-2.jpg"
+        ],
+        "sku": "UQ-AIAOKHCH",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T",
+            "Xám nhạt": "XN",
+            "Hồng": "H"
+        },
+        "color_images": {
+            "Đen": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-den.jpg",
+            "Trắng": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-trang.jpg",
+            "Xám nhạt": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-xam-nhat.jpg",
+            "Hồng": "airism-ao-khoac-chong-tia-uv-sieu-co-gian-keo-khoa-hong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E483281-000"
+    },
+    {
+        "slug": "ao-khoac-gia-long-cuu-loai-day-keo-khoa",
+        "name": "Áo Khoác Giả Lông Cừu Loại Dày Kéo Khóa",
+        "category": "ao-khoac-nu",
+        "brand": "uniqlo",
+        "description": "Áo khoác lông cừu nhân tạo loại dày, sợi dài cho cảm giác mềm mại. Làm từ 100% vải tái chế, khóa kéo tối giản; hợp phong cách thể thao, đi chơi hay mặc hằng ngày.",
+        "price": 588000,
+        "image": "ao-khoac-gia-long-cuu-loai-day-keo-khoa-vang.jpg",
+        "gallery": [
+            "ao-khoac-gia-long-cuu-loai-day-keo-khoa-2.jpg"
+        ],
+        "sku": "UQ-AOKHGILO2",
+        "colors": {
+            "Vàng": "V",
+            "Trắng ngà": "TN",
+            "Đen": "D",
+            "Hồng": "H"
+        },
+        "color_images": {
+            "Vàng": "ao-khoac-gia-long-cuu-loai-day-keo-khoa-vang.jpg",
+            "Trắng ngà": "ao-khoac-gia-long-cuu-loai-day-keo-khoa-trang-nga.jpg",
+            "Đen": "ao-khoac-gia-long-cuu-loai-day-keo-khoa-den.jpg",
+            "Hồng": "ao-khoac-gia-long-cuu-loai-day-keo-khoa-hong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E449753-000"
+    },
+    {
+        "slug": "quan-jeans-ezy-dang-rong-ong-suong",
+        "name": "Quần Jeans EZY Dáng Rộng Ống Suông",
+        "category": "quan-jeans-nu",
+        "brand": "uniqlo",
+        "description": "Quần jeans nữ EZY dáng rộng ống suông, vẻ ngoài thanh lịch, có độ co giãn nhẹ. Thân 74% bông, 24% polyester, 2% elastane.",
+        "price": 980000,
+        "image": "quan-jeans-ezy-dang-rong-ong-suong-xam.jpg",
+        "gallery": [
+            "quan-jeans-ezy-dang-rong-ong-suong-2.jpg"
+        ],
+        "sku": "UQ-QUJEEZDA",
+        "colors": {
+            "Xám": "X",
+            "Xanh dương": "XD",
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Xám": "quan-jeans-ezy-dang-rong-ong-suong-xam.jpg",
+            "Xanh dương": "quan-jeans-ezy-dang-rong-ong-suong-xanh-duong.jpg",
+            "Xanh navy": "quan-jeans-ezy-dang-rong-ong-suong-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E482281-000",
+        "featured": true
+    },
+    {
+        "slug": "quan-cotton-dang-relax-dai-den-mat-ca",
+        "name": "Quần Cotton Dáng Relax Dài Đến Mắt Cá",
+        "category": "quan-dai-nu",
+        "brand": "uniqlo",
+        "description": "Quần cotton nữ dáng relax thon nhẹ, ống dài vừa tới mắt cá chân. Dễ phối từ trang trọng tới thường ngày. Chất liệu 100% bông.",
+        "price": 588000,
+        "image": "quan-cotton-dang-relax-dai-den-mat-ca-be.jpg",
+        "gallery": [
+            "quan-cotton-dang-relax-dai-den-mat-ca-2.jpg"
+        ],
+        "sku": "UQ-QUCODARE",
+        "colors": {
+            "Be": "B",
+            "Đen": "D",
+            "Đỏ đô": "DD",
+            "Kem": "K"
+        },
+        "color_images": {
+            "Be": "quan-cotton-dang-relax-dai-den-mat-ca-be.jpg",
+            "Đen": "quan-cotton-dang-relax-dai-den-mat-ca-den.jpg",
+            "Đỏ đô": "quan-cotton-dang-relax-dai-den-mat-ca-do-do.jpg",
+            "Kem": "quan-cotton-dang-relax-dai-den-mat-ca-kem.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E482243-000"
+    },
+    {
+        "slug": "chan-vay-xep-ly-vai-nylon",
+        "name": "Chân Váy Xếp Ly Vải Nylon",
+        "category": "chan-vay",
+        "brand": "uniqlo",
+        "description": "Chân váy dài xếp ly vải nylon, ôm gọn eo và xòe vừa phải, hợp mặc thường ngày. Vải ngoài 100% nylon, có lớp lót.",
+        "price": 784000,
+        "image": "chan-vay-xep-ly-vai-nylon-trang.jpg",
+        "gallery": [
+            "chan-vay-xep-ly-vai-nylon-2.jpg"
+        ],
+        "sku": "UQ-CHVAXELY",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xanh rêu": "XR",
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Trắng": "chan-vay-xep-ly-vai-nylon-trang.jpg",
+            "Đen": "chan-vay-xep-ly-vai-nylon-den.jpg",
+            "Xanh rêu": "chan-vay-xep-ly-vai-nylon-xanh-reu.jpg",
+            "Xanh navy": "chan-vay-xep-ly-vai-nylon-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E487995-000",
+        "discount_percent": 25
+    },
+    {
+        "slug": "dam-kieu-xep-tang",
+        "name": "Đầm Kiểu Xếp Tầng",
+        "category": "dam-nu",
+        "brand": "uniqlo",
+        "description": "Đầm xếp tầng đa năng, mặc thường ngày hay dịp trang trọng đều hợp. Thân trên cotton, phần váy nylon có lớp lót.",
+        "price": 784000,
+        "image": "dam-kieu-xep-tang-den.jpg",
+        "gallery": [
+            "dam-kieu-xep-tang-2.jpg"
+        ],
+        "sku": "UQ-DAKIXETA",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T",
+            "Đỏ đô": "DD",
+            "Xanh dương": "XD"
+        },
+        "color_images": {
+            "Đen": "dam-kieu-xep-tang-den.jpg",
+            "Trắng": "dam-kieu-xep-tang-trang.jpg",
+            "Đỏ đô": "dam-kieu-xep-tang-do-do.jpg",
+            "Xanh dương": "dam-kieu-xep-tang-xanh-duong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.uniqlo.com/vn/vi/products/E489239-000",
+        "discount_percent": 38,
+        "featured": true
+    },
+    {
+        "slug": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437",
+        "name": "Teelab Alter Regular Cotton Essentials FW26 Tee TS437",
+        "category": "ao-thun-nam",
+        "brand": "teelab",
+        "description": "Áo thun cotton form regular dòng Essentials FW26, logo thêu trước ngực. Có 4 màu: đen, trắng, be, xanh ngọc.",
+        "price": 550000,
+        "image": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-trang.jpg",
+        "gallery": [
+            "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-2.jpg"
+        ],
+        "sku": "TL-TS437",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Be": "B",
+            "Xanh lá nhạt": "XLN"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-trang.jpg",
+            "Đen": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-den.jpg",
+            "Be": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-be.jpg",
+            "Xanh lá nhạt": "teelab-alter-regular-cotton-essentials-fw26-tee-ts437-xanh-la-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/tee-ts437",
+        "discount_percent": 60,
+        "featured": true
+    },
+    {
+        "slug": "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438",
+        "name": "Teelab Alter Oversized Cotton Essentials FW26 Tee TS438",
+        "category": "ao-thun-nam",
+        "brand": "teelab",
+        "description": "Áo thun cotton form oversized dòng Essentials FW26, hình in trước ngực. Có màu trắng, đen và xám.",
+        "price": 550000,
+        "image": "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438-trang.jpg",
+        "gallery": [
+            "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438-2.jpg"
+        ],
+        "sku": "TL-TS438",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xám": "X"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438-trang.jpg",
+            "Đen": "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438-den.jpg",
+            "Xám": "teelab-alter-oversized-cotton-essentials-fw26-tee-ts438-xam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/tee-ts438",
+        "discount_percent": 60
+    },
+    {
+        "slug": "teelab-alter-oversized-cotton-solid-tee-ts382",
+        "name": "Teelab Alter Oversized Cotton Solid Tee TS382",
+        "category": "ao-thun-nam",
+        "brand": "teelab",
+        "description": "Áo thun trơn cotton 250GSM dày dặn, đứng form. Bốn màu cơ bản trắng, đen, xám tiêu, kem dễ phối đồ.",
+        "price": 400000,
+        "image": "teelab-alter-oversized-cotton-solid-tee-ts382-trang.jpg",
+        "gallery": [
+            "teelab-alter-oversized-cotton-solid-tee-ts382-2.jpg"
+        ],
+        "sku": "TL-TS382",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xám": "X",
+            "Kem": "K"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-oversized-cotton-solid-tee-ts382-trang.jpg",
+            "Đen": "teelab-alter-oversized-cotton-solid-tee-ts382-den.jpg",
+            "Xám": "teelab-alter-oversized-cotton-solid-tee-ts382-xam.jpg",
+            "Kem": "teelab-alter-oversized-cotton-solid-tee-ts382-kem.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/ao-thun-tron-ts382",
+        "discount_percent": 50
+    },
+    {
+        "slug": "teelab-alter-baby-slub-cotton-tee-ts427",
+        "name": "Teelab Alter Baby Slub-Cotton Tee TS427",
+        "category": "ao-thun-nu",
+        "brand": "teelab",
+        "description": "Áo baby tee vải cotton xước ôm gọn người, hình in nhỏ. Có màu xanh, trắng và đen.",
+        "price": 550000,
+        "image": "teelab-alter-baby-slub-cotton-tee-ts427-trang.jpg",
+        "gallery": [
+            "teelab-alter-baby-slub-cotton-tee-ts427-2.jpg"
+        ],
+        "sku": "TL-TS427",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xanh nhạt": "XD"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-baby-slub-cotton-tee-ts427-trang.jpg",
+            "Đen": "teelab-alter-baby-slub-cotton-tee-ts427-den.jpg",
+            "Xanh nhạt": "teelab-alter-baby-slub-cotton-tee-ts427-xanh-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/tee-ts427",
+        "discount_percent": 45
+    },
+    {
+        "slug": "teelab-alter-baby-cotton-tee-ts426",
+        "name": "Teelab Alter Baby Cotton Tee TS426",
+        "category": "ao-thun-nu",
+        "brand": "teelab",
+        "description": "Áo baby tee cotton dáng ôm, hình in nhung nổi. Có màu trắng và hồng.",
+        "price": 500000,
+        "image": "teelab-alter-baby-cotton-tee-ts426-trang.jpg",
+        "gallery": [
+            "teelab-alter-baby-cotton-tee-ts426-2.jpg"
+        ],
+        "sku": "TL-TS426",
+        "colors": {
+            "Trắng": "T",
+            "Hồng": "H"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-baby-cotton-tee-ts426-trang.jpg",
+            "Hồng": "teelab-alter-baby-cotton-tee-ts426-hong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/tee-ts426",
+        "discount_percent": 56
+    },
+    {
+        "slug": "teelab-alter-regular-pique-animal-polo-ap079",
+        "name": "Teelab Alter Regular Pique Animal Polo AP079",
+        "category": "ao-polo-nam",
+        "brand": "teelab",
+        "description": "Áo polo vải pique form regular, thêu hình con vật trước ngực. Có 5 màu: trắng, đen, xanh navy, nâu, be.",
+        "price": 500000,
+        "image": "teelab-alter-regular-pique-animal-polo-ap079-den.jpg",
+        "gallery": [
+            "teelab-alter-regular-pique-animal-polo-ap079-2.jpg"
+        ],
+        "sku": "TL-AP079",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T",
+            "Xanh navy": "XN",
+            "Be": "B"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-regular-pique-animal-polo-ap079-den.jpg",
+            "Trắng": "teelab-alter-regular-pique-animal-polo-ap079-trang.jpg",
+            "Xanh navy": "teelab-alter-regular-pique-animal-polo-ap079-xanh-navy.jpg",
+            "Be": "teelab-alter-regular-pique-animal-polo-ap079-be.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/polo-ap079",
+        "discount_percent": 24
+    },
+    {
+        "slug": "teelab-alter-oversized-cotton-essentials-polo-ap075",
+        "name": "Teelab Alter Oversized Cotton Essentials Polo AP075",
+        "category": "ao-polo-nam",
+        "brand": "teelab",
+        "description": "Áo polo cotton 250GSM form oversized, in lụa logo Essentials. Có màu trắng, đen, xanh navy, xám tiêu.",
+        "price": 400000,
+        "image": "teelab-alter-oversized-cotton-essentials-polo-ap075-trang.jpg",
+        "gallery": [
+            "teelab-alter-oversized-cotton-essentials-polo-ap075-2.jpg"
+        ],
+        "sku": "TL-AP075",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xanh navy": "XN",
+            "Xám": "X"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-oversized-cotton-essentials-polo-ap075-trang.jpg",
+            "Đen": "teelab-alter-oversized-cotton-essentials-polo-ap075-den.jpg",
+            "Xanh navy": "teelab-alter-oversized-cotton-essentials-polo-ap075-xanh-navy.jpg",
+            "Xám": "teelab-alter-oversized-cotton-essentials-polo-ap075-xam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/ao-polo-ap075",
+        "discount_percent": 45
+    },
+    {
+        "slug": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092",
+        "name": "Teelab Alter Long Sleeve Oxford Essentials Shirt SS092",
+        "category": "ao-so-mi-nam",
+        "brand": "teelab",
+        "description": "Sơ mi Oxford tay dài form relax, in lụa logo nhỏ. Năm màu: trắng, đen, xanh than, xanh dương, nâu xám.",
+        "price": 450000,
+        "image": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-trang.jpg",
+        "gallery": [
+            "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-2.jpg"
+        ],
+        "sku": "TL-SS092",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xanh navy": "XN",
+            "Xanh dương": "XD"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-trang.jpg",
+            "Đen": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-den.jpg",
+            "Xanh navy": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-xanh-navy.jpg",
+            "Xanh dương": "teelab-alter-long-sleeve-oxford-essentials-shirt-ss092-xanh-duong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/ao-so-mi-ss092",
+        "discount_percent": 33
+    },
+    {
+        "slug": "teelab-alter-cuban-oxford-essentials-shirt-ss093",
+        "name": "Teelab Alter Cuban Oxford Essentials Shirt SS093",
+        "category": "ao-so-mi-nam",
+        "brand": "teelab",
+        "description": "Sơ mi Oxford tay ngắn cổ Cuban, form relax thoải mái cho ngày hè. Có màu trắng, xanh than, xanh dương, nâu xám.",
+        "price": 400000,
+        "image": "teelab-alter-cuban-oxford-essentials-shirt-ss093-trang.jpg",
+        "gallery": [
+            "teelab-alter-cuban-oxford-essentials-shirt-ss093-2.jpg"
+        ],
+        "sku": "TL-SS093",
+        "colors": {
+            "Trắng": "T",
+            "Xanh navy": "XN",
+            "Xanh dương": "XD",
+            "Nâu nhạt": "NN"
+        },
+        "color_images": {
+            "Trắng": "teelab-alter-cuban-oxford-essentials-shirt-ss093-trang.jpg",
+            "Xanh navy": "teelab-alter-cuban-oxford-essentials-shirt-ss093-xanh-navy.jpg",
+            "Xanh dương": "teelab-alter-cuban-oxford-essentials-shirt-ss093-xanh-duong.jpg",
+            "Nâu nhạt": "teelab-alter-cuban-oxford-essentials-shirt-ss093-nau-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/ao-so-mi-ss093",
+        "discount_percent": 30
+    },
+    {
+        "slug": "teelab-alter-semi-fleece-world-tour-hoodie-hd130",
+        "name": "Teelab Alter Semi Fleece World Tour Hoodie HD130",
+        "category": "hoodie-nam",
+        "brand": "teelab",
+        "description": "Hoodie nỉ bông form semi-boxy, in lụa họa tiết World Tour. Bảy màu để chọn, từ đen, kem, xanh navy tới đỏ.",
+        "price": 550000,
+        "image": "teelab-alter-semi-fleece-world-tour-hoodie-hd130-den.jpg",
+        "gallery": [],
+        "sku": "TL-HD130",
+        "colors": {
+            "Đen": "D",
+            "Kem": "K",
+            "Xanh navy": "XN",
+            "Xám": "X"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-semi-fleece-world-tour-hoodie-hd130-den.jpg",
+            "Kem": "teelab-alter-semi-fleece-world-tour-hoodie-hd130-kem.jpg",
+            "Xanh navy": "teelab-alter-semi-fleece-world-tour-hoodie-hd130-xanh-navy.jpg",
+            "Xám": "teelab-alter-semi-fleece-world-tour-hoodie-hd130-xam.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/ao-hoodie-local-brand-unisex-teelab-world-tour-hd130",
+        "discount_percent": 18,
+        "featured": true
+    },
+    {
+        "slug": "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145",
+        "name": "Teelab Alter Relaxed Fit Fleece Essentials FW26 Hoodie HD145",
+        "category": "hoodie-nu",
+        "brand": "teelab",
+        "description": "Hoodie nỉ bông form relaxed dòng Essentials FW26, logo thêu. Có màu đen, xám tiêu, xanh navy.",
+        "price": 850000,
+        "image": "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145-den.jpg",
+        "gallery": [
+            "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145-2.jpg"
+        ],
+        "sku": "TL-HD145",
+        "colors": {
+            "Đen": "D",
+            "Xám": "X",
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145-den.jpg",
+            "Xám": "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145-xam.jpg",
+            "Xanh navy": "teelab-alter-relaxed-fit-fleece-essentials-fw26-hoodie-hd145-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/hoodie-hd145",
+        "discount_percent": 47
+    },
+    {
+        "slug": "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152",
+        "name": "Teelab Alter Loose-Fit Nylon Essentials FW26 Windbreaker AK152",
+        "category": "ao-khoac-nam",
+        "brand": "teelab",
+        "description": "Áo khoác gió vải dù nhăn form loose-fit, nhẹ và cản gió. Có màu đen, xanh navy, xanh lá.",
+        "price": 750000,
+        "image": "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152-den.jpg",
+        "gallery": [
+            "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152-2.jpg"
+        ],
+        "sku": "TL-AK152",
+        "colors": {
+            "Đen": "D",
+            "Xanh navy": "XN",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152-den.jpg",
+            "Xanh navy": "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152-xanh-navy.jpg",
+            "Xanh rêu": "teelab-alter-loose-fit-nylon-essentials-fw26-windbreaker-ak152-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/windbreaker-ak152",
+        "discount_percent": 44
+    },
+    {
+        "slug": "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151",
+        "name": "Teelab Alter Oversized Nylon Essentials FW26 Bomber AK151",
+        "category": "ao-khoac-nam",
+        "brand": "teelab",
+        "description": "Áo bomber vải dù form oversized dòng Essentials FW26, hình in logo. Có màu đen, ô liu, xám.",
+        "price": 850000,
+        "image": "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151-den.jpg",
+        "gallery": [
+            "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151-2.jpg"
+        ],
+        "sku": "TL-AK151",
+        "colors": {
+            "Đen": "D",
+            "Xám": "X",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151-den.jpg",
+            "Xám": "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151-xam.jpg",
+            "Xanh rêu": "teelab-alter-oversized-nylon-essentials-fw26-bomber-ak151-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/bomber-ak151",
+        "discount_percent": 47
+    },
+    {
+        "slug": "teelab-alter-oversized-denim-tapered-pants-ps142",
+        "name": "Teelab Alter Oversized Denim Tapered Pants PS142",
+        "category": "quan-jeans-nam",
+        "brand": "teelab",
+        "description": "Quần jeans denim form oversized ống côn (tapered), wash màu. Có xanh wash, đen wash, xám wash.",
+        "price": 450000,
+        "image": "teelab-alter-oversized-denim-tapered-pants-ps142-xanh-nhat.jpg",
+        "gallery": [
+            "teelab-alter-oversized-denim-tapered-pants-ps142-2.jpg"
+        ],
+        "sku": "TL-PS142",
+        "colors": {
+            "Đen": "D",
+            "Xám": "X",
+            "Xanh nhạt": "XD"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-oversized-denim-tapered-pants-ps142-den.jpg",
+            "Xám": "teelab-alter-oversized-denim-tapered-pants-ps142-xam.jpg",
+            "Xanh nhạt": "teelab-alter-oversized-denim-tapered-pants-ps142-xanh-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/quan-jeans-ps142",
+        "discount_percent": 22
+    },
+    {
+        "slug": "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148",
+        "name": "Teelab Alter Relaxed Fit Fleece Essentials FW26 Pants PS148",
+        "category": "quan-dai-nam",
+        "brand": "teelab",
+        "description": "Quần nỉ bông form relaxed dòng Essentials FW26, logo thêu, lưng thun thoải mái. Có màu đen, xám tiêu, xanh navy.",
+        "price": 550000,
+        "image": "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148-den.jpg",
+        "gallery": [
+            "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148-2.jpg"
+        ],
+        "sku": "TL-PS148",
+        "colors": {
+            "Đen": "D",
+            "Xám": "X",
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148-den.jpg",
+            "Xám": "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148-xam.jpg",
+            "Xanh navy": "teelab-alter-relaxed-fit-fleece-essentials-fw26-pants-ps148-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/pants-ps148",
+        "discount_percent": 31
+    },
+    {
+        "slug": "teelab-alter-jogger-khaki-essentials-shorts-sh011",
+        "name": "Teelab Alter Jogger Khaki Essentials Shorts SH011",
+        "category": "quan-short-nam",
+        "brand": "teelab",
+        "description": "Quần short kaki kiểu jogger, lưng thun, trơn dễ phối. Có màu trắng, đen, kem, rêu.",
+        "price": 400000,
+        "image": "teelab-alter-jogger-khaki-essentials-shorts-sh011-den.jpg",
+        "gallery": [],
+        "sku": "TL-SH011",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T",
+            "Kem": "K",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Đen": "teelab-alter-jogger-khaki-essentials-shorts-sh011-den.jpg",
+            "Trắng": "teelab-alter-jogger-khaki-essentials-shorts-sh011-trang.jpg",
+            "Kem": "teelab-alter-jogger-khaki-essentials-shorts-sh011-kem.jpg",
+            "Xanh rêu": "teelab-alter-jogger-khaki-essentials-shorts-sh011-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://teelab.vn/quan-short-sh011",
+        "discount_percent": 38
+    },
+    {
+        "slug": "ao-polo-cool-comfort-thun-2-mat",
+        "name": "Áo polo Cool Comfort thun 2 mặt",
+        "category": "ao-polo-nam",
+        "brand": "yame",
+        "description": "Áo polo vải dệt kép Double Face: mặt ngoài đứng dáng, mặt trong khô ráo thoáng mát. Cân bằng giữa giữ phom và độ thoáng.",
+        "price": 397000,
+        "image": "ao-polo-cool-comfort-thun-2-mat-xam-dam.jpg",
+        "gallery": [],
+        "sku": "YM-AOPOCOCO",
+        "colors": {
+            "Xám đậm": "XD",
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Xám đậm": "ao-polo-cool-comfort-thun-2-mat-xam-dam.jpg",
+            "Đen": "ao-polo-cool-comfort-thun-2-mat-den.jpg",
+            "Trắng": "ao-polo-cool-comfort-thun-2-mat-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/ao-polo-cool-comfort-vai-thun-hai-mat-phom-rong-f4-the-no-style-257-mau-xam-dam-2625154",
+        "discount_percent": 5
+    },
+    {
+        "slug": "ao-polo-icevibes-mat-lanh",
+        "name": "Áo polo IceVibes mát lạnh",
+        "category": "ao-polo-nam",
+        "brand": "yame",
+        "description": "Áo polo vải 2 mặt IceVibes 270gsm mát khi chạm. Cổ và tay phối sọc, lá cổ ép keo đứng phom, nút quấn chân chỉ.",
+        "price": 427000,
+        "image": "ao-polo-icevibes-mat-lanh-xanh-duong.jpg",
+        "gallery": [],
+        "sku": "YM-AOPOICMA",
+        "colors": {
+            "Xanh dương": "XD",
+            "Xám đậm": "XDX",
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Xanh dương": "ao-polo-icevibes-mat-lanh-xanh-duong.jpg",
+            "Xám đậm": "ao-polo-icevibes-mat-lanh-xam-dam.jpg",
+            "Đen": "ao-polo-icevibes-mat-lanh-den.jpg",
+            "Trắng": "ao-polo-icevibes-mat-lanh-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/ao-polo-cool-comfort-vai-thun-hai-mat-phom-hop-rong-f5-the-no-style-250-mau-xanh-duong-2625212",
+        "discount_percent": 5
+    },
+    {
+        "slug": "so-mi-co-cuban-nhung-tam-easycare",
+        "name": "Sơ mi cổ Cuban nhung tăm EasyCare",
+        "category": "ao-so-mi-nam",
+        "brand": "yame",
+        "description": "Sơ mi tay ngắn cổ Cuban vải nhung tăm (corduroy) EasyCare. Bề mặt gân nổi 3D che nếp nhăn tốt, áo giữ phẳng mà không cần ủi thường xuyên.",
+        "price": 327000,
+        "image": "so-mi-co-cuban-nhung-tam-easycare-be.jpg",
+        "gallery": [],
+        "sku": "YM-SOMICOCU",
+        "colors": {
+            "Be": "B",
+            "Xám đậm": "XD",
+            "Nâu": "N",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "so-mi-co-cuban-nhung-tam-easycare-be.jpg",
+            "Xám đậm": "so-mi-co-cuban-nhung-tam-easycare-xam-dam.jpg",
+            "Nâu": "so-mi-co-cuban-nhung-tam-easycare-nau.jpg",
+            "Đen": "so-mi-co-cuban-nhung-tam-easycare-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/ao-so-mi-tay-ngan-vai-nhung-ke-phom-vua-f3-seventy-seven-066-mau-be-nhat-2625128",
+        "discount_percent": 5,
+        "featured": true
+    },
+    {
+        "slug": "ao-thun-henley-tay-dai-vai-waffle",
+        "name": "Áo thun Henley tay dài vải waffle",
+        "category": "ao-thun-nam",
+        "brand": "yame",
+        "description": "Áo thun Henley tay dài vải waffle 3D 260gsm. Cấu trúc tổ ong thoáng mát mùa hè, giữ ấm nhẹ mùa đông.",
+        "price": 277000,
+        "image": "ao-thun-henley-tay-dai-vai-waffle-xanh-duong-dam.jpg",
+        "gallery": [],
+        "sku": "YM-AOTHHETA",
+        "colors": {
+            "Xanh dương đậm": "XDD",
+            "Xám nhạt": "XN",
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh dương đậm": "ao-thun-henley-tay-dai-vai-waffle-xanh-duong-dam.jpg",
+            "Xám nhạt": "ao-thun-henley-tay-dai-vai-waffle-xam-nhat.jpg",
+            "Trắng": "ao-thun-henley-tay-dai-vai-waffle-trang.jpg",
+            "Đen": "ao-thun-henley-tay-dai-vai-waffle-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/ao-thun-henley-tay-dai-giu-am-vai-to-ong-phom-vua-f3-the-weekend-052-mau-xanh-duong-dam-2625275",
+        "discount_percent": 15
+    },
+    {
+        "slug": "ao-thun-in-chu-typography",
+        "name": "Áo thun in chữ Typography",
+        "category": "ao-thun-nam",
+        "brand": "yame",
+        "description": "Áo thun cổ tròn FlexFit vải Compact Cotton 260gsm đanh mịn, hạn chế xù lông sau nhiều lần giặt. In chữ typography trước ngực.",
+        "price": 327000,
+        "image": "ao-thun-in-chu-typography-do-do.jpg",
+        "gallery": [],
+        "sku": "YM-AOTHINCH",
+        "colors": {
+            "Đỏ đô": "DD",
+            "Nâu": "N",
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đỏ đô": "ao-thun-in-chu-typography-do-do.jpg",
+            "Nâu": "ao-thun-in-chu-typography-nau.jpg",
+            "Trắng": "ao-thun-in-chu-typography-trang.jpg",
+            "Đen": "ao-thun-in-chu-typography-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/ao-thun-in-chu-phom-rong-f4-the-no-style-265-mau-do-dam-2625312",
+        "discount_percent": 15
+    },
+    {
+        "slug": "quan-jogger-the-thao-double-face",
+        "name": "Quần jogger thể thao Double Face",
+        "category": "quan-dai-nam",
+        "brand": "yame",
+        "description": "Quần jogger CloudTouch vải Double Face 200gsm, đủ dày để đứng form suông nhưng vẫn nhẹ khi vận động, chạy bộ.",
+        "price": 297000,
+        "image": "quan-jogger-the-thao-double-face-xanh-duong-dam.jpg",
+        "gallery": [],
+        "sku": "YM-QUJOTHTH",
+        "colors": {
+            "Xanh dương đậm": "XDD",
+            "Xám": "X",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh dương đậm": "quan-jogger-the-thao-double-face-xanh-duong-dam.jpg",
+            "Xám": "quan-jogger-the-thao-double-face-xam.jpg",
+            "Đen": "quan-jogger-the-thao-double-face-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://yame.vn/products/quan-jogger-the-thao-quick-dry-the-beginner-007-xanh-xam-0024501",
+        "discount_percent": 46
+    },
+    {
+        "slug": "quan-easy-pant-ong-sieu-rong",
+        "name": "Quần Easy Pant ống siêu rộng",
+        "category": "quan-dai-nam",
+        "brand": "yame",
+        "description": "Quần Easy Pant baggy vải dệt 2 mặt 350gsm đầm dáng, mắt lưới pique giúp thông thoáng. Lưng thun, ống siêu rộng.",
+        "price": 597000,
+        "image": "quan-easy-pant-ong-sieu-rong-trang.jpg",
+        "gallery": [],
+        "sku": "YM-QUEAPAON",
+        "colors": {
+            "Trắng": "T",
+            "Xám nhạt": "XN",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "quan-easy-pant-ong-sieu-rong-trang.jpg",
+            "Xám nhạt": "quan-easy-pant-ong-sieu-rong-xam-nhat.jpg",
+            "Đen": "quan-easy-pant-ong-sieu-rong-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://yame.vn/products/quan-easy-pant-baggy-fit-day-thoang-dung-dang-the-no-style-246-mau-trang-phom-sieu-rong-f5-2625093",
+        "discount_percent": 5
+    },
+    {
+        "slug": "quan-short-jeans-durabletex",
+        "name": "Quần short jeans DurableTex",
+        "category": "quan-short-nam",
+        "brand": "yame",
+        "description": "Quần short jeans DurableTex 11,8oz dày dặn, giặt mềm. Ống đứng thẳng, giữ dáng sau nhiều giờ mặc.",
+        "price": 397000,
+        "image": "quan-short-jeans-durabletex-xanh-navy.jpg",
+        "gallery": [],
+        "sku": "YM-QUSHJEDU",
+        "colors": {
+            "Xanh navy": "XN",
+            "Xanh nhạt": "XNX"
+        },
+        "color_images": {
+            "Xanh navy": "quan-short-jeans-durabletex-xanh-navy.jpg",
+            "Xanh nhạt": "quan-short-jeans-durabletex-xanh-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/quan-dui-jeans-durabletex-mem-lung-cong-chong-ho-the-original-059-mau-xanh-den-phom-vua-van-f3-2625094",
+        "discount_percent": 5
+    },
+    {
+        "slug": "quan-short-easy-pant-icevibes",
+        "name": "Quần short Easy Pant IceVibes",
+        "category": "quan-short-nam",
+        "brand": "yame",
+        "description": "Quần short Easy Pant IceVibes mát lạnh, co giãn tốt không mất phom. Mặt trong dệt chéo mịn, không cộm ngứa.",
+        "price": 327000,
+        "image": "quan-short-easy-pant-icevibes-be.jpg",
+        "gallery": [],
+        "sku": "YM-QUSHEAPA",
+        "colors": {
+            "Be": "B",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "quan-short-easy-pant-icevibes-be.jpg",
+            "Đen": "quan-short-easy-pant-icevibes-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://yame.vn/products/quan-dui-easy-pant-icevibes-lung-thun-vai-tan-nhiet-mat-lanh-the-minimalist-033-mau-beige-phom-vua-van-f3-2625266",
+        "discount_percent": 5
+    },
+    {
+        "slug": "ao-so-mi-dai-tay-premium-poplin",
+        "name": "Áo Sơ Mi Dài Tay Premium Poplin",
+        "category": "ao-so-mi-nam",
+        "brand": "coolmate",
+        "description": "Sơ mi dài tay vải poplin 100% cotton mềm mại, chống nhăn và trượt nước. Dễ chăm sóc, mặc được ngay không cần ủi nhiều.",
+        "price": 599000,
+        "image": "ao-so-mi-dai-tay-premium-poplin-xanh-duong-dam.jpg",
+        "gallery": [
+            "ao-so-mi-dai-tay-premium-poplin-2.jpg"
+        ],
+        "sku": "CM-AOSOMIDA2",
+        "colors": {
+            "Xanh dương đậm": "XDD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh dương đậm": "ao-so-mi-dai-tay-premium-poplin-xanh-duong-dam.jpg",
+            "Đen": "ao-so-mi-dai-tay-premium-poplin-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL",
+            "3XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-so-mi-nam-dai-tay-premium-poplin-100-cotton-chong-nhan-truot-nuoc"
+    },
+    {
+        "slug": "ao-thun-cotton-compact-logo-coolmate",
+        "name": "Áo thun cotton compact logo COOLMATE",
+        "category": "ao-thun-nam",
+        "brand": "coolmate",
+        "description": "Áo thun oversize 100% cotton compact in logo COOLMATE, dòng 84RISING. Mặc được cho cả nam và nữ.",
+        "price": 249000,
+        "image": "ao-thun-cotton-compact-logo-coolmate-den.jpg",
+        "gallery": [
+            "ao-thun-cotton-compact-logo-coolmate-2.jpg"
+        ],
+        "sku": "CM-AOTHCOCO",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-thun-cotton-compact-logo-coolmate-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL",
+            "3XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-thun-cotton-compact-logo-coolmate"
+    },
+    {
+        "slug": "ao-polo-nam-premium-cotton-linen",
+        "name": "Áo Polo nam Premium Cotton Linen",
+        "category": "ao-polo-nam",
+        "brand": "coolmate",
+        "description": "Áo polo nam vải cotton pha linen, thoáng mát và có độ đứng nhẹ cho ngày hè.",
+        "price": 399000,
+        "image": "ao-polo-nam-premium-cotton-linen-cam.jpg",
+        "gallery": [
+            "ao-polo-nam-premium-cotton-linen-2.jpg"
+        ],
+        "sku": "CM-AOPONAPR2",
+        "colors": {
+            "Cam": "C",
+            "Xanh lá": "XL"
+        },
+        "color_images": {
+            "Cam": "ao-polo-nam-premium-cotton-linen-cam.jpg",
+            "Xanh lá": "ao-polo-nam-premium-cotton-linen-xanh-la.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL",
+            "2XL",
+            "3XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-polo-nam-premium-cotton-linen",
+        "featured": true
+    },
+    {
+        "slug": "ao-polo-nam-cafe-essentials",
+        "name": "Áo Polo Nam Cafe Essentials",
+        "category": "ao-polo-nam",
+        "brand": "coolmate",
+        "description": "Áo polo vải S.Café có thành phần bã cà phê giúp khử mùi, thoáng mát và chống tia UV. Kiểu dáng thanh lịch.",
+        "price": 299000,
+        "image": "ao-polo-nam-cafe-essentials-den.jpg",
+        "gallery": [
+            "ao-polo-nam-cafe-essentials-2.jpg"
+        ],
+        "sku": "CM-AOPONACA",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-polo-nam-cafe-essentials-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL",
+            "3XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-polo-nam-cafe-essentials-thoang-mat-chong-uv"
+    },
+    {
+        "slug": "ao-khoac-windbreaker-nylon-taslan",
+        "name": "Áo khoác WindBreaker Nylon Taslan",
+        "category": "ao-khoac-nam",
+        "brand": "coolmate",
+        "description": "Áo khoác gió vải nylon Taslan trượt nước, phối màu hai tông, nhẹ và cản gió.",
+        "price": 590000,
+        "image": "ao-khoac-windbreaker-nylon-taslan-den.jpg",
+        "gallery": [
+            "ao-khoac-windbreaker-nylon-taslan-2.jpg"
+        ],
+        "sku": "CM-AOKHWINY",
+        "colors": {
+            "Đen": "D",
+            "Xám": "X",
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Đen": "ao-khoac-windbreaker-nylon-taslan-den.jpg",
+            "Xám": "ao-khoac-windbreaker-nylon-taslan-xam.jpg",
+            "Xanh navy": "ao-khoac-windbreaker-nylon-taslan-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-khoac-windbreaker-nylon-taslan",
+        "discount_percent": 49
+    },
+    {
+        "slug": "quan-jeans-nam-relaxed-dang-straight",
+        "name": "Quần Jeans Nam Relaxed dáng Straight",
+        "category": "quan-jeans-nam",
+        "brand": "coolmate",
+        "description": "Quần jeans nam dáng relaxed straight rộng rãi, cá tính. Có màu đen và đen washed.",
+        "price": 599000,
+        "image": "quan-jeans-nam-relaxed-dang-straight-den.jpg",
+        "gallery": [
+            "quan-jeans-nam-relaxed-dang-straight-2.jpg"
+        ],
+        "sku": "CM-QUJENARE",
+        "colors": {
+            "Đen": "D",
+            "Xám đậm": "XD"
+        },
+        "color_images": {
+            "Đen": "quan-jeans-nam-relaxed-dang-straight-den.jpg",
+            "Xám đậm": "quan-jeans-nam-relaxed-dang-straight-xam-dam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/quan-jeans-nam-relaxed-dang-straight"
+    },
+    {
+        "slug": "quan-dai-nam-techcomfort",
+        "name": "Quần dài nam TechComfort",
+        "category": "quan-dai-nam",
+        "brand": "coolmate",
+        "description": "Quần dài nam TechComfort thoáng khí giúp khô ráo, co giãn thoải mái khi vận động.",
+        "price": 449000,
+        "image": "quan-dai-nam-techcomfort-den.jpg",
+        "gallery": [
+            "quan-dai-nam-techcomfort-2.jpg"
+        ],
+        "sku": "CM-QUDANATE",
+        "colors": {
+            "Đen": "D",
+            "Xanh navy": "XN",
+            "Xám": "X",
+            "Nâu": "N"
+        },
+        "color_images": {
+            "Đen": "quan-dai-nam-techcomfort-den.jpg",
+            "Xanh navy": "quan-dai-nam-techcomfort-xanh-navy.jpg",
+            "Xám": "quan-dai-nam-techcomfort-xam.jpg",
+            "Nâu": "quan-dai-nam-techcomfort-nau.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL",
+            "2XL",
+            "3XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/quan-dai-nam-techcomfort"
+    },
+    {
+        "slug": "ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat",
+        "name": "Áo thun nữ Baby Tee 100% Cotton Chill like a Cat",
+        "category": "ao-thun-nu",
+        "brand": "coolmate",
+        "description": "Áo baby tee 100% cotton in hình \"Chill like a Cat\", dòng 84RISING. Dáng ôm gọn trẻ trung.",
+        "price": 199000,
+        "image": "ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat-trang.jpg",
+        "gallery": [
+            "ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat-2.jpg"
+        ],
+        "sku": "CM-AOTHNUBA2",
+        "colors": {
+            "Trắng": "T",
+            "Tím": "TX"
+        },
+        "color_images": {
+            "Trắng": "ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat-trang.jpg",
+            "Tím": "ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat-tim.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-thun-nu-baby-tee-100-cotton-chill-like-a-cat"
+    },
+    {
+        "slug": "ao-tshirt-regular-fit",
+        "name": "Áo Tshirt Regular fit",
+        "category": "ao-thun-nu",
+        "brand": "coolmate",
+        "description": "Áo thun nữ form regular thoáng khí, dáng cơ bản dễ mặc. Có màu đen, be và xanh denim nhạt.",
+        "price": 299000,
+        "image": "ao-tshirt-regular-fit-den.jpg",
+        "gallery": [
+            "ao-tshirt-regular-fit-2.jpg"
+        ],
+        "sku": "CM-AOTSREFI",
+        "colors": {
+            "Đen": "D",
+            "Be": "B",
+            "Xanh nhạt": "XN"
+        },
+        "color_images": {
+            "Đen": "ao-tshirt-regular-fit-den.jpg",
+            "Be": "ao-tshirt-regular-fit-be.jpg",
+            "Xanh nhạt": "ao-tshirt-regular-fit-xanh-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-nu-t-shirt-regular-fit",
+        "discount_percent": 50
+    },
+    {
+        "slug": "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50",
+        "name": "Áo khoác nữ chống nắng Slim Cooling Sun Protection UPF50",
+        "category": "ao-khoac-nu",
+        "brand": "coolmate",
+        "description": "Áo khoác chống nắng nữ dáng slim, vải polyester thoát ẩm ExDry, chống tia UV đạt UPF50+ (chặn tới 99% tia UV).",
+        "price": 599000,
+        "image": "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50-be.jpg",
+        "gallery": [
+            "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50-2.jpg"
+        ],
+        "sku": "CM-AOKHNUCH",
+        "colors": {
+            "Be": "B",
+            "Xanh dương": "XD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50-be.jpg",
+            "Xanh dương": "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50-xanh-duong.jpg",
+            "Đen": "ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/ao-khoac-nu-chong-nang-slim-cooling-sun-protection-upf50",
+        "featured": true
+    },
+    {
+        "slug": "quan-dai-the-thao-nu-studio-pants",
+        "name": "Quần dài thể thao nữ Studio Pants",
+        "category": "quan-dai-nu",
+        "brand": "coolmate",
+        "description": "Quần dài thể thao nữ Studio thấm hút mồ hôi, hợp tập luyện hay mặc thường ngày.",
+        "price": 599000,
+        "image": "quan-dai-the-thao-nu-studio-pants-do.jpg",
+        "gallery": [
+            "quan-dai-the-thao-nu-studio-pants-2.jpg"
+        ],
+        "sku": "CM-QUDATHTH",
+        "colors": {
+            "Đỏ": "D",
+            "Be": "B",
+            "Đen": "DX"
+        },
+        "color_images": {
+            "Đỏ": "quan-dai-the-thao-nu-studio-pants-do.jpg",
+            "Be": "quan-dai-the-thao-nu-studio-pants-be.jpg",
+            "Đen": "quan-dai-the-thao-nu-studio-pants-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.coolmate.me/product/quan-dai-the-thao-nu-studio-pants",
+        "discount_percent": 8
+    },
+    {
+        "slug": "ao-thun-logo-nho-essentials-nam",
+        "name": "Áo Thun Logo Nhỏ Essentials Nam",
+        "category": "ao-thun-nam",
+        "brand": "puma",
+        "description": "Áo phông Essentials kiểu dáng vừa vặn, cổ tròn bo gân, logo PUMA No.1 bằng cao su in ở ngực trái. Vải cotton pha elastane.",
+        "price": 299400,
+        "image": "ao-thun-logo-nho-essentials-nam-xanh-reu.jpg",
+        "gallery": [
+            "ao-thun-logo-nho-essentials-nam-2.jpg"
+        ],
+        "sku": "PM-AOTHLONH",
+        "colors": {
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Xanh rêu": "ao-thun-logo-nho-essentials-nam-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/%C3%A1o-thun-logo-nh%E1%BB%8F-essentials-nam/586669.html"
+    },
+    {
+        "slug": "ao-polo-nam-classics",
+        "name": "Áo polo nam Classics",
+        "category": "ao-polo-nam",
+        "brand": "puma",
+        "description": "Áo polo Classics lấy cảm hứng thể thao, vải pique cotton 215gsm thoáng mát. Cài cúc, tay ngắn, dáng vừa vặn dễ mặc.",
+        "price": 540000,
+        "image": "ao-polo-nam-classics-trang.jpg",
+        "gallery": [
+            "ao-polo-nam-classics-2.jpg"
+        ],
+        "sku": "PM-AOPONACL",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "ao-polo-nam-classics-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/%C3%A1o-polo-nam-classics/686481.html"
+    },
+    {
+        "slug": "ao-hoodie-nam-co-khoa-keo-day-du-open-road",
+        "name": "Áo hoodie nam có khóa kéo đầy đủ OPEN ROAD",
+        "category": "hoodie-nam",
+        "brand": "puma",
+        "description": "Hoodie khóa kéo toàn thân Open Road, chất cotton thoải mái, túi hai bên hông giữ đồ dùng cần thiết.",
+        "price": 1140000,
+        "image": "ao-hoodie-nam-co-khoa-keo-day-du-open-road-den.jpg",
+        "gallery": [
+            "ao-hoodie-nam-co-khoa-keo-day-du-open-road-2.jpg"
+        ],
+        "sku": "PM-AOHONACO",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-hoodie-nam-co-khoa-keo-day-du-open-road-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/%C3%A1o-hoodie-nam-c%C3%B3-kh%C3%B3a-k%C3%A9o-%C4%91%E1%BA%A7y-%C4%91%E1%BB%A7-open-road/681654.html"
+    },
+    {
+        "slug": "ao-khoac-chay-bo-det-run-favourite-nam",
+        "name": "Áo Khoác Chạy Bộ Dệt RUN FAVOURITE Nam",
+        "category": "ao-khoac-nam",
+        "brand": "puma",
+        "description": "Áo khoác chạy bộ vải dệt Run Favourite cho ngày se lạnh, công nghệ dryCELL thấm hút mồ hôi.",
+        "price": 660000,
+        "image": "ao-khoac-chay-bo-det-run-favourite-nam-xanh-la-nhat.jpg",
+        "gallery": [
+            "ao-khoac-chay-bo-det-run-favourite-nam-2.jpg"
+        ],
+        "sku": "PM-AOKHCHBO",
+        "colors": {
+            "Xanh lá nhạt": "XLN"
+        },
+        "color_images": {
+            "Xanh lá nhạt": "ao-khoac-chay-bo-det-run-favourite-nam-xanh-la-nhat.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/%C3%A1o-kho%C3%A1c-ch%E1%BA%A1y-b%E1%BB%99-d%E1%BB%87t-run-favourite-nam/523155.html"
+    },
+    {
+        "slug": "quan-short-nam-classics",
+        "name": "Quần short nam Classics",
+        "category": "quan-short-nam",
+        "brand": "puma",
+        "description": "Quần short Classics vải dệt kim bông mềm 245gsm, co giãn theo chuyển động, có túi hông và túi sau.",
+        "price": 540000,
+        "image": "quan-short-nam-classics-den.jpg",
+        "gallery": [
+            "quan-short-nam-classics-2.jpg"
+        ],
+        "sku": "PM-QUSHNACL",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "quan-short-nam-classics-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/qu%E1%BA%A7n-short-nam-classics/686482.html"
+    },
+    {
+        "slug": "ao-hoodie-logo-essentials-nu",
+        "name": "Áo hoodie logo Essentials nữ",
+        "category": "hoodie-nu",
+        "brand": "puma",
+        "description": "Hoodie Essentials cổ điển, mũ có dây rút điều chỉnh, túi kangaroo, bo gân ở cổ tay và gấu áo.",
+        "price": 780000,
+        "image": "ao-hoodie-logo-essentials-nu-den.jpg",
+        "gallery": [
+            "ao-hoodie-logo-essentials-nu-2.jpg"
+        ],
+        "sku": "PM-AOHOLOES",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-hoodie-logo-essentials-nu-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/%C3%A1o-hoodie-logo-essentials-n%E1%BB%AF/586791.html",
+        "featured": true
+    },
+    {
+        "slug": "vay-phoi-chat-lieu-nu",
+        "name": "Váy phối chất liệu nữ",
+        "category": "chan-vay",
+        "brand": "puma",
+        "description": "Váy phối chất liệu dáng thoải mái, mặc từ sáng tới tối. Vải chéo 224gsm, làm từ ít nhất 30% vật liệu tái chế.",
+        "price": 1980000,
+        "image": "vay-phoi-chat-lieu-nu-den.jpg",
+        "gallery": [
+            "vay-phoi-chat-lieu-nu-2.jpg"
+        ],
+        "sku": "PM-VAPHCHLI",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "vay-phoi-chat-lieu-nu-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://vn.puma.com/vn/vi/pd/v%C3%A1y-ph%E1%BB%91i-ch%E1%BA%A5t-li%E1%BB%87u-n%E1%BB%AF/628272.html"
+    },
+    {
+        "slug": "nike-stride-dri-fit-adv-running-top",
+        "name": "Nike Stride Dri-FIT ADV Running Top",
+        "category": "ao-thun-nam",
+        "brand": "nike",
+        "description": "Áo chạy bộ vải dệt kim mềm thoáng khí, công nghệ thấm hút mồ hôi giúp khô ráo và dễ chịu trên những quãng đường dài.",
+        "price": 1379000,
+        "image": "nike-stride-dri-fit-adv-running-top-trang.jpg",
+        "gallery": [],
+        "sku": "NK-NISTDRFI",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "nike-stride-dri-fit-adv-running-top-trang.jpg",
+            "Đen": "nike-stride-dri-fit-adv-running-top-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/stride-mens-dri-fit-adv-short-sleeve-running-top-wBPHXUOp/IO1418-100",
+        "discount_percent": 7
+    },
+    {
+        "slug": "nike-solo-fleece-crew-neck-sweatshirt",
+        "name": "Nike Solo Fleece Crew-Neck Sweatshirt",
+        "category": "hoodie-nam",
+        "brand": "nike",
+        "description": "Áo nỉ cổ tròn Solo Fleece, vải nỉ độ dày vừa với mặt ngoài phẳng mịn, mặt trong chải lông mềm. Phom rộng vừa phải, thoải mái mà không thùng thình.",
+        "price": 1579000,
+        "image": "nike-solo-fleece-crew-neck-sweatshirt-xam-dam.jpg",
+        "gallery": [],
+        "sku": "NK-NISOFLCR",
+        "colors": {
+            "Xám đậm": "XD",
+            "Xanh da trời": "XDT"
+        },
+        "color_images": {
+            "Xám đậm": "nike-solo-fleece-crew-neck-sweatshirt-xam-dam.jpg",
+            "Xanh da trời": "nike-solo-fleece-crew-neck-sweatshirt-xanh-da-troi.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/solo-fleece-mens-crew-neck-sweatshirt-UVynyCWb/IX1937-063"
+    },
+    {
+        "slug": "nike-sportswear-club-lightweight-full-zip-jacket",
+        "name": "Nike Sportswear Club Lightweight Full-Zip Jacket",
+        "category": "ao-khoac-nam",
+        "brand": "nike",
+        "description": "Áo khoác nhẹ khóa kéo toàn thân, vải taffeta đứng dáng kèm lớp lót lưới. Phom rộng, dễ khoác thêm một lớp.",
+        "price": 2189000,
+        "image": "nike-sportswear-club-lightweight-full-zip-jacket-den.jpg",
+        "gallery": [],
+        "sku": "NK-NISPCLLI",
+        "colors": {
+            "Đen": "D",
+            "Be kaki": "BK"
+        },
+        "color_images": {
+            "Đen": "nike-sportswear-club-lightweight-full-zip-jacket-den.jpg",
+            "Be kaki": "nike-sportswear-club-lightweight-full-zip-jacket-be-kaki.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/sportswear-club-mens-lightweight-full-zip-jacket-q0ztJnfq/IF0767-010",
+        "featured": true
+    },
+    {
+        "slug": "nike-tech-helios-dri-fit-trousers",
+        "name": "Nike Tech Helios Dri-FIT Trousers",
+        "category": "quan-dai-nam",
+        "brand": "nike",
+        "description": "Quần dài co giãn thoáng khí, công nghệ Dri-FIT giữ khô ráo và có khả năng chống tia UV.",
+        "price": 3419000,
+        "image": "nike-tech-helios-dri-fit-trousers-den.jpg",
+        "gallery": [],
+        "sku": "NK-NITEHEDR",
+        "colors": {
+            "Đen": "D",
+            "Xanh rêu": "XR"
+        },
+        "color_images": {
+            "Đen": "nike-tech-helios-dri-fit-trousers-den.jpg",
+            "Xanh rêu": "nike-tech-helios-dri-fit-trousers-xanh-reu.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/tech-helios-mens-dri-fit-trousers-gd7HAsbf/IF1283-010"
+    },
+    {
+        "slug": "nikecourt-victory-dri-fit-tennis-shorts",
+        "name": "NikeCourt Victory Dri-FIT Tennis Shorts",
+        "category": "quan-short-nam",
+        "brand": "nike",
+        "description": "Quần short tennis NikeCourt Victory nhẹ và bền, thấm hút mồ hôi; hợp cả tennis lẫn các bài tập khác.",
+        "price": 1119000,
+        "image": "nikecourt-victory-dri-fit-tennis-shorts-den.jpg",
+        "gallery": [],
+        "sku": "NK-NIVIDRFI",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Đen": "nikecourt-victory-dri-fit-tennis-shorts-den.jpg",
+            "Trắng": "nikecourt-victory-dri-fit-tennis-shorts-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/nikecourt-victory-mens-dri-fit-18cm-approx-tennis-shorts-SWCBQw/FD5381-010"
+    },
+    {
+        "slug": "nike-one-relaxed-dri-fit-long-sleeve-top",
+        "name": "Nike One Relaxed Dri-FIT Long-Sleeve Top",
+        "category": "ao-thun-nu",
+        "brand": "nike",
+        "description": "Áo dài tay Nike One Relaxed vải jersey siêu nhẹ, hơi có vân, thấm hút mồ hôi. Thiết kế bất đối xứng, phom thoải mái cho tập luyện hay thư giãn.",
+        "price": 1279000,
+        "image": "nike-one-relaxed-dri-fit-long-sleeve-top-tim.jpg",
+        "gallery": [],
+        "sku": "NK-NIONREDR",
+        "colors": {
+            "Tím": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Tím": "nike-one-relaxed-dri-fit-long-sleeve-top-tim.jpg",
+            "Đen": "nike-one-relaxed-dri-fit-long-sleeve-top-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/one-relaxed-womens-dri-fit-long-sleeve-top-KgpSG12p/IU1423-580"
+    },
+    {
+        "slug": "nike-studio-fleece-oversized-crew-neck-sweatshirt",
+        "name": "Nike Studio Fleece Oversized Crew-Neck Sweatshirt",
+        "category": "hoodie-nu",
+        "brand": "nike",
+        "description": "Áo nỉ cổ tròn oversized, vải nỉ nhẹ rủ mềm, mặt ngoài mịn, mặt trong vòng sợi thoáng khí, hợp ngày ấm.",
+        "price": 1479000,
+        "image": "nike-studio-fleece-oversized-crew-neck-sweatshirt-trang-nga.jpg",
+        "gallery": [],
+        "sku": "NK-NISTFLOV2",
+        "colors": {
+            "Trắng ngà": "TN",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng ngà": "nike-studio-fleece-oversized-crew-neck-sweatshirt-trang-nga.jpg",
+            "Đen": "nike-studio-fleece-oversized-crew-neck-sweatshirt-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/studio-fleece-lightweight-womens-oversized-crew-neck-sweatshirt-r5Fh4PQC/IM8510-133"
+    },
+    {
+        "slug": "nikecourt-advantage-pleated-tennis-skirt",
+        "name": "NikeCourt Advantage Pleated Tennis Skirt",
+        "category": "chan-vay",
+        "brand": "nike",
+        "description": "Chân váy tennis xếp ly vải dệt nhẹ, mát khi ra sân. Có quần short co giãn bên trong và túi ở hai bên.",
+        "price": 1939000,
+        "image": "nikecourt-advantage-pleated-tennis-skirt-den.jpg",
+        "gallery": [],
+        "sku": "NK-NIADPLTE",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Đen": "nikecourt-advantage-pleated-tennis-skirt-den.jpg",
+            "Trắng": "nikecourt-advantage-pleated-tennis-skirt-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/nikecourt-advantage-womens-dri-fit-pleated-tennis-skirt-bC6d18/FZ6513-010"
+    },
+    {
+        "slug": "nike-zenvy-high-waisted-flared-leggings",
+        "name": "Nike Zenvy High-Waisted Flared Leggings",
+        "category": "quan-dai-nu",
+        "brand": "nike",
+        "description": "Legging lưng cao ống loe Zenvy, vải InfinaSoft siêu mềm, nhẹ, co giãn và giữ dáng sau nhiều lần mặc. Không có đường may phía trước.",
+        "price": 2499000,
+        "image": "nike-zenvy-high-waisted-flared-leggings-hong.jpg",
+        "gallery": [],
+        "sku": "NK-NIZEHIWA",
+        "colors": {
+            "Hồng": "H",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Hồng": "nike-zenvy-high-waisted-flared-leggings-hong.jpg",
+            "Đen": "nike-zenvy-high-waisted-flared-leggings-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.nike.com/vn/t/zenvy-womens-high-waisted-flared-leggings-with-no-front-seam-LbranU7F/II5224-630",
+        "featured": true
     }
 ]
