@@ -151,6 +151,13 @@ return [
             // so nothing here is filterable or sortable.
             Product::class => [
                 'searchableAttributes' => ['name', 'brand', 'category', 'colors', 'skus', 'description'],
+                // Vietnamese words are short ("thun", "khoác"): Meilisearch's
+                // default only forgives a typo from 5 letters, so "ao tuhn"
+                // found nothing. 3 letters was too loose ("vay" also matched
+                // "tay", "day"...).
+                'typoTolerance' => [
+                    'minWordSizeForTypos' => ['oneTypo' => 4, 'twoTypos' => 8],
+                ],
                 'synonyms' => [
                     'đầm' => ['váy'],
                     'váy' => ['đầm'],
