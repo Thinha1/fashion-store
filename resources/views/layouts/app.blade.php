@@ -8,6 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Fashion Store'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 
 @php($currentProduct = request()->route('product'))
