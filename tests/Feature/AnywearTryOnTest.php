@@ -32,7 +32,32 @@ class AnywearTryOnTest extends TestCase
         config(['store.anywear_domain' => null]);
 
         $this->get(route('products.show', $this->activeProduct()))->assertOk()
-            ->assertDontSee('anywear.decart.ai', false);
+            ->assertDontSee('anywear.decart.ai', false)
+            ->assertDontSee('Thử ngay');
+    }
+
+    public function test_product_page_relabels_the_anywear_button_in_vietnamese(): void
+    {
+        config(['store.anywear_domain' => 'shop.example.com']);
+
+        $this->get(route('products.show', $this->activeProduct()))->assertOk()
+            ->assertSee('.vton-btn .vton-label::after { content: "Thử ngay"; font-size: 11px; }', false)
+            ->assertSee('data-testid="add-to-cart"', false);
+    }
+
+    public function test_product_page_describes_the_product_as_schema_org_json_ld(): void
+    {
+        $product = $this->activeProduct();
+        $product->update(['name' => 'Áo </script> thun']);
+
+        $html = $this->get(route('products.show', $product))->assertOk()->getContent();
+
+        preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $match);
+        $jsonLd = json_decode($match[1] ?? '', true);
+
+        $this->assertSame('Product', $jsonLd['@type'] ?? null);
+        $this->assertSame('Áo </script> thun', $jsonLd['name']);
+        $this->assertSame('VND', $jsonLd['offers']['priceCurrency']);
     }
 
     public function test_other_storefront_pages_never_load_the_anywear_widget(): void

@@ -21,6 +21,22 @@
         $sizeOrder = array_flip(\App\Models\ProductVariant::SIZES);
         $sizes = $product->variants->pluck('size')->unique()->sortBy(fn ($size) => $sizeOrder[$size] ?? count($sizeOrder))->values();
         $colors = $product->variants->pluck('color')->unique()->values();
+        // schema.org Product: search engines read it, and Anywear only opens on pages that carry one.
+        $productJsonLd = array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $product->name,
+            'description' => $product->description,
+            'image' => $imagesForJs->pluck('url')->all(),
+            'brand' => $product->brand ? ['@type' => 'Brand', 'name' => $product->brand->name] : null,
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => route('products.show', $product),
+                'priceCurrency' => 'VND',
+                'price' => $variantsForJs->min('price') ?? (float) $product->base_price,
+                'availability' => $variantsForJs->sum('stock') > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            ],
+        ]);
     @endphp
 
     @push('head')
@@ -29,8 +45,14 @@
         @if ($imagesForJs->isNotEmpty())
             <meta property="og:image" content="{{ $imagesForJs->first()['url'] }}">
         @endif
+        <script type="application/ld+json">{!! json_encode($productJsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
         @if (config('store.anywear_domain'))
             <script src="https://anywear.decart.ai/widget/latest/anywear.js?domain={{ urlencode(config('store.anywear_domain')) }}" async></script>
+            {{-- Anywear hard-codes the English "Try-On" label on its image buttons; swap the text only. --}}
+            <style>
+                .vton-btn .vton-label { font-size: 0; }
+                .vton-btn .vton-label::after { content: "Thử ngay"; font-size: 11px; }
+            </style>
         @endif
     @endpush
 
@@ -163,7 +185,8 @@
                     @csrf
                     <input type="hidden" name="product_variant_id" :value="variant ? variant.id : ''">
                     <input type="hidden" name="quantity" :value="qty">
-                    <button type="submit" class="btn btn-primary flex-1" :disabled="!inStock">
+                    {{-- data-testid lets Anywear's in-panel "add to bag" find this button. --}}
+                    <button type="submit" class="btn btn-primary flex-1" :disabled="!inStock" data-testid="add-to-cart">
                         <x-icon name="cart" class="size-4" /> Thêm vào giỏ
                     </button>
                 </form>
