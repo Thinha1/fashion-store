@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\FileAttributes;
 use RuntimeException;
 
 /**
@@ -348,17 +349,24 @@ class CatalogDemoSeeder extends Seeder
     private function publishImages(): array
     {
         $paths = [];
+        $stored = $this->storedPhotoSizes();
 
         foreach (glob(database_path('seeders/'.self::ASSET_DIRECTORY.'/*.jpg')) ?: [] as $source) {
             $filename = basename($source);
             $path = self::STORAGE_DIRECTORY.'/'.$filename;
+            $paths[$filename] = $path;
+
+            // Already on the disk with the same size: skip the upload, which
+            // is what made every reseed take minutes against R2.
+            if (($stored[$path] ?? null) === filesize($source)) {
+                continue;
+            }
+
             $contents = file_get_contents($source);
 
             if ($contents === false || ! Storage::disk(config('filesystems.image_disk'))->put($path, $contents, ['visibility' => 'public'])) {
                 throw new RuntimeException("Không thể đưa ảnh demo {$filename} lên disk s3.");
             }
-
-            $paths[$filename] = $path;
         }
 
         foreach ($this->productDefinitions() as $definition) {
@@ -370,7 +378,7 @@ class CatalogDemoSeeder extends Seeder
                 // High-resolution photos are not in the repo; they were
                 // uploaded once to the image disk (R2).
                 $path = self::STORAGE_DIRECTORY.'/'.$file;
-                if (! Storage::disk(config('filesystems.image_disk'))->exists($path)) {
+                if (! isset($stored[$path])) {
                     throw new RuntimeException("Thiếu ảnh demo {$file} cho sản phẩm {$definition['slug']}.");
                 }
 
@@ -379,6 +387,25 @@ class CatalogDemoSeeder extends Seeder
         }
 
         return $paths;
+    }
+
+    /**
+     * Every photo already under demo/catalog on the image disk, with its
+     * size in bytes, from one directory listing instead of a request per file.
+     *
+     * @return array<string, int>
+     */
+    private function storedPhotoSizes(): array
+    {
+        $sizes = [];
+
+        foreach (Storage::disk(config('filesystems.image_disk'))->listContents(self::STORAGE_DIRECTORY, false) as $item) {
+            if ($item instanceof FileAttributes) {
+                $sizes[$item->path()] = $item->fileSize();
+            }
+        }
+
+        return $sizes;
     }
 
     /**

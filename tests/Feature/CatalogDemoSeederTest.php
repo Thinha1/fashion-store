@@ -46,7 +46,20 @@ class CatalogDemoSeederTest extends TestCase
         $this->fakeUploadedPhotos($this->remoteOnlyPhotos());
 
         $this->seed();
+
+        // Between runs: a stored photo with the repo file's size is left
+        // alone, one whose size differs is uploaded again.
+        $disk = Storage::disk(config('filesystems.image_disk'));
+        $sameSize = 'ao-thun-nam-premium-cotton-den.jpg';
+        $changed = 'ao-thun-nam-premium-cotton-trang.jpg';
+        $placeholder = str_repeat('x', filesize(database_path('seeders/assets/catalog/'.$sameSize)));
+        $disk->put('demo/catalog/'.$sameSize, $placeholder);
+        $disk->put('demo/catalog/'.$changed, 'stale');
+
         $this->seed();
+
+        $this->assertSame($placeholder, $disk->get('demo/catalog/'.$sameSize));
+        $this->assertSame(file_get_contents(database_path('seeders/assets/catalog/'.$changed)), $disk->get('demo/catalog/'.$changed));
 
         $this->assertDatabaseCount('brands', 8);
         $this->assertDatabaseCount('categories', 23);
