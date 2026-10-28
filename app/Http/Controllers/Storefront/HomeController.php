@@ -59,30 +59,12 @@ class HomeController extends Controller
         $featured = $shelves->listing()->where('is_featured', true)->limit(12)->get();
         $pool = $featured->isNotEmpty() ? $featured : $shelves->listing()->limit(6)->get();
 
-        $menswear = $this->categoryWithDescendants('nam');
-        $lead = $pool->first(fn (Product $product) => in_array($product->category_id, $menswear, true)) ?? $pool->first();
+        $menswear = Category::withDescendantIds(Category::query()->where('slug', 'nam')->pluck('id')->all());
+        $lead = $pool->first(fn (Product $product) => in_array((int) $product->category_id, $menswear, true)) ?? $pool->first();
 
         return $lead
             ? $pool->reject(fn (Product $product) => $product->is($lead))->prepend($lead)->take(6)->values()
             : collect();
-    }
-
-    /**
-     * Ids of a category (by slug) and every category under it.
-     *
-     * @return list<int>
-     */
-    private function categoryWithDescendants(string $slug): array
-    {
-        $ids = Category::query()->where('slug', $slug)->pluck('id')->all();
-        $level = $ids;
-
-        while ($level !== []) {
-            $level = Category::query()->whereIn('parent_id', $level)->pluck('id')->all();
-            $ids = [...$ids, ...$level];
-        }
-
-        return array_map('intval', $ids);
     }
 
     /**

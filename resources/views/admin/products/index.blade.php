@@ -5,12 +5,42 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Sản phẩm',
-        'subtitle' => 'Quản lý thông tin, biến thể và trạng thái hiển thị của sản phẩm.',
         'actionUrl' => route('admin.products.create'),
         'actionLabel' => 'Thêm sản phẩm',
     ])
 
     <x-excel-tools resource="products" />
+
+    @php
+        $filtering = array_filter($filters) !== [];
+        // The sort and page size survive a filter change; only plain values, never arrays from a hand-edited URL.
+        $kept = array_filter(request()->only(['sort', 'direction', 'per_page']), fn ($value) => is_string($value) && $value !== '');
+    @endphp
+    {{-- Changing a select applies it at once; the button is there for keyboards and no-JS. --}}
+    <form method="GET" action="{{ route('admin.products.index') }}" class="mb-4 flex flex-wrap items-center gap-2" aria-label="Lọc sản phẩm">
+        @foreach ($kept as $name => $value)
+            <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+        @endforeach
+        <label for="product-brand" class="sr-only">Thương hiệu</label>
+        <select id="product-brand" name="brand" class="field min-h-10 sm:w-auto" onchange="this.form.requestSubmit()">
+            <option value="">Mọi thương hiệu</option>
+            @foreach ($brands as $brand)
+                <option value="{{ $brand->id }}" @selected($filters['brand'] === $brand->id)>{{ $brand->name }}</option>
+            @endforeach
+        </select>
+        <label for="product-category" class="sr-only">Danh mục</label>
+        <select id="product-category" name="category" class="field min-h-10 sm:w-auto" onchange="this.form.requestSubmit()">
+            <option value="">Mọi danh mục</option>
+            @foreach ($categories as $category)
+                <option value="{{ $category['id'] }}" @selected($filters['category'] === $category['id'])>{{ str_repeat('— ', $category['depth']) }}{{ $category['name'] }}</option>
+            @endforeach
+        </select>
+        <x-admin.action type="submit" variant="secondary" icon="search">Lọc</x-admin.action>
+        @if ($filtering)
+            <span class="text-sm text-gray-500" role="status">{{ $products->total() }} sản phẩm khớp</span>
+            <a href="{{ route('admin.products.index', $kept) }}" class="px-2 text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline">Xoá lọc</a>
+        @endif
+    </form>
 
     <x-admin-table :paginator="$products" :sorting="$sorting"
         :sortable="['Tên sản phẩm' => 'name', 'Danh mục' => 'category', 'Thương hiệu' => 'brand', 'Biến thể' => 'variants_count', 'Trạng thái' => 'status', 'Nổi bật' => 'is_featured']"
@@ -45,7 +75,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="7" class="px-4 py-8 text-center text-gray-500">Chưa có sản phẩm nào.</td>
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">{{ $filtering ? 'Không có sản phẩm nào khớp bộ lọc.' : 'Chưa có sản phẩm nào.' }}</td>
             </tr>
         @endforelse
     </x-admin-table>
