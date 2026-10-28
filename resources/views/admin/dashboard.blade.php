@@ -80,7 +80,7 @@
                             @if ($kpi['change'] === null)
                                 <span class="text-gray-500">Kỳ trước chưa có số liệu để so sánh</span>
                             @else
-                                <span class="inline-flex items-center gap-1 font-semibold" style="color: {{ $kpi['change'] > 0 ? 'var(--viz-delta-up)' : ($kpi['change'] < 0 ? 'var(--viz-delta-down)' : '#5c7080') }}">
+                                <span class="inline-flex items-center gap-1 font-semibold" style="color: {{ $kpi['change'] > 0 ? 'var(--viz-delta-up)' : ($kpi['change'] < 0 ? 'var(--viz-delta-down)' : 'var(--viz-neutral)') }}">
                                     @if ($kpi['change'] != 0)<x-icon :name="$kpi['change'] > 0 ? 'trend-up' : 'trend-down'" class="size-3" />@endif
                                     {{ ($kpi['change'] > 0 ? '+' : '').number_format($kpi['change'], 1, ',', '.') }}%
                                 </span>
@@ -161,7 +161,7 @@
                                     <div class="viz-bar-track flex-1"><div class="viz-bar" style="width: {{ round($product['quantity'] / $maxProductQuantity * 100, 2) }}%; background: var(--viz-series-1)"></div></div>
                                     <span class="w-14 shrink-0 text-right text-sm font-semibold text-gray-900 tabular-nums">{{ $product['quantity'] }}</span>
                                 </div>
-                                <div class="viz-bar-tip viz-tooltip !relative !transform-none !min-w-0">
+                                <div class="viz-tooltip viz-bar-tip">
                                     <p class="text-sm font-semibold text-gray-900">{{ number_format($product['sales'], 0, ',', '.') }} ₫</p>
                                     <p class="text-xs text-gray-500">Doanh số · {{ $product['quantity'] }} sản phẩm</p>
                                 </div>
@@ -192,7 +192,7 @@
                                     </div>
                                     <span class="w-14 shrink-0 text-right text-sm font-semibold text-gray-900 tabular-nums">{{ $row['count'] }}</span>
                                 </div>
-                                <div class="viz-bar-tip viz-tooltip !relative !transform-none !min-w-0">
+                                <div class="viz-tooltip viz-bar-tip">
                                     <p class="text-sm font-semibold text-gray-900">{{ $share }}%</p>
                                     <p class="text-xs text-gray-500">tổng số đơn trong khoảng này</p>
                                 </div>

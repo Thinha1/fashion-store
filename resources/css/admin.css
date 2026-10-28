@@ -167,19 +167,22 @@
    stays in the admin ink, never in a series colour. */
 .viz-root {
     --viz-surface: var(--color-white);
-    --viz-series-1: #2a78d6;
-    --viz-pipeline-1: #86b6ef;
-    --viz-pipeline-2: #5598e7;
-    --viz-pipeline-3: #2a78d6;
-    --viz-pipeline-4: #1c5cab;
-    --viz-pipeline-5: #104281;
-    --viz-deemphasis: #898781;
-    --viz-grid: #e1e0d9;
-    --viz-axis: #c3c2b7;
-    --viz-delta-up: #006300;
-    --viz-delta-down: #d03b3b;
-    --viz-status-warning: #fab219;
-    --viz-status-critical: #d03b3b;
+    /* The storefront's green carries the one series; the order pipeline
+       is a light-to-dark ramp of it (further along = darker). */
+    --viz-series-1: var(--color-accent);
+    --viz-pipeline-1: oklch(84% 0.060 152);
+    --viz-pipeline-2: oklch(72% 0.095 152);
+    --viz-pipeline-3: oklch(60% 0.125 152);
+    --viz-pipeline-4: oklch(48% 0.125 152);
+    --viz-pipeline-5: oklch(36% 0.090 152);
+    --viz-deemphasis: var(--color-gray-400);
+    --viz-grid: var(--color-gray-100);
+    --viz-axis: var(--color-gray-300);
+    --viz-neutral: var(--color-gray-500);
+    --viz-delta-up: var(--color-status-success);
+    --viz-delta-down: oklch(52% 0.170 27);
+    --viz-status-warning: oklch(80% 0.150 80);
+    --viz-status-critical: oklch(52% 0.170 27);
 }
 .viz-root .viz-grid { stroke: var(--viz-grid); stroke-width: 1; shape-rendering: crispEdges; }
 .viz-root .viz-axis { stroke: var(--viz-axis); stroke-width: 1; shape-rendering: crispEdges; }
@@ -193,7 +196,7 @@
 .viz-root .viz-kpi { container-type: inline-size; }
 .viz-root .viz-kpi-value { font-size: min(var(--kpi-max), 100cqi / (var(--kpi-fit) * .62)); line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .viz-root .viz-chart-frame { position: relative; outline: none; border-radius: 8px; }
-.viz-root .viz-chart-frame:focus-visible { box-shadow: 0 0 0 3px rgb(42 120 214 / 25%); }
+.viz-root .viz-chart-frame:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-focus) 30%, transparent); }
 .viz-root .viz-tooltip { position: absolute; top: 0; transform: translate(-50%, -4px); pointer-events: none; min-width: 9.5rem; border: 1px solid var(--color-gray-200); border-radius: 10px; background: var(--color-white); padding: 8px 12px; box-shadow: 0 8px 24px color-mix(in oklab, var(--color-brand) 12%, transparent); white-space: nowrap; }
 .viz-root .viz-key-line { display: inline-block; width: 12px; height: 2px; border-radius: 1px; background: var(--viz-series-1); vertical-align: middle; }
 /* Bars: 10px thick, 4px rounded data-end, square at the baseline. */
@@ -201,6 +204,6 @@
 .viz-root .viz-bar { height: 10px; min-width: 2px; border-radius: 0 4px 4px 0; transition: filter .15s; }
 .viz-root .viz-bar-row { position: relative; outline: none; border-radius: 6px; }
 .viz-root .viz-bar-row:hover .viz-bar, .viz-root .viz-bar-row:focus-visible .viz-bar { filter: brightness(1.12); }
-.viz-root .viz-bar-row:focus-visible { box-shadow: 0 0 0 2px rgb(42 120 214 / 35%); }
-.viz-root .viz-bar-tip { position: absolute; right: 0; bottom: calc(100% + 4px); z-index: 10; visibility: hidden; opacity: 0; transition: opacity .12s; pointer-events: none; }
+.viz-root .viz-bar-row:focus-visible { box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-focus) 40%, transparent); }
+.viz-root .viz-bar-tip { position: absolute; top: auto; right: 0; bottom: calc(100% + 4px); transform: none; min-width: 0; z-index: 10; visibility: hidden; opacity: 0; transition: opacity .12s; pointer-events: none; }
 .viz-root .viz-bar-row:hover .viz-bar-tip, .viz-root .viz-bar-row:focus-visible .viz-bar-tip { visibility: visible; opacity: 1; }
