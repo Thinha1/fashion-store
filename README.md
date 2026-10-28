@@ -147,7 +147,7 @@ Nạp seed:
 docker compose exec app php artisan db:seed
 ```
 
-Trong môi trường local, lệnh trên tạo thêm catalog demo gồm sản phẩm quần áo thật của 4 thương hiệu (Coolmate, Yame, Nike, Puma): 21 danh mục Nam/Nữ, 44 sản phẩm với 463 biến thể, ảnh riêng cho từng màu và giá khuyến mãi theo trang gốc (nguồn ghi trong `database/seeders/assets/catalog/SOURCES.md`, chỉ dùng cho đồ án). Ảnh được đóng gói cùng repository rồi sao chép lên MinIO khi seed, vì vậy các lần chạy sau không cần kết nối Internet.
+Trong môi trường local, lệnh trên tạo thêm catalog demo gồm sản phẩm quần áo thật của 6 thương hiệu (Coolmate, Yame, Nike, Puma, Uniqlo, Teelab): 23 danh mục Nam/Nữ, 118 sản phẩm với 1447 biến thể, bảng size cho từng hãng, ảnh riêng cho từng màu và giá khuyến mãi theo trang gốc (nguồn ghi trong `database/seeders/assets/catalog/SOURCES.md`, chỉ dùng cho đồ án). Ảnh được đóng gói cùng repository rồi sao chép lên MinIO khi seed, vì vậy các lần chạy sau không cần kết nối Internet.
 
 Đơn hàng demo (khoảng 120 ngày) để dashboard có số liệu được tạo riêng:
 

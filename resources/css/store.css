@@ -397,6 +397,12 @@
     .address-item.is-default { box-shadow: inset 3px 0 var(--color-ink); padding-left: var(--space-md); }
     .address-item p:first-child { font-family: var(--font-display); font-weight: 500; font-size: var(--text-lg); color: var(--color-ink); }
 
+    /* Size guide dialog (product page) ---------------------------------- */
+    .size-guide-dialog { margin: auto; width: min(46rem, calc(100% - 2 * var(--space-md))); max-height: calc(100dvh - 2 * var(--space-md)); overflow-y: auto; padding: 0; border: 1px solid var(--color-ink); border-top: var(--rule-heavy) solid var(--color-ink); background: var(--color-paper); color: var(--color-ink); }
+    .size-guide-dialog::backdrop { background: color-mix(in oklab, var(--color-ink) 55%, transparent); }
+    .size-guide-dialog h2 { font-size: var(--text-2xl); }
+    .size-guide-dialog th, .size-guide-dialog td { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+
     /* Home: the cover --------------------------------------------------- */
     .cover { padding-block: var(--space-2xl) var(--space-3xl); }
     .cover-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-3xl); align-items: center; min-height: calc(100svh - var(--nav-height) - var(--space-2xl) - var(--space-3xl)); }

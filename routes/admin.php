@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\SizeChartController;
 use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,17 @@ Route::prefix('admin')
             ->put('thuong-hieu/{brand}', [BrandController::class, 'update'])->name('brands.update');
         Route::middleware('permission:products.manage')
             ->delete('thuong-hieu/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+
+        // Size charts — shown on product pages, matched by brand/category.
+        Route::middleware('permission:products.manage')->prefix('bang-size')->name('size-charts.')
+            ->group(function (): void {
+                Route::get('/', [SizeChartController::class, 'index'])->name('index');
+                Route::get('tao-moi', [SizeChartController::class, 'create'])->name('create');
+                Route::post('/', [SizeChartController::class, 'store'])->name('store');
+                Route::get('{sizeChart}/sua', [SizeChartController::class, 'edit'])->name('edit');
+                Route::put('{sizeChart}', [SizeChartController::class, 'update'])->name('update');
+                Route::delete('{sizeChart}', [SizeChartController::class, 'destroy'])->name('destroy');
+            });
 
         // Category
         Route::middleware('permission:products.manage')

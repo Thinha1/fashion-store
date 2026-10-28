@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\Catalog\CatalogFilters;
 use App\Services\Catalog\CatalogSearch;
+use App\Services\Catalog\SizeChartResolver;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,7 +43,7 @@ class ProductController extends Controller
     /**
      * Display a single active product with its variants and gallery.
      */
-    public function show(Product $product, PriceCalculator $prices): View
+    public function show(Product $product, PriceCalculator $prices, SizeChartResolver $sizeCharts): View
     {
         abort_unless($product->status === 'active', 404);
 
@@ -75,6 +76,7 @@ class ProductController extends Controller
             'product' => $product,
             'variantPrices' => $variantPrices,
             'related' => $related,
+            'sizeChart' => $sizeCharts->forProduct($product),
         ]);
     }
 }
