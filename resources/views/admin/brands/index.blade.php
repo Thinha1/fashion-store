@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Thương hiệu',
-        'subtitle' => 'Quản lý thương hiệu và thông tin nhận diện của sản phẩm.',
         'actionUrl' => route('admin.brands.create'),
         'actionLabel' => 'Thêm thương hiệu',
     ])

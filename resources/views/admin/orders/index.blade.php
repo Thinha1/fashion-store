@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Đơn hàng',
-        'subtitle' => 'Xử lý đơn theo từng bước: xác nhận → chuẩn bị → giao vận chuyển → đã giao.',
     ])
 
     @php($tabs = ['' => 'Tất cả'] + \App\Models\Order::STATUS_LABELS)

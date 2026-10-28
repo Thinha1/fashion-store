@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhân viên',
-        'subtitle' => 'Tài khoản dùng khu quản trị và vai trò của từng người.',
         'actionUrl' => route('admin.staff.create'),
         'actionLabel' => 'Thêm nhân viên',
     ])

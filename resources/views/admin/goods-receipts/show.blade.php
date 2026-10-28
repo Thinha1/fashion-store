@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => $receipt->receipt_number,
-        'subtitle' => 'Chi tiết hàng nhập và thông tin xác nhận.',
         'actionUrl' => $receipt->status === 'draft' ? route('admin.goods-receipts.edit', $receipt) : null,
         'actionLabel' => 'Chỉnh sửa',
         'actionIcon' => 'edit',

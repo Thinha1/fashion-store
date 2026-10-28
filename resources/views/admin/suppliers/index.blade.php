@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhà cung cấp',
-        'subtitle' => 'Tra cứu thông tin liên hệ và đối tác cung ứng của cửa hàng.',
         'actionUrl' => route('admin.suppliers.create'),
         'actionLabel' => 'Thêm nhà cung cấp',
     ])

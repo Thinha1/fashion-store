@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => $product->name,
-        'subtitle' => 'Chi tiết sản phẩm và thông tin liên quan.',
         'actionUrl' => route('admin.products.edit', $product),
         'actionLabel' => 'Chỉnh sửa',
         'actionIcon' => 'edit',

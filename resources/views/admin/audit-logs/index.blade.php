@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhật ký hệ thống',
-        'subtitle' => 'Ai đã làm gì, lúc nào, trên dữ liệu nào. Chỉ xem, không sửa hay xóa được.',
     ])
 
     @php($active = array_filter($filters, fn ($value) => $value !== null))

@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Giảm giá biến thể',
-        'subtitle' => 'Thiết lập mức giảm và thời gian áp dụng cho từng biến thể sản phẩm.',
         'actionUrl' => route('admin.discounts.create'),
         'actionLabel' => 'Thêm giảm giá',
     ])

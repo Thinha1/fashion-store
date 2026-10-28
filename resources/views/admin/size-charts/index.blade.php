@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Bảng size',
-        'subtitle' => 'Bảng số đo hiển thị ở trang sản phẩm và dùng để gợi ý size theo chiều cao, cân nặng.',
         'actionUrl' => route('admin.size-charts.create'),
         'actionLabel' => 'Thêm bảng size',
     ])
