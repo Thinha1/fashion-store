@@ -50,6 +50,8 @@ class StoreProductRequest extends BaseAdminRequest
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('products', 'slug')->ignore($productId)],
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'brand_id' => ['required', 'integer', Rule::exists('brands', 'id')],
+            // Empty = pick automatically by brand/category (SizeChartResolver).
+            'size_chart_id' => ['nullable', 'integer', Rule::exists('size_charts', 'id')],
             'description' => ['nullable', 'string', 'max:5000'],
             'base_price' => ['required', 'numeric', 'min:0', 'max:9999999999999'],
             'status' => ['required', Rule::in(array_keys(Product::STATUS_LABELS))],

@@ -144,7 +144,9 @@
                 <div class="pdp-option">
                     <div class="pdp-option-row">
                         <p class="pdp-option-head">Size</p>
-                        <a href="#" class="text-link" x-on:click.prevent="$dispatch('notify', 'Bảng size đang được cập nhật.')">Xem hướng dẫn chọn size</a>
+                        @if ($sizeChart)
+                            @include('storefront.products._size-guide', ['sizeChart' => $sizeChart])
+                        @endif
                     </div>
                     <div class="pdp-sizes">
                         @foreach ($sizes as $size)

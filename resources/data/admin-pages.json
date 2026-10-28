@@ -42,5 +42,9 @@
     "audit-logs.index": {
         "label": "Nhật ký hệ thống",
         "route": "admin.audit-logs.index"
+    },
+    "size-charts.index": {
+        "label": "Bảng size",
+        "route": "admin.size-charts.index"
     }
 }

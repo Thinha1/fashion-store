@@ -22,7 +22,7 @@
             @endif
             @if (auth()->user()->hasPermission('products.manage'))
                 <div><p class="sidebar-label">Sản phẩm & thương hiệu</p>
-                    @foreach ([['products', 'shirt', 'Sản phẩm'], ['categories', 'layers', 'Danh mục'], ['brands', 'tag', 'Thương hiệu'], ['discounts', 'percent', 'Giảm giá']] as [$section, $icon, $label])
+                    @foreach ([['products', 'shirt', 'Sản phẩm'], ['categories', 'layers', 'Danh mục'], ['brands', 'tag', 'Thương hiệu'], ['size-charts', 'table', 'Bảng size'], ['discounts', 'percent', 'Giảm giá']] as [$section, $icon, $label])
                         <a href="{{ route('admin.'.$section.'.index') }}" class="sidebar-link" @if(request()->routeIs('admin.'.$section.'.*')) aria-current="page" @endif><x-icon :name="$icon" /> {{ $label }}</a>
                     @endforeach
                 </div>

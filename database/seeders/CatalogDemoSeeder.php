@@ -15,10 +15,15 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
- * Demo catalog built from real products of Coolmate, Yame, Nike and Puma
- * (names, prices, sale prices, colors, sizes and photos as listed on their
- * Vietnamese stores, see assets/catalog/SOURCES.md). For the course project
- * only; the photos belong to the brands.
+ * Demo catalog built from real products of Coolmate, Yame, Nike, Puma,
+ * Uniqlo, Teelab, Levents and Routine (names, prices, sale prices, colors,
+ * sizes and photos as listed on their Vietnamese stores, see
+ * assets/catalog/SOURCES.md). For the course project only; the photos belong
+ * to the brands.
+ *
+ * Photos in assets/catalog are uploaded on every run. The high-resolution
+ * photos (1080x1350) are kept out of the repo: they are uploaded once to the
+ * image disk (R2) under demo/catalog and the seeder only checks they exist.
  */
 class CatalogDemoSeeder extends Seeder
 {
@@ -68,6 +73,26 @@ class CatalogDemoSeeder extends Seeder
                 'description' => 'Thương hiệu thể thao đến từ Đức, nổi bật với dòng Essentials logo lớn và trang phục tập luyện.',
                 'country' => 'Đức',
             ],
+            'uniqlo' => [
+                'name' => 'Uniqlo',
+                'description' => 'Thương hiệu Nhật Bản với trang phục cơ bản chất lượng cao cho nam và nữ: AIRism, Supima Cotton, quần jeans EZY và áo khoác PUFFTECH.',
+                'country' => 'Nhật Bản',
+            ],
+            'teelab' => [
+                'name' => 'Teelab',
+                'description' => 'Local brand Việt Nam phong cách streetwear unisex, nổi tiếng với áo thun, hoodie và áo khoác form rộng giá trẻ.',
+                'country' => 'Việt Nam',
+            ],
+            'levents' => [
+                'name' => 'Levents',
+                'description' => 'Local brand streetwear Việt Nam ra đời năm 2020, nổi tiếng với áo thun, hoodie và áo khoác form rộng in logo Levents.',
+                'country' => 'Việt Nam',
+            ],
+            'routine' => [
+                'name' => 'Routine',
+                'description' => 'Thương hiệu thời trang Việt Nam cho nam và nữ, chuyên trang phục cơ bản dễ phối: áo thun, sơ mi, quần tây và áo khoác.',
+                'country' => 'Việt Nam',
+            ],
         ];
 
         $brands = [];
@@ -111,6 +136,8 @@ class CatalogDemoSeeder extends Seeder
             ['slug' => 'quan-jeans-nam', 'name' => 'Quần jeans', 'parent' => 'nam-quan', 'image' => 'quan-jeans-ong-suong-durabletex-xam-den.jpg'],
             ['slug' => 'quan-dai-nam', 'name' => 'Quần dài', 'parent' => 'nam-quan', 'image' => 'quan-tay-xep-ly-easycare-xam-dam.jpg'],
             ['slug' => 'quan-short-nam', 'name' => 'Quần short', 'parent' => 'nam-quan', 'image' => 'quan-short-lung-thun-van-noi-xam-trang.jpg'],
+            ['slug' => 'ao-so-mi-nu', 'name' => 'Áo sơ mi', 'parent' => 'nu-ao', 'image' => 'ao-so-mi-vai-linen-cao-cap-trang.jpg'],
+            ['slug' => 'quan-jeans-nu', 'name' => 'Quần jeans', 'parent' => 'nu-quan', 'image' => 'quan-jeans-ezy-dang-rong-ong-suong-xanh-duong.jpg'],
             ['slug' => 'ao-thun-nu', 'name' => 'Áo thun', 'parent' => 'nu-ao', 'image' => 'nike-sportswear-women-s-t-shirt-hong-phan.jpg'],
             ['slug' => 'hoodie-nu', 'name' => 'Hoodie & nỉ', 'parent' => 'nu-ao', 'image' => 'nike-studio-fleece-oversized-full-zip-hoodie-den.jpg'],
             ['slug' => 'ao-khoac-nu', 'name' => 'Áo khoác', 'parent' => 'nu-ao', 'image' => 'ao-khoac-the-thao-nu-studio-be.jpg'],
@@ -336,9 +363,18 @@ class CatalogDemoSeeder extends Seeder
 
         foreach ($this->productDefinitions() as $definition) {
             foreach ([...array_values($definition['color_images']), ...($definition['gallery'] ?? [])] as $file) {
-                if (! isset($paths[$file])) {
+                if (isset($paths[$file])) {
+                    continue;
+                }
+
+                // High-resolution photos are not in the repo; they were
+                // uploaded once to the image disk (R2).
+                $path = self::STORAGE_DIRECTORY.'/'.$file;
+                if (! Storage::disk(config('filesystems.image_disk'))->exists($path)) {
                     throw new RuntimeException("Thiếu ảnh demo {$file} cho sản phẩm {$definition['slug']}.");
                 }
+
+                $paths[$file] = $path;
             }
         }
 
@@ -355,6 +391,10 @@ class CatalogDemoSeeder extends Seeder
             'yame' => ['YM', '#7c2d12', '#ffedd5'],
             'nike' => ['NK', '#111827', '#f3f4f6'],
             'puma' => ['PM', '#991b1b', '#fee2e2'],
+            'uniqlo' => ['UQ', '#ffffff', '#dc2626'],
+            'teelab' => ['TL', '#f9fafb', '#111827'],
+            'levents' => ['LV', '#f9fafb', '#1f2937'],
+            'routine' => ['RT', '#1f2937', '#e5e7eb'],
         ];
         $paths = [];
 

@@ -47,6 +47,23 @@
         </div>
 
         <div>
+            {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the field. --}}
+            <label for="size_chart_id" class="block text-sm font-medium text-gray-700">Bảng size</label>
+            <select id="size_chart_id" name="size_chart_id"
+                    class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">
+                <option value="">Tự động theo thương hiệu và danh mục</option>
+                @foreach ($sizeCharts as $sizeChart)
+                    <option value="{{ $sizeChart->id }}" @selected((int) old('size_chart_id', $product->size_chart_id) === $sizeChart->id)>{{ $sizeChart->name }} ({{ $sizeChart->coverageLabel() }})</option>
+                @endforeach
+            </select>
+            @if ($product->exists && ! $product->size_chart_id)
+                @php($autoChart = app(\App\Services\Catalog\SizeChartResolver::class)->forProduct($product))
+                <p class="mt-1 text-xs text-gray-500">Đang dùng: {{ $autoChart?->name ?? 'chưa có bảng nào khớp, trang sản phẩm sẽ không hiện bảng size' }}.</p>
+            @endif
+            <x-input-error :messages="$errors->get('size_chart_id')" />
+        </div>
+
+        <div>
             <x-label for="description">Mô tả</x-label>
             <textarea id="description" name="description" rows="4"
                       class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500">{{ old('description', $product->description) }}</textarea>

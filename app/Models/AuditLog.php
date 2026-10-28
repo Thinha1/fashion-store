@@ -35,6 +35,7 @@ class AuditLog extends Model
         'GoodsReceipt' => 'Phiếu nhập',
         'AiSetting' => 'Cấu hình AI',
         'PaymentSetting' => 'Cấu hình thanh toán',
+        'SizeChart' => 'Bảng size',
         'User' => 'Tài khoản',
     ];
 
@@ -98,6 +99,7 @@ class AuditLog extends Model
             $subject instanceof Order => route('admin.orders.show', $subject),
             $subject instanceof GoodsReceipt => route('admin.goods-receipts.show', $subject),
             $subject instanceof PaymentSetting => route('admin.settings.payment.edit'),
+            $subject instanceof SizeChart => route('admin.size-charts.edit', $subject),
             default => null,
         };
     }

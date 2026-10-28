@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Models\SizeChart;
 use App\Support\AdminPagination;
 use App\Support\AdminSorting;
 use Illuminate\Http\JsonResponse;
@@ -43,6 +44,7 @@ class ProductController extends Controller
             'product' => new Product(['status' => 'active', 'base_price' => 0, 'is_featured' => false]),
             'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
+            'sizeCharts' => SizeChart::query()->with(['brand', 'category'])->orderBy('name')->get(),
             'variants' => collect(),
             'images' => collect(),
         ]);
@@ -58,6 +60,7 @@ class ProductController extends Controller
             $product = Product::query()->create([
                 'category_id' => $data['category_id'],
                 'brand_id' => $data['brand_id'],
+                'size_chart_id' => $data['size_chart_id'] ?? null,
                 'name' => $data['name'],
                 'slug' => $data['slug'],
                 'description' => $data['description'] ?? null,
@@ -105,6 +108,7 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
+            'sizeCharts' => SizeChart::query()->with(['brand', 'category'])->orderBy('name')->get(),
             'variants' => $product->variants,
             'images' => $product->images,
         ]);
@@ -120,6 +124,7 @@ class ProductController extends Controller
             $product->update([
                 'category_id' => $data['category_id'],
                 'brand_id' => $data['brand_id'],
+                'size_chart_id' => $data['size_chart_id'] ?? null,
                 'name' => $data['name'],
                 'slug' => $data['slug'],
                 'description' => $data['description'] ?? null,
