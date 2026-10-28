@@ -8,8 +8,8 @@
     $canSuggest = $sizeChart->canSuggest();
 @endphp
 <div x-data="sizeGuide({ rows: {{ Js::from($sizeChart->rows) }} })" class="contents">
-    <button type="button" class="text-xs text-brand hover:underline" x-on:click="open()">
-        <x-icon name="table" class="size-3.5" /> Bảng size
+    <button type="button" class="text-link" x-on:click="open()">
+        <x-icon name="table" /> Bảng size
     </button>
 
     <dialog x-ref="sizeGuide" class="size-guide-dialog" aria-labelledby="size-guide-title"

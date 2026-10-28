@@ -13,4 +13,11 @@ return [
         'account_number' => env('STORE_BANK_ACCOUNT_NUMBER'),
         'account_name' => env('STORE_BANK_ACCOUNT_NAME'),
     ],
+
+    /*
+    | Decart's Anywear live try-on widget, loaded on product pages only. Leave
+    | empty to keep it off. The value is the shop domain registered with
+    | Anywear, e.g. "shop.example.com".
+    */
+    'anywear_domain' => env('ANYWEAR_DOMAIN'),
 ];

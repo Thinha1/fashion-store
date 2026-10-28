@@ -66,7 +66,7 @@ class ProductController extends Controller
             ->where('status', 'active')
             ->where('id', '!=', $product->id)
             ->where('brand_id', $product->brand_id)
-            ->with(['images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
+            ->with(['brand', 'images' => fn ($query) => $query->where('is_primary', true)->limit(1)])
             ->withListingPrices()
             ->latest('id')
             ->limit(4)
