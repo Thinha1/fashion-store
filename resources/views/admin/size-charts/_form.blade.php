@@ -30,7 +30,8 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <x-label for="brand_id">Thương hiệu</x-label>
+            {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the field. --}}
+            <label for="brand_id" class="block text-sm font-medium text-gray-700">Thương hiệu</label>
             <select id="brand_id" name="brand_id" class="{{ $fieldClass }} mt-1 py-2">
                 <option value="">Mọi thương hiệu</option>
                 @foreach ($brands as $brand)
@@ -40,7 +41,8 @@
             <x-input-error :messages="$errors->get('brand_id')" />
         </div>
         <div>
-            <x-label for="category_id">Danh mục (gồm cả danh mục con)</x-label>
+            {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the field. --}}
+            <label for="category_id" class="block text-sm font-medium text-gray-700">Danh mục (gồm cả danh mục con)</label>
             <select id="category_id" name="category_id" class="{{ $fieldClass }} mt-1 py-2">
                 <option value="">Mọi danh mục</option>
                 @foreach ($categories as $id => $path)
@@ -121,7 +123,8 @@
     @endforeach
 
     <div>
-        <x-label for="note">Ghi chú cho khách</x-label>
+        {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the field. --}}
+            <label for="note" class="block text-sm font-medium text-gray-700">Ghi chú cho khách</label>
         <textarea id="note" name="note" rows="2" maxlength="1000" placeholder="VD: Nếu ở giữa hai size, chọn size lớn hơn để mặc thoải mái."
                   class="{{ $fieldClass }} mt-1 py-2">{{ old('note', $chart->note) }}</textarea>
         <x-input-error :messages="$errors->get('note')" />
