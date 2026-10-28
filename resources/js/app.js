@@ -15,6 +15,8 @@ import paymentSettingsForm from './payment-settings-form';
 import paymentStatusPoller from './payment-status-poller';
 import salesChart from './sales-chart';
 import addressPicker from './address-picker';
+import shelfCarousel from './shelf-carousel';
+import coverCarousel from './cover-carousel';
 
 window.Alpine = Alpine;
 
@@ -34,6 +36,8 @@ Alpine.data('paymentSettingsForm', paymentSettingsForm);
 Alpine.data('paymentStatusPoller', paymentStatusPoller);
 Alpine.data('salesChart', salesChart);
 Alpine.data('addressPicker', addressPicker);
+Alpine.data('shelfCarousel', shelfCarousel);
+Alpine.data('coverCarousel', coverCarousel);
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,
