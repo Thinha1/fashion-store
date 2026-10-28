@@ -35,11 +35,13 @@
                 <td class="px-4 py-3 text-right"><div class="admin-row-actions">
                     @if ($receipt->status === 'draft')
                         <a href="{{ route('admin.goods-receipts.edit', $receipt) }}" class="admin-row-action"><x-icon name="edit" class="size-3.5" /> Sửa</a>
+                        @if (auth()->user()->hasPermission('inventory.confirm'))
                         <form method="POST" action="{{ route('admin.goods-receipts.confirm', $receipt) }}" class="inline"
                               x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xác nhận phiếu nhập này? Tồn kho sẽ được cập nhật.' })">
                             @csrf
                             <button type="submit" class="admin-row-action admin-row-confirm"><x-icon name="check" class="size-3.5" /> Xác nhận</button>
                         </form>
+                        @endif
                     @endif
                 </div></td>
             </tr>

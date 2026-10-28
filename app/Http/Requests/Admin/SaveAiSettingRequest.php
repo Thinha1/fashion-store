@@ -9,7 +9,7 @@ class SaveAiSettingRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
-        return 'settings.manage';
+        return 'settings.ai';
     }
 
     /**

@@ -93,6 +93,11 @@ class OrderController extends Controller
     {
         $toStatus = $request->validated('status');
 
+        // A paid order cancelled means money going back: payments.confirm only.
+        if ($toStatus === 'cancelled' && $order->payment_status === 'paid' && ! $request->user()->hasPermission('payments.confirm')) {
+            return back()->with('error', 'Đơn đã thanh toán, cần quyền xác nhận thanh toán để hủy và hoàn tiền.');
+        }
+
         try {
             $changeOrderStatus->execute($order, $toStatus, $request->user(), $request->validated('note'));
         } catch (OrderStatusException $exception) {

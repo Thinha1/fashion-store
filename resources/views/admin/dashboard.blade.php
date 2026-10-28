@@ -3,7 +3,7 @@
 @section('content')
     @php
         $user = auth()->user();
-        $canWorkOrders = $user->hasPermission('orders.manage');
+        $canWorkOrders = $user->hasPermission('orders.view');
         $bucketNoun = ['hour' => 'giờ', 'day' => 'ngày', 'month' => 'tháng'][$period->granularity()];
         $salesIsEmpty = collect($salesSeries)->every(fn ($point) => $point['sales'] === 0);
         $maxProductQuantity = max(1, collect($topProducts)->max('quantity') ?? 0);

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\Reports\DashboardPeriod;
 use App\Services\Reports\SalesDashboard;
+use App\Support\AdminNavigation;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,8 +17,15 @@ class DashboardController extends Controller
      * Sales overview for one period (`?khoang=`, default last 30 days), plus
      * the things waiting for staff right now.
      */
-    public function __invoke(Request $request, SalesDashboard $dashboard): View
+    public function __invoke(Request $request, SalesDashboard $dashboard): View|RedirectResponse
     {
+        // Revenue is for dashboard.view only; other staff land on their first page.
+        if (! $request->user()->hasPermission('dashboard.view')) {
+            $landing = AdminNavigation::landingRoute($request->user());
+
+            return $landing === null ? view('admin.no-access') : redirect()->route($landing);
+        }
+
         $period = DashboardPeriod::fromKey($request->query('khoang'));
         $previousPeriod = $period->previous();
         $totals = $dashboard->totals($period);

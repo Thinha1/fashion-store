@@ -11,7 +11,7 @@
         'actionIcon' => 'edit',
     ])
 
-    @if ($receipt->status === 'draft')
+    @if ($receipt->status === 'draft' && auth()->user()->hasPermission('inventory.confirm'))
         <form method="POST" action="{{ route('admin.goods-receipts.confirm', $receipt) }}" class="mb-6 inline-block"
               x-on:submit.prevent="$dispatch('admin-confirm', { form: $el, message: 'Xác nhận phiếu nhập này? Tồn kho sẽ được cập nhật.' })">
             @csrf
