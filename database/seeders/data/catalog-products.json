@@ -4378,5 +4378,321 @@
             "2XL"
         ],
         "source_url": "https://routine.vn/products/ao-thun-nam-tron-basic-soi-cafe-fitted-039"
+    },
+    {
+        "slug": "alo-yoga-cropped-accolade-crewneck",
+        "name": "Alo Yoga Cropped Accolade Crewneck",
+        "category": "hoodie-nu",
+        "brand": "alo",
+        "description": "Mẫu áo hoodie, nỉ nữ của Alo Yoga, có 2 màu (hồng, vàng) và size S đến L.",
+        "price": 3330000,
+        "image": "alo-yoga-cropped-accolade-crewneck-hong.jpg",
+        "gallery": [],
+        "sku": "AL-YOCRACCR",
+        "colors": {
+            "Hồng": "H",
+            "Vàng": "V"
+        },
+        "color_images": {
+            "Hồng": "alo-yoga-cropped-accolade-crewneck-hong.jpg",
+            "Vàng": "alo-yoga-cropped-accolade-crewneck-vang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w3924rg-cropped-accolade-crewneck-paradise-pink",
+        "discount_percent": 30
+    },
+    {
+        "slug": "alo-yoga-alosoft-high-waist-iconic-90-s-capri",
+        "name": "Alo Yoga Alosoft High-Waist Iconic 90's Capri",
+        "category": "quan-dai-nu",
+        "brand": "alo",
+        "description": "Mẫu quần dài nữ của Alo Yoga, có 2 màu (xanh dương, đỏ) và size S đến L.",
+        "price": 2550000,
+        "image": "alo-yoga-alosoft-high-waist-iconic-90-s-capri-xanh-duong.jpg",
+        "gallery": [],
+        "sku": "AL-YOALHIWA",
+        "colors": {
+            "Xanh dương": "XD",
+            "Đỏ": "D"
+        },
+        "color_images": {
+            "Xanh dương": "alo-yoga-alosoft-high-waist-iconic-90-s-capri-xanh-duong.jpg",
+            "Đỏ": "alo-yoga-alosoft-high-waist-iconic-90-s-capri-do.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w51024r-alosoft-high-waist-iconic-90s-capri-azure-blue",
+        "discount_percent": 31
+    },
+    {
+        "slug": "alo-yoga-street-essential-tee",
+        "name": "Alo Yoga Street Essential Tee",
+        "category": "ao-thun-nam",
+        "brand": "alo",
+        "description": "Mẫu áo thun nam của Alo Yoga, có 2 màu (be, xám đậm) và size S đến 2XL.",
+        "price": 1770000,
+        "image": "alo-yoga-street-essential-tee-be.jpg",
+        "gallery": [],
+        "sku": "AL-YOSTESTE",
+        "colors": {
+            "Be": "B",
+            "Xám đậm": "XD"
+        },
+        "color_images": {
+            "Be": "alo-yoga-street-essential-tee-be.jpg",
+            "Xám đậm": "alo-yoga-street-essential-tee-xam-dam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.aloyoga.com/products/m1258r-street-essential-tee-gravel",
+        "discount_percent": 31
+    },
+    {
+        "slug": "alo-yoga-7-linen-jersey-coastal-short",
+        "name": "Alo Yoga 7\" Linen Jersey Coastal Short",
+        "category": "quan-short-nam",
+        "brand": "alo",
+        "description": "Mẫu quần short nam của Alo Yoga, có 2 màu (trắng, be) và size S đến 2XL.",
+        "price": 4110000,
+        "image": "alo-yoga-7-linen-jersey-coastal-short-trang.jpg",
+        "gallery": [],
+        "sku": "AL-YO7LIJE",
+        "colors": {
+            "Trắng": "T",
+            "Be": "B"
+        },
+        "color_images": {
+            "Trắng": "alo-yoga-7-linen-jersey-coastal-short-trang.jpg",
+            "Be": "alo-yoga-7-linen-jersey-coastal-short-be.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.aloyoga.com/products/m6201p-7-linen-jersey-coastal-short-white"
+    },
+    {
+        "slug": "alo-yoga-airbrush-high-waist-heart-throb-legging",
+        "name": "Alo Yoga Airbrush High-Waist Heart Throb Legging",
+        "category": "quan-dai-nu",
+        "brand": "alo",
+        "description": "Mẫu quần dài nữ của Alo Yoga, có 2 màu (tím nhạt, hồng) và size S đến L.",
+        "price": 3480000,
+        "image": "alo-yoga-airbrush-high-waist-heart-throb-legging-tim-nhat.jpg",
+        "gallery": [],
+        "sku": "AL-YOAIHIWA",
+        "colors": {
+            "Tím nhạt": "TN",
+            "Hồng": "H"
+        },
+        "color_images": {
+            "Tím nhạt": "alo-yoga-airbrush-high-waist-heart-throb-legging-tim-nhat.jpg",
+            "Hồng": "alo-yoga-airbrush-high-waist-heart-throb-legging-hong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w51298r-airbrush-high-waist-heart-throb-legging-winter-frost-white",
+        "discount_percent": 31
+    },
+    {
+        "slug": "alo-yoga-kinetic-cargo-pant",
+        "name": "Alo Yoga Kinetic Cargo Pant",
+        "category": "quan-dai-nam",
+        "brand": "alo",
+        "description": "Mẫu quần dài nam của Alo Yoga, có 2 màu (xám đậm, đen) và size S đến 2XL.",
+        "price": 3850000,
+        "image": "alo-yoga-kinetic-cargo-pant-xam-dam.jpg",
+        "gallery": [],
+        "sku": "AL-YOKICAPA",
+        "colors": {
+            "Xám đậm": "XD",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xám đậm": "alo-yoga-kinetic-cargo-pant-xam-dam.jpg",
+            "Đen": "alo-yoga-kinetic-cargo-pant-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.aloyoga.com/products/m5014r-kinetic-cargo-pant-anthracite",
+        "discount_percent": 30
+    },
+    {
+        "slug": "alo-yoga-elemental-full-zip-jacket",
+        "name": "Alo Yoga Elemental Full-Zip Jacket",
+        "category": "ao-khoac-nam",
+        "brand": "alo",
+        "description": "Mẫu áo khoác nam của Alo Yoga, có 2 màu (xám đậm, be) và size S đến 2XL.",
+        "price": 5150000,
+        "image": "alo-yoga-elemental-full-zip-jacket-xam-dam.jpg",
+        "gallery": [],
+        "sku": "AL-YOELFUZI",
+        "colors": {
+            "Xám đậm": "XD",
+            "Be": "B"
+        },
+        "color_images": {
+            "Xám đậm": "alo-yoga-elemental-full-zip-jacket-xam-dam.jpg",
+            "Be": "alo-yoga-elemental-full-zip-jacket-be.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.aloyoga.com/products/m4185r-elemental-full-zip-jacket-anthracite",
+        "discount_percent": 30
+    },
+    {
+        "slug": "alo-yoga-faux-fur-cropped-amore-jacket",
+        "name": "Alo Yoga Faux Fur Cropped Amore Jacket",
+        "category": "ao-khoac-nu",
+        "brand": "alo",
+        "description": "Mẫu áo khoác nữ của Alo Yoga, có 2 màu (trắng ngà, đen) và size S đến L.",
+        "price": 9050000,
+        "image": "alo-yoga-faux-fur-cropped-amore-jacket-trang-nga.jpg",
+        "gallery": [],
+        "sku": "AL-YOFAFUCR",
+        "colors": {
+            "Trắng ngà": "TN",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng ngà": "alo-yoga-faux-fur-cropped-amore-jacket-trang-nga.jpg",
+            "Đen": "alo-yoga-faux-fur-cropped-amore-jacket-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w4837r-faux-fur-cropped-amore-jacket-rich-bordeaux",
+        "discount_percent": 30
+    },
+    {
+        "slug": "alo-yoga-cotton-cashmere-high-waist-capri-dream-skirt",
+        "name": "Alo Yoga Cotton Cashmere High-Waist Capri Dream Skirt",
+        "category": "chan-vay",
+        "brand": "alo",
+        "description": "Mẫu chân váy nữ của Alo Yoga, có 2 màu (hồng, đen) và size S đến L.",
+        "price": 5150000,
+        "image": "alo-yoga-cotton-cashmere-high-waist-capri-dream-skirt-hong.jpg",
+        "gallery": [],
+        "sku": "AL-YOCOCAHI",
+        "colors": {
+            "Hồng": "H",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Hồng": "alo-yoga-cotton-cashmere-high-waist-capri-dream-skirt-hong.jpg",
+            "Đen": "alo-yoga-cotton-cashmere-high-waist-capri-dream-skirt-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w6640p-cotton-cashmere-high-waist-capri-dream-skirt-sundrenched-pink-white"
+    },
+    {
+        "slug": "alo-yoga-momentum-skirt",
+        "name": "Alo Yoga Momentum Skirt",
+        "category": "chan-vay",
+        "brand": "alo",
+        "description": "Mẫu chân váy nữ của Alo Yoga, có 2 màu (xanh lá, đen) và size S đến L.",
+        "price": 2290000,
+        "image": "alo-yoga-momentum-skirt-xanh-la.jpg",
+        "gallery": [],
+        "sku": "AL-YOMOSK",
+        "colors": {
+            "Xanh lá": "XL",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh lá": "alo-yoga-momentum-skirt-xanh-la.jpg",
+            "Đen": "alo-yoga-momentum-skirt-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w6632r-momentum-skirt-bamboo-green",
+        "discount_percent": 31
+    },
+    {
+        "slug": "alo-yoga-momentum-vest",
+        "name": "Alo Yoga Momentum Vest",
+        "category": "ao-khoac-nu",
+        "brand": "alo",
+        "description": "Mẫu áo khoác nữ của Alo Yoga, có 2 màu (xanh lá, đen) và size S đến L.",
+        "price": 3590000,
+        "image": "alo-yoga-momentum-vest-xanh-la.jpg",
+        "gallery": [],
+        "sku": "AL-YOMOVE",
+        "colors": {
+            "Xanh lá": "XL",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh lá": "alo-yoga-momentum-vest-xanh-la.jpg",
+            "Đen": "alo-yoga-momentum-vest-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w4844r-momentum-vest-bamboo-green",
+        "discount_percent": 30
+    },
+    {
+        "slug": "alo-yoga-softsculpt-tank",
+        "name": "Alo Yoga Softsculpt Tank",
+        "category": "ao-thun-nu",
+        "brand": "alo",
+        "description": "Mẫu áo thun nữ của Alo Yoga, có 1 màu (trắng) và size S đến L.",
+        "price": 1770000,
+        "image": "alo-yoga-softsculpt-tank-trang.jpg",
+        "gallery": [],
+        "sku": "AL-YOSOTA",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "alo-yoga-softsculpt-tank-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.aloyoga.com/products/w2704r-alo-softsculpt-tank-white",
+        "discount_percent": 31
     }
 ]

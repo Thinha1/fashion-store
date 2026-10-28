@@ -17,13 +17,14 @@ use RuntimeException;
 
 /**
  * Demo catalog built from real products of Coolmate, Yame, Nike, Puma,
- * Uniqlo, Teelab, Levents and Routine (names, prices, sale prices, colors,
- * sizes and photos as listed on their Vietnamese stores, see
+ * Uniqlo, Teelab, Levents, Routine and Alo Yoga (names, prices, sale prices,
+ * colors, sizes and photos as listed on their Vietnamese stores, or on the US
+ * store with prices converted to VND for Alo Yoga, see
  * assets/catalog/SOURCES.md). For the course project only; the photos belong
  * to the brands.
  *
  * Photos in assets/catalog are uploaded on every run. The high-resolution
- * photos (1080x1350) are kept out of the repo: they are uploaded once to the
+ * photos (up to 1080x1350) are kept out of the repo: they are uploaded once to the
  * image disk (R2) under demo/catalog and the seeder only checks they exist.
  */
 class CatalogDemoSeeder extends Seeder
@@ -93,6 +94,11 @@ class CatalogDemoSeeder extends Seeder
                 'name' => 'Routine',
                 'description' => 'Thương hiệu thời trang Việt Nam cho nam và nữ, chuyên trang phục cơ bản dễ phối: áo thun, sơ mi, quần tây và áo khoác.',
                 'country' => 'Việt Nam',
+            ],
+            'alo' => [
+                'name' => 'Alo Yoga',
+                'description' => 'Thương hiệu đồ tập và thời trang thể thao cao cấp từ Los Angeles, nổi tiếng với quần legging, áo khoác và đồ mặc hằng ngày cho nam và nữ.',
+                'country' => 'Mỹ',
             ],
         ];
 
@@ -422,6 +428,7 @@ class CatalogDemoSeeder extends Seeder
             'teelab' => ['TL', '#f9fafb', '#111827'],
             'levents' => ['LV', '#f9fafb', '#1f2937'],
             'routine' => ['RT', '#1f2937', '#e5e7eb'],
+            'alo' => ['AL', '#f9fafb', '#0f172a'],
         ];
         $paths = [];
 
