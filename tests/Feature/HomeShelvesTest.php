@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Product;
@@ -74,6 +75,31 @@ class HomeShelvesTest extends TestCase
 
         $this->assertStringContainsString('Áo đang giảm', $html);
         $this->assertStringNotContainsString('Áo giá gốc', $html);
+    }
+
+    public function test_the_brand_band_shows_the_eight_biggest_brands_then_a_more_link(): void
+    {
+        foreach (range(1, 9) as $index) {
+            $brand = Brand::factory()->create(['name' => "Hãng {$index}", 'is_active' => true]);
+            foreach (range(1, $index) as $unused) {
+                $this->product(['brand_id' => $brand->id]);
+            }
+        }
+
+        $this->get(route('home'))->assertOk()
+            ->assertSee('9 thương hiệu, một giỏ hàng')
+            ->assertSeeInOrder(['Hãng 9', 'Hãng 8', 'Hãng 7', 'Hãng 2', 'Xem thêm', '1 thương hiệu nữa'])
+            ->assertDontSee('Hãng 1<', false);
+    }
+
+    public function test_the_brand_band_links_to_every_collection_when_all_brands_fit(): void
+    {
+        $this->product(['brand_id' => Brand::factory()->create(['name' => 'Hãng duy nhất', 'is_active' => true])->id]);
+
+        $this->get(route('home'))->assertOk()
+            ->assertSee('Hãng duy nhất')
+            ->assertSee('Xem bộ sưu tập')
+            ->assertDontSee('thương hiệu nữa');
     }
 
     public function test_an_unknown_shelf_is_not_found(): void

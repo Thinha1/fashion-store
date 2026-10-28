@@ -461,6 +461,7 @@
     .brands a:focus-visible { outline-color: var(--color-paper); outline-offset: -4px; }
     .brands strong { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; font-size: var(--text-display-s); line-height: 1; letter-spacing: var(--tracking-display); }
     .brands span { font-family: var(--font-display); font-size: var(--text-md); color: var(--color-on-ink-muted); font-variant-numeric: tabular-nums; }
+    .brands .brands-more strong { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--color-accent); text-underline-offset: 0.12em; }
     @media (max-width: 60rem) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); } .brands li:not(:nth-child(3n + 1)) { border-left: 0; } .brands li:nth-child(2n) { border-left: 1px solid var(--color-ink-2); } }
 
     /* Footer ------------------------------------------------------------ */

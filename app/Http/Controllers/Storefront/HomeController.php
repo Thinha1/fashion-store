@@ -13,6 +13,9 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
+    /** Brands on the home page's ink band; the next cell links to the rest. */
+    public const BRANDS_ON_HOME = 8;
+
     /**
      * The storefront home: a cover of featured products led by a menswear
      * piece, shelves of featured, discounted and newest products (four at a
@@ -37,9 +40,11 @@ class HomeController extends Controller
                 ->where('is_active', true)
                 ->withCount(['products' => fn (Builder $products) => $products->where('status', 'active')])
                 ->orderByDesc('products_count')
+                ->orderBy('name')
                 ->get()
                 ->filter(fn (Brand $brand) => $brand->products_count > 0)
                 ->values(),
+            'brandsShown' => self::BRANDS_ON_HOME,
         ]);
     }
 
