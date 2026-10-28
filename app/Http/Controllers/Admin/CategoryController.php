@@ -67,7 +67,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        abort_unless(auth()->user()->can('products.manage'), 403);
+        abort_unless(auth()->user()->can('catalog.manage'), 403);
 
         if ($category->products()->exists()) {
             return back()->with('error', 'Không thể xóa danh mục đang có sản phẩm.');

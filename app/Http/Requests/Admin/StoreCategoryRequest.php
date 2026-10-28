@@ -11,7 +11,7 @@ class StoreCategoryRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
-        return 'products.manage';
+        return 'catalog.manage';
     }
 
     /**

@@ -50,12 +50,12 @@ class AdminExcel
     {
         return [
             'brands' => [
-                'label' => 'Thương hiệu', 'permission' => 'products.manage',
+                'label' => 'Thương hiệu', 'permission' => 'catalog.manage',
                 'model' => Brand::class, 'request' => StoreBrandRequest::class, 'controller' => BrandController::class, 'parameter' => 'brand',
                 'columns' => ['ID' => 'id', 'Tên thương hiệu' => 'name', 'Mô tả' => 'description', 'Quốc gia' => 'country', 'Hoạt động (1/0)' => 'is_active'],
             ],
             'categories' => [
-                'label' => 'Danh mục', 'permission' => 'products.manage',
+                'label' => 'Danh mục', 'permission' => 'catalog.manage',
                 'model' => Category::class, 'request' => StoreCategoryRequest::class, 'controller' => CategoryController::class, 'parameter' => 'category',
                 'columns' => ['ID' => 'id', 'Tên danh mục' => 'name', 'ID danh mục cha' => 'parent_id', 'Mô tả' => 'description', 'Thứ tự' => 'sort_order', 'Hoạt động (1/0)' => 'is_active'],
             ],
@@ -73,7 +73,7 @@ class AdminExcel
                 'children' => ['Biến thể' => ['Mã liên kết' => '_key', 'ID biến thể' => 'id', 'Size' => 'size', 'Màu' => 'color', 'SKU' => 'sku', 'Giá' => 'price', 'Ngưỡng tồn thấp' => 'low_stock_threshold', 'Hoạt động (1/0)' => 'is_active', 'Tồn kho (chỉ xem)' => '_stock']],
             ],
             'discounts' => [
-                'label' => 'Giảm giá', 'permission' => 'products.manage',
+                'label' => 'Giảm giá', 'permission' => 'discounts.manage',
                 'model' => Discount::class, 'request' => StoreDiscountRequest::class, 'controller' => DiscountController::class, 'parameter' => 'discount',
                 'columns' => ['ID' => 'id', 'SKU' => '_sku', 'Loại giảm (percent/fixed)' => 'discount_type', 'Giá trị giảm' => 'discount_value', 'Giảm tối đa' => 'max_discount_amount', 'Bắt đầu' => 'starts_at', 'Kết thúc' => 'ends_at', 'Hoạt động (1/0)' => 'is_active'],
             ],

@@ -74,7 +74,7 @@ class BrandController extends Controller
 
     public function destroy(Brand $brand): RedirectResponse
     {
-        abort_unless(auth()->user()->can('products.manage'), 403);
+        abort_unless(auth()->user()->can('catalog.manage'), 403);
 
         if ($brand->products()->exists()) {
             return back()->with('error', 'Không thể xóa thương hiệu đang có sản phẩm. Hãy chuyển các sản phẩm sang thương hiệu khác trước.');
