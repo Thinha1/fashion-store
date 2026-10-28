@@ -3557,5 +3557,826 @@
         ],
         "source_url": "https://www.nike.com/vn/t/zenvy-womens-high-waisted-flared-leggings-with-no-front-seam-LbranU7F/II5224-630",
         "featured": true
+    },
+    {
+        "slug": "levents-serif-logo-slim-fit-tee",
+        "name": "Levents Serif Logo Slim Fit Tee",
+        "category": "ao-thun-nu",
+        "brand": "levents",
+        "description": "Mẫu áo thun nữ của Levents, có 2 màu (xanh nhạt, trắng) và size S đến L.",
+        "price": 520000,
+        "image": "levents-serif-logo-slim-fit-tee-xanh-nhat.jpg",
+        "gallery": [],
+        "sku": "LV-LESELOSL",
+        "colors": {
+            "Xanh nhạt": "XN",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Xanh nhạt": "levents-serif-logo-slim-fit-tee-xanh-nhat.jpg",
+            "Trắng": "levents-serif-logo-slim-fit-tee-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-serif-logo-slim-fit-tee"
+    },
+    {
+        "slug": "levents-forget-me-not-slim-fit-tee",
+        "name": "Levents Forget Me Not Slim Fit Tee",
+        "category": "ao-thun-nu",
+        "brand": "levents",
+        "description": "Mẫu áo thun nữ của Levents, có 1 màu (trắng) và size S đến L.",
+        "price": 520000,
+        "image": "levents-forget-me-not-slim-fit-tee-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "levents-forget-me-not-slim-fit-tee-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-slim-fit-tee"
+    },
+    {
+        "slug": "levents-forget-me-not-long-sleeve-boxy-tee",
+        "name": "Levents Forget Me Not Long Sleeve Boxy Tee",
+        "category": "ao-thun-nam",
+        "brand": "levents",
+        "description": "Mẫu áo thun nam của Levents, có 1 màu (trắng) và size S đến XL.",
+        "price": 750000,
+        "image": "levents-forget-me-not-long-sleeve-boxy-tee-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO2",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "levents-forget-me-not-long-sleeve-boxy-tee-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-long-sleeve-boxy-tee"
+    },
+    {
+        "slug": "levents-forget-me-not-semi-oversized-tee",
+        "name": "Levents Forget Me Not Semi-Oversized Tee",
+        "category": "ao-thun-nam",
+        "brand": "levents",
+        "description": "Mẫu áo thun nam của Levents, có 1 màu (trắng) và size S đến XL.",
+        "price": 550000,
+        "image": "levents-forget-me-not-semi-oversized-tee-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO3",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "levents-forget-me-not-semi-oversized-tee-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-semi-oversized-tee"
+    },
+    {
+        "slug": "levents-forget-me-not-raglan-long-sleeve-boxy-tee",
+        "name": "Levents Forget Me Not Raglan Long Sleeve Boxy Tee",
+        "category": "ao-thun-nam",
+        "brand": "levents",
+        "description": "Mẫu áo thun nam của Levents, có 1 màu (xanh navy) và size S đến XL.",
+        "price": 750000,
+        "image": "levents-forget-me-not-raglan-long-sleeve-boxy-tee-xanh-navy.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO4",
+        "colors": {
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Xanh navy": "levents-forget-me-not-raglan-long-sleeve-boxy-tee-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-raglan-long-sleeve-boxy-tee"
+    },
+    {
+        "slug": "levents-xl-logo-zipper-hoodie-boxy",
+        "name": "Levents XL Logo Zipper Hoodie Boxy",
+        "category": "hoodie-nam",
+        "brand": "levents",
+        "description": "Mẫu áo hoodie, nỉ nam của Levents, có 4 màu (nâu, trắng, xám, vàng) và size M đến XL.",
+        "price": 820000,
+        "image": "levents-xl-logo-zipper-hoodie-boxy-nau.jpg",
+        "gallery": [],
+        "sku": "LV-LEXLLOZI",
+        "colors": {
+            "Nâu": "N",
+            "Trắng": "T",
+            "Xám": "X",
+            "Vàng": "V"
+        },
+        "color_images": {
+            "Nâu": "levents-xl-logo-zipper-hoodie-boxy-nau.jpg",
+            "Trắng": "levents-xl-logo-zipper-hoodie-boxy-trang.jpg",
+            "Xám": "levents-xl-logo-zipper-hoodie-boxy-xam.jpg",
+            "Vàng": "levents-xl-logo-zipper-hoodie-boxy-vang.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-xl-logo-zipper-hoodie-boxy",
+        "featured": true
+    },
+    {
+        "slug": "levents-striped-long-sleeve-boxy-polo-shirt",
+        "name": "Levents Striped Long Sleeve Boxy Polo Shirt",
+        "category": "ao-polo-nam",
+        "brand": "levents",
+        "description": "Mẫu áo polo nam của Levents, có 3 màu (xanh dương, hồng, xanh lá) và size M đến XL.",
+        "price": 750000,
+        "image": "levents-striped-long-sleeve-boxy-polo-shirt-xanh-duong.jpg",
+        "gallery": [],
+        "sku": "LV-LESTLOSL",
+        "colors": {
+            "Xanh dương": "XD",
+            "Hồng": "H",
+            "Xanh lá": "XL"
+        },
+        "color_images": {
+            "Xanh dương": "levents-striped-long-sleeve-boxy-polo-shirt-xanh-duong.jpg",
+            "Hồng": "levents-striped-long-sleeve-boxy-polo-shirt-hong.jpg",
+            "Xanh lá": "levents-striped-long-sleeve-boxy-polo-shirt-xanh-la.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-striped-long-sleeve-boxy-polo-shirt"
+    },
+    {
+        "slug": "levents-seasonal-sporty-jacket",
+        "name": "Levents Seasonal Sporty Jacket",
+        "category": "ao-khoac-nam",
+        "brand": "levents",
+        "description": "Mẫu áo khoác nam của Levents, có 2 màu (trắng, đen) và size S đến L.",
+        "price": 1280000,
+        "image": "levents-seasonal-sporty-jacket-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LESESPJA",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "levents-seasonal-sporty-jacket-trang.jpg",
+            "Đen": "levents-seasonal-sporty-jacket-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-seasonal-sporty-jacket",
+        "featured": true
+    },
+    {
+        "slug": "levents-forget-me-not-track-jacket",
+        "name": "Levents Forget Me Not Track Jacket",
+        "category": "ao-khoac-nam",
+        "brand": "levents",
+        "description": "Mẫu áo khoác nam của Levents, có 1 màu (trắng) và size S đến L.",
+        "price": 920000,
+        "image": "levents-forget-me-not-track-jacket-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO5",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "levents-forget-me-not-track-jacket-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-track-jacket"
+    },
+    {
+        "slug": "levents-classic-dashed-line-nylon-jacket",
+        "name": "Levents Classic Dashed Line Nylon Jacket",
+        "category": "ao-khoac-nam",
+        "brand": "levents",
+        "description": "Mẫu áo khoác nam của Levents, có 2 màu (trắng, đen) và size M đến XL.",
+        "price": 680000,
+        "image": "levents-classic-dashed-line-nylon-jacket-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LECLDALI",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "levents-classic-dashed-line-nylon-jacket-trang.jpg",
+            "Đen": "levents-classic-dashed-line-nylon-jacket-den.jpg"
+        },
+        "sizes": [
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-classic-dashed-line-nylon-jacket"
+    },
+    {
+        "slug": "levents-signature-logo-heavyweight-relaxed-hoodie-zip",
+        "name": "Levents Signature Logo Heavyweight Relaxed Hoodie Zip",
+        "category": "hoodie-nam",
+        "brand": "levents",
+        "description": "Mẫu áo hoodie, nỉ nam của Levents, có 1 màu (xám) và size S đến XL.",
+        "price": 1250000,
+        "image": "levents-signature-logo-heavyweight-relaxed-hoodie-zip-xam.jpg",
+        "gallery": [],
+        "sku": "LV-LESILOHE",
+        "colors": {
+            "Xám": "X"
+        },
+        "color_images": {
+            "Xám": "levents-signature-logo-heavyweight-relaxed-hoodie-zip-xam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-signature-logo-heavyweight-relaxed-hoodie-zip"
+    },
+    {
+        "slug": "levents-forget-me-not-semi-oversized-hoodie-zip",
+        "name": "Levents Forget Me Not Semi-Oversized Hoodie Zip",
+        "category": "hoodie-nam",
+        "brand": "levents",
+        "description": "Mẫu áo hoodie, nỉ nam của Levents, có 1 màu (trắng) và size S đến 2XL.",
+        "price": 980000,
+        "image": "levents-forget-me-not-semi-oversized-hoodie-zip-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LEFOMENO6",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "levents-forget-me-not-semi-oversized-hoodie-zip-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-forget-me-not-semi-oversized-hoodie-zip"
+    },
+    {
+        "slug": "levents-sporty-nylon-cargo-pants",
+        "name": "Levents Sporty Nylon Cargo Pants",
+        "category": "quan-dai-nam",
+        "brand": "levents",
+        "description": "Mẫu quần dài nam của Levents, có 2 màu (trắng, đen) và size S đến XL.",
+        "price": 750000,
+        "image": "levents-sporty-nylon-cargo-pants-trang.jpg",
+        "gallery": [],
+        "sku": "LV-LESPNYCA",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Trắng": "levents-sporty-nylon-cargo-pants-trang.jpg",
+            "Đen": "levents-sporty-nylon-cargo-pants-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-sporty-nylon-cargo-pants"
+    },
+    {
+        "slug": "levents-x-hello-kitty-striped-chino-pants",
+        "name": "Levents x Hello Kitty Striped Chino Pants",
+        "category": "quan-dai-nam",
+        "brand": "levents",
+        "description": "Mẫu quần dài nam của Levents, có 2 màu (đen, xanh dương) và size S đến XL.",
+        "price": 580000,
+        "image": "levents-x-hello-kitty-striped-chino-pants-den.jpg",
+        "gallery": [],
+        "sku": "LV-LEXHEKI",
+        "colors": {
+            "Đen": "D",
+            "Xanh dương": "XD"
+        },
+        "color_images": {
+            "Đen": "levents-x-hello-kitty-striped-chino-pants-den.jpg",
+            "Xanh dương": "levents-x-hello-kitty-striped-chino-pants-xanh-duong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-x-hello-kitty-striped-chino-pants"
+    },
+    {
+        "slug": "levents-seasonal-sporty-shorts",
+        "name": "Levents Seasonal Sporty Shorts",
+        "category": "quan-short-nam",
+        "brand": "levents",
+        "description": "Mẫu quần short nam của Levents, có 2 màu (đen, trắng) và size S đến XL.",
+        "price": 680000,
+        "image": "levents-seasonal-sporty-shorts-den.jpg",
+        "gallery": [],
+        "sku": "LV-LESESPSH",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Đen": "levents-seasonal-sporty-shorts-den.jpg",
+            "Trắng": "levents-seasonal-sporty-shorts-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-seasonal-sporty-shorts"
+    },
+    {
+        "slug": "levents-serif-logo-striped-sporty-shorts",
+        "name": "Levents Serif Logo Striped Sporty Shorts",
+        "category": "quan-short-nam",
+        "brand": "levents",
+        "description": "Mẫu quần short nam của Levents, có 1 màu (xanh navy) và size S đến XL.",
+        "price": 680000,
+        "image": "levents-serif-logo-striped-sporty-shorts-xanh-navy.jpg",
+        "gallery": [],
+        "sku": "LV-LESELOST",
+        "colors": {
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Xanh navy": "levents-serif-logo-striped-sporty-shorts-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://www.levents.asia/products/levents-serif-logo-striped-sporty-shorts"
+    },
+    {
+        "slug": "ao-len-nam-det-kim-tay-dai-co-cao-form-fitted",
+        "name": "Áo Len Nam Dệt Kim Tay Dài Cổ Cao Form Fitted",
+        "category": "hoodie-nam",
+        "brand": "routine",
+        "description": "Kiểu áo cổ lọ dày dặn, giữ ấm tốt, mềm mịn và thoáng khí.",
+        "price": 499000,
+        "image": "ao-len-nam-det-kim-tay-dai-co-cao-form-fitted-den.jpg",
+        "gallery": [],
+        "sku": "RT-AOLENADE",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-len-nam-det-kim-tay-dai-co-cao-form-fitted-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://routine.vn/products/10f24kni011"
+    },
+    {
+        "slug": "ao-len-nam-tay-dai-co-tron-form-regular",
+        "name": "Áo Len Nam Tay Dài Cổ Tròn Form Regular",
+        "category": "hoodie-nam",
+        "brand": "routine",
+        "description": "Kiểu áo len dài tay ấm áp, form áo regular vừa vặn và dễ phối đồ. Áo mặc ấm áp, mềm mại mùa thu đông.",
+        "price": 649000,
+        "image": "ao-len-nam-tay-dai-co-tron-form-regular-be.jpg",
+        "gallery": [],
+        "sku": "RT-AOLENATA",
+        "colors": {
+            "Be": "B",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Be": "ao-len-nam-tay-dai-co-tron-form-regular-be.jpg",
+            "Đen": "ao-len-nam-tay-dai-co-tron-form-regular-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://routine.vn/products/10f24kni008",
+        "featured": true
+    },
+    {
+        "slug": "ao-thun-nu-tay-ngan-slimme-vien-co-manh",
+        "name": "Áo Thun Nữ Tay Ngắn Slimme Viền Cổ Mảnh",
+        "category": "ao-thun-nu",
+        "brand": "routine",
+        "description": "Phối màu đơn giản, kiểu trơn dễ kết hợp với quần hay váy.",
+        "price": 299000,
+        "image": "ao-thun-nu-tay-ngan-slimme-vien-co-manh-den.jpg",
+        "gallery": [],
+        "sku": "RT-AOTHNUTA",
+        "colors": {
+            "Đen": "D"
+        },
+        "color_images": {
+            "Đen": "ao-thun-nu-tay-ngan-slimme-vien-co-manh-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://routine.vn/products/10f24tssw025"
+    },
+    {
+        "slug": "ao-so-mi-nam-ngan-tay-cotton-form-fitted",
+        "name": "Áo sơ mi nam ngắn tay cotton form fitted",
+        "category": "ao-so-mi-nam",
+        "brand": "routine",
+        "description": "Mẫu áo sơ mi nam của Routine, có 4 màu (trắng, xám, xanh lá, xanh dương) và size S đến 2XL.",
+        "price": 449000,
+        "image": "ao-so-mi-nam-ngan-tay-cotton-form-fitted-trang.jpg",
+        "gallery": [],
+        "sku": "RT-AOSOMINA",
+        "colors": {
+            "Trắng": "T",
+            "Xám": "X",
+            "Xanh lá": "XL",
+            "Xanh dương": "XD"
+        },
+        "color_images": {
+            "Trắng": "ao-so-mi-nam-ngan-tay-cotton-form-fitted-trang.jpg",
+            "Xám": "ao-so-mi-nam-ngan-tay-cotton-form-fitted-xam.jpg",
+            "Xanh lá": "ao-so-mi-nam-ngan-tay-cotton-form-fitted-xanh-la.jpg",
+            "Xanh dương": "ao-so-mi-nam-ngan-tay-cotton-form-fitted-xanh-duong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/10s24shs011",
+        "featured": true
+    },
+    {
+        "slug": "ao-polo-nam-ngan-tay-cao-cap-cotton-polyester-form-fitted",
+        "name": "Áo Polo Nam Ngắn Tay Cao Cấp Cotton Polyester Form Fitted",
+        "category": "ao-polo-nam",
+        "brand": "routine",
+        "description": "Mẫu áo polo nam của Routine, có 2 màu (trắng, xanh lá) và size S đến 2XL.",
+        "price": 499000,
+        "image": "ao-polo-nam-ngan-tay-cao-cap-cotton-polyester-form-fitted-trang.jpg",
+        "gallery": [],
+        "sku": "RT-AOPONANG",
+        "colors": {
+            "Trắng": "T",
+            "Xanh lá": "XL"
+        },
+        "color_images": {
+            "Trắng": "ao-polo-nam-ngan-tay-cao-cap-cotton-polyester-form-fitted-trang.jpg",
+            "Xanh lá": "ao-polo-nam-ngan-tay-cao-cap-cotton-polyester-form-fitted-xanh-la.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/10f24pol014"
+    },
+    {
+        "slug": "chan-vay-mini-nu-ngan-tweed-form-fitted",
+        "name": "Chân Váy Mini Nữ Ngắn Tweed Form Fitted",
+        "category": "chan-vay",
+        "brand": "routine",
+        "description": "Mẫu chân váy nữ của Routine, có 2 màu (đỏ, hồng) và size S đến L.",
+        "price": 389000,
+        "image": "chan-vay-mini-nu-ngan-tweed-form-fitted-do.jpg",
+        "gallery": [],
+        "sku": "RT-CHVAMINU",
+        "colors": {
+            "Đỏ": "D",
+            "Hồng": "H"
+        },
+        "color_images": {
+            "Đỏ": "chan-vay-mini-nu-ngan-tweed-form-fitted-do.jpg",
+            "Hồng": "chan-vay-mini-nu-ngan-tweed-form-fitted-hong.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://routine.vn/products/10f22skiw005"
+    },
+    {
+        "slug": "ao-so-mi-denim-nam-tay-dai-xanh-dam-form-loose",
+        "name": "Áo sơ mi denim nam tay dài xanh đậm form loose",
+        "category": "ao-so-mi-nam",
+        "brand": "routine",
+        "description": "Áo sơ mi denim nam tay dài xanh đậm form loose.",
+        "price": 579000,
+        "image": "ao-so-mi-denim-nam-tay-dai-xanh-dam-form-loose-xanh-navy.jpg",
+        "gallery": [],
+        "sku": "RT-AOSOMIDE",
+        "colors": {
+            "Xanh navy": "XN"
+        },
+        "color_images": {
+            "Xanh navy": "ao-so-mi-denim-nam-tay-dai-xanh-dam-form-loose-xanh-navy.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://routine.vn/products/10f24dsh002"
+    },
+    {
+        "slug": "men-s-oversized-short-sleeve-striped-denim-shirt",
+        "name": "Áo sơ mi denim sọc nam tay ngắn form oversized",
+        "category": "ao-so-mi-nam",
+        "brand": "routine",
+        "description": "Mẫu áo sơ mi nam của Routine, có 1 màu (trắng) và size S đến L.",
+        "price": 549000,
+        "image": "men-s-oversized-short-sleeve-striped-denim-shirt-trang.jpg",
+        "gallery": [],
+        "sku": "RT-MESOVSH",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "men-s-oversized-short-sleeve-striped-denim-shirt-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L"
+        ],
+        "source_url": "https://routine.vn/products/ao-so-mi-jean-nam-ngan-tay-soc-form-oversize-006"
+    },
+    {
+        "slug": "ao-thun-nam-ngan-tay-s-cafe-form-fitted",
+        "name": "Áo Thun Nam Ngắn Tay S.cafe Form Fitted",
+        "category": "ao-thun-nam",
+        "brand": "routine",
+        "description": "Mẫu áo thun nam của Routine, có 4 màu (trắng, đen, xanh lá, nâu) và size S đến 2XL.",
+        "price": 429000,
+        "image": "ao-thun-nam-ngan-tay-s-cafe-form-fitted-trang.jpg",
+        "gallery": [],
+        "sku": "RT-AOTHNANG",
+        "colors": {
+            "Trắng": "T",
+            "Đen": "D",
+            "Xanh lá": "XL",
+            "Nâu": "N"
+        },
+        "color_images": {
+            "Trắng": "ao-thun-nam-ngan-tay-s-cafe-form-fitted-trang.jpg",
+            "Đen": "ao-thun-nam-ngan-tay-s-cafe-form-fitted-den.jpg",
+            "Xanh lá": "ao-thun-nam-ngan-tay-s-cafe-form-fitted-xanh-la.jpg",
+            "Nâu": "ao-thun-nam-ngan-tay-s-cafe-form-fitted-nau.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-thun-coffee-lovers-series-4-tron-fitted-002"
+    },
+    {
+        "slug": "ao-thun-nam-ngan-tay-cotton-form-regular",
+        "name": "Áo Thun Nam Ngắn Tay Cotton Form Regular",
+        "category": "ao-thun-nam",
+        "brand": "routine",
+        "description": "Mẫu áo thun nam của Routine, có 3 màu (đen, trắng, xám) và size S đến XL.",
+        "price": 349000,
+        "image": "ao-thun-nam-ngan-tay-cotton-form-regular-den.jpg",
+        "gallery": [],
+        "sku": "RT-AOTHNANG2",
+        "colors": {
+            "Đen": "D",
+            "Trắng": "T",
+            "Xám": "X"
+        },
+        "color_images": {
+            "Đen": "ao-thun-nam-ngan-tay-cotton-form-regular-den.jpg",
+            "Trắng": "ao-thun-nam-ngan-tay-cotton-form-regular-trang.jpg",
+            "Xám": "ao-thun-nam-ngan-tay-cotton-form-regular-xam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-thun-nam-tay-ngan-cotton-tron-form-regular-070"
+    },
+    {
+        "slug": "ao-blazer-nam-linen-form-fitted",
+        "name": "Áo blazer nam linen form fitted",
+        "category": "ao-khoac-nam",
+        "brand": "routine",
+        "description": "Áo blazer nam linen form fitted.",
+        "price": 1349000,
+        "image": "ao-blazer-nam-linen-form-fitted-trang-nga.jpg",
+        "gallery": [],
+        "sku": "RT-AOBLNALI",
+        "colors": {
+            "Trắng ngà": "TN"
+        },
+        "color_images": {
+            "Trắng ngà": "ao-blazer-nam-linen-form-fitted-trang-nga.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-blazer-nam-linen-form-fitted-001"
+    },
+    {
+        "slug": "men-s-long-sleeve-s-cafe-sustainable-smart-shirt-fitted",
+        "name": "Áo sơ mi nam tay dài S.Cafe form fitted",
+        "category": "ao-so-mi-nam",
+        "brand": "routine",
+        "description": "Mẫu áo sơ mi nam của Routine, có 3 màu (xanh nhạt, đen, trắng) và size S đến 2XL.",
+        "price": 399000,
+        "image": "men-s-long-sleeve-s-cafe-sustainable-smart-shirt-fitted-xanh-nhat.jpg",
+        "gallery": [],
+        "sku": "RT-MESLOSL",
+        "colors": {
+            "Xanh nhạt": "XN",
+            "Đen": "D",
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Xanh nhạt": "men-s-long-sleeve-s-cafe-sustainable-smart-shirt-fitted-xanh-nhat.jpg",
+            "Đen": "men-s-long-sleeve-s-cafe-sustainable-smart-shirt-fitted-den.jpg",
+            "Trắng": "men-s-long-sleeve-s-cafe-sustainable-smart-shirt-fitted-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-so-mi-nam-dai-tay-s-cafe-form-fitted-090"
+    },
+    {
+        "slug": "men-s-regular-fit-knit-blazer-jacket",
+        "name": "Áo blazer dệt kim nam form regular",
+        "category": "ao-khoac-nam",
+        "brand": "routine",
+        "description": "Mẫu áo khoác nam của Routine, có 1 màu (be) và size S đến 2XL.",
+        "price": 1250000,
+        "image": "men-s-regular-fit-knit-blazer-jacket-be.jpg",
+        "gallery": [],
+        "sku": "RT-MESREFI",
+        "colors": {
+            "Be": "B"
+        },
+        "color_images": {
+            "Be": "men-s-regular-fit-knit-blazer-jacket-be.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-blazer-nam-knitting-form-regular-002"
+    },
+    {
+        "slug": "ao-sweatshirt-nam-co-hinh-theu-form-fitted",
+        "name": "Áo sweatshirt nam có hình thêu form fitted",
+        "category": "hoodie-nam",
+        "brand": "routine",
+        "description": "Áo sweatshirt nam có hình thêu form fitted.",
+        "price": 549000,
+        "image": "ao-sweatshirt-nam-co-hinh-theu-form-fitted-xanh-la.jpg",
+        "gallery": [],
+        "sku": "RT-AOSWNACO",
+        "colors": {
+            "Xanh lá": "XL",
+            "Đen": "D"
+        },
+        "color_images": {
+            "Xanh lá": "ao-sweatshirt-nam-co-hinh-theu-form-fitted-xanh-la.jpg",
+            "Đen": "ao-sweatshirt-nam-co-hinh-theu-form-fitted-den.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-ni-sweater-nam-theu-hinh-fitted-001"
+    },
+    {
+        "slug": "ao-polo-nam-ngan-tay-cotton-poly-form-fitted",
+        "name": "Áo polo nam ngắn tay cotton poly form fitted",
+        "category": "ao-polo-nam",
+        "brand": "routine",
+        "description": "Mẫu áo polo nam của Routine, có 1 màu (trắng) và size S đến 2XL.",
+        "price": 479000,
+        "image": "ao-polo-nam-ngan-tay-cotton-poly-form-fitted-trang.jpg",
+        "gallery": [],
+        "sku": "RT-AOPONANG2",
+        "colors": {
+            "Trắng": "T"
+        },
+        "color_images": {
+            "Trắng": "ao-polo-nam-ngan-tay-cotton-poly-form-fitted-trang.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-polo-nam-ngan-tay-cotton-poly-form-fitted-030"
+    },
+    {
+        "slug": "ao-thun-nam-tay-ngan-s-cafe-form-fitted-coffee-lovers-4",
+        "name": "Áo thun nam tay ngắn S.Cafe Coffee Lovers form fitted",
+        "category": "ao-thun-nam",
+        "brand": "routine",
+        "description": "Mẫu áo thun nam của Routine, có 1 màu (xám) và size S đến 2XL.",
+        "price": 449000,
+        "image": "ao-thun-nam-tay-ngan-s-cafe-form-fitted-coffee-lovers-4-xam.jpg",
+        "gallery": [],
+        "sku": "RT-AOTHNATA",
+        "colors": {
+            "Xám": "X"
+        },
+        "color_images": {
+            "Xám": "ao-thun-nam-tay-ngan-s-cafe-form-fitted-coffee-lovers-4-xam.jpg"
+        },
+        "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "2XL"
+        ],
+        "source_url": "https://routine.vn/products/ao-thun-nam-tron-basic-soi-cafe-fitted-039"
     }
 ]

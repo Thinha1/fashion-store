@@ -1,8 +1,8 @@
 # Nguồn dữ liệu catalog demo
 
-Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Việt Nam của Coolmate, Yame, Nike, Puma, Uniqlo và Teelab (tháng 10/2026): tên, giá niêm yết và giá khuyến mãi, màu, size, mô tả và ảnh. Dữ liệu được lấy theo `robots.txt` của từng trang (Coolmate: trang sản phẩm; Yame: `products.json` của Shopify; Nike: trang danh sách `/w/`, không vào trang chi tiết bị chặn; Puma: JSON-LD trên trang sản phẩm; Uniqlo: API sản phẩm của trang web; Teelab: `products.json` của Sapo). Adidas Việt Nam chặn truy cập tự động nên không có trong catalog.
+Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Việt Nam của Coolmate, Yame, Nike, Puma, Uniqlo, Teelab, Levents và Routine (tháng 10/2026): tên, giá niêm yết và giá khuyến mãi, màu, size, mô tả và ảnh. Dữ liệu được lấy theo `robots.txt` của từng trang (Coolmate: trang sản phẩm; Yame: `products.json` của Shopify; Nike: trang danh sách `/w/`, không vào trang chi tiết bị chặn; Puma: JSON-LD trên trang sản phẩm; Uniqlo: API sản phẩm của trang web; Teelab: `products.json` của Sapo; Levents: dữ liệu sản phẩm nhúng trong trang, lấy link từ các trang danh mục; Routine: JSON-LD `ProductGroup` trên trang sản phẩm, lấy link từ sitemap). Adidas Việt Nam chặn truy cập tự động nên không có trong catalog.
 
-Ảnh đã cắt về tỉ lệ 4:5 (640×800). Mỗi màu có một ảnh riêng, đặt tên `<slug>-<màu>.jpg`; ảnh phụ là `<slug>-2.jpg`, `<slug>-3.jpg`. Mô tả được rút gọn từ nội dung trang gốc; mô tả Nike đợt đầu do nhóm tự viết, đợt sau dịch từ trang sản phẩm. Mỗi sản phẩm lấy tối đa 4 màu. Size số của quần (29, 30…) được quy về S–XL cho khớp danh sách size của hệ thống. Tồn kho là số giả lập.
+Ảnh đã cắt về tỉ lệ 4:5 (640×800). Ảnh Levents và Routine là bản chất lượng cao 1080×1350, không nằm trong repo: chúng được đưa một lần lên disk ảnh (R2) ở `demo/catalog/` và seeder chỉ kiểm tra ảnh đã có ở đó. Mỗi màu có một ảnh riêng, đặt tên `<slug>-<màu>.jpg`; ảnh phụ là `<slug>-2.jpg`, `<slug>-3.jpg`. Mô tả được rút gọn từ nội dung trang gốc; mô tả Nike đợt đầu do nhóm tự viết, đợt sau dịch từ trang sản phẩm. Mỗi sản phẩm lấy tối đa 4 màu. Size số của quần (29, 30…) được quy về S–XL cho khớp danh sách size của hệ thống. Tồn kho là số giả lập.
 
 **Ảnh và nội dung thuộc bản quyền của các thương hiệu, chỉ dùng cho đồ án môn học, không dùng cho mục đích thương mại hay triển khai công khai.**
 
@@ -126,3 +126,35 @@ Catalog demo lấy từ sản phẩm quần áo thật đang bán trên trang Vi
 | Nike | Nike Studio Fleece Oversized Crew-Neck Sweatshirt | [www.nike.com](https://www.nike.com/vn/t/studio-fleece-lightweight-womens-oversized-crew-neck-sweatshirt-r5Fh4PQC/IM8510-133) |
 | Nike | NikeCourt Advantage Pleated Tennis Skirt | [www.nike.com](https://www.nike.com/vn/t/nikecourt-advantage-womens-dri-fit-pleated-tennis-skirt-bC6d18/FZ6513-010) |
 | Nike | Nike Zenvy High-Waisted Flared Leggings | [www.nike.com](https://www.nike.com/vn/t/zenvy-womens-high-waisted-flared-leggings-with-no-front-seam-LbranU7F/II5224-630) |
+| Levents | Levents Serif Logo Slim Fit Tee | [www.levents.asia](https://www.levents.asia/products/levents-serif-logo-slim-fit-tee) |
+| Levents | Levents Forget Me Not Slim Fit Tee | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-slim-fit-tee) |
+| Levents | Levents Forget Me Not Long Sleeve Boxy Tee | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-long-sleeve-boxy-tee) |
+| Levents | Levents Forget Me Not Semi-Oversized Tee | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-semi-oversized-tee) |
+| Levents | Levents Forget Me Not Raglan Long Sleeve Boxy Tee | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-raglan-long-sleeve-boxy-tee) |
+| Levents | Levents XL Logo Zipper Hoodie Boxy | [www.levents.asia](https://www.levents.asia/products/levents-xl-logo-zipper-hoodie-boxy) |
+| Levents | Levents Striped Long Sleeve Boxy Polo Shirt | [www.levents.asia](https://www.levents.asia/products/levents-striped-long-sleeve-boxy-polo-shirt) |
+| Levents | Levents Seasonal Sporty Jacket | [www.levents.asia](https://www.levents.asia/products/levents-seasonal-sporty-jacket) |
+| Levents | Levents Forget Me Not Track Jacket | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-track-jacket) |
+| Levents | Levents Classic Dashed Line Nylon Jacket | [www.levents.asia](https://www.levents.asia/products/levents-classic-dashed-line-nylon-jacket) |
+| Levents | Levents Signature Logo Heavyweight Relaxed Hoodie Zip | [www.levents.asia](https://www.levents.asia/products/levents-signature-logo-heavyweight-relaxed-hoodie-zip) |
+| Levents | Levents Forget Me Not Semi-Oversized Hoodie Zip | [www.levents.asia](https://www.levents.asia/products/levents-forget-me-not-semi-oversized-hoodie-zip) |
+| Levents | Levents Sporty Nylon Cargo Pants | [www.levents.asia](https://www.levents.asia/products/levents-sporty-nylon-cargo-pants) |
+| Levents | Levents x Hello Kitty Striped Chino Pants | [www.levents.asia](https://www.levents.asia/products/levents-x-hello-kitty-striped-chino-pants) |
+| Levents | Levents Seasonal Sporty Shorts | [www.levents.asia](https://www.levents.asia/products/levents-seasonal-sporty-shorts) |
+| Levents | Levents Serif Logo Striped Sporty Shorts | [www.levents.asia](https://www.levents.asia/products/levents-serif-logo-striped-sporty-shorts) |
+| Routine | Áo Len Nam Dệt Kim Tay Dài Cổ Cao Form Fitted | [routine.vn](https://routine.vn/products/10f24kni011) |
+| Routine | Áo Len Nam Tay Dài Cổ Tròn Form Regular | [routine.vn](https://routine.vn/products/10f24kni008) |
+| Routine | Áo Thun Nữ Tay Ngắn Slimme Viền Cổ Mảnh | [routine.vn](https://routine.vn/products/10f24tssw025) |
+| Routine | Áo sơ mi nam ngắn tay cotton form fitted | [routine.vn](https://routine.vn/products/10s24shs011) |
+| Routine | Áo Polo Nam Ngắn Tay Cao Cấp Cotton Polyester Form Fitted | [routine.vn](https://routine.vn/products/10f24pol014) |
+| Routine | Chân Váy Mini Nữ Ngắn Tweed Form Fitted | [routine.vn](https://routine.vn/products/10f22skiw005) |
+| Routine | Áo sơ mi denim nam tay dài xanh đậm form loose | [routine.vn](https://routine.vn/products/10f24dsh002) |
+| Routine | Áo sơ mi denim sọc nam tay ngắn form oversized | [routine.vn](https://routine.vn/products/ao-so-mi-jean-nam-ngan-tay-soc-form-oversize-006) |
+| Routine | Áo Thun Nam Ngắn Tay S.cafe Form Fitted | [routine.vn](https://routine.vn/products/ao-thun-coffee-lovers-series-4-tron-fitted-002) |
+| Routine | Áo Thun Nam Ngắn Tay Cotton Form Regular | [routine.vn](https://routine.vn/products/ao-thun-nam-tay-ngan-cotton-tron-form-regular-070) |
+| Routine | Áo blazer nam linen form fitted | [routine.vn](https://routine.vn/products/ao-blazer-nam-linen-form-fitted-001) |
+| Routine | Áo sơ mi nam tay dài S.Cafe form fitted | [routine.vn](https://routine.vn/products/ao-so-mi-nam-dai-tay-s-cafe-form-fitted-090) |
+| Routine | Áo blazer dệt kim nam form regular | [routine.vn](https://routine.vn/products/ao-blazer-nam-knitting-form-regular-002) |
+| Routine | Áo sweatshirt nam có hình thêu form fitted | [routine.vn](https://routine.vn/products/ao-ni-sweater-nam-theu-hinh-fitted-001) |
+| Routine | Áo polo nam ngắn tay cotton poly form fitted | [routine.vn](https://routine.vn/products/ao-polo-nam-ngan-tay-cotton-poly-form-fitted-030) |
+| Routine | Áo thun nam tay ngắn S.Cafe Coffee Lovers form fitted | [routine.vn](https://routine.vn/products/ao-thun-nam-tron-basic-soi-cafe-fitted-039) |

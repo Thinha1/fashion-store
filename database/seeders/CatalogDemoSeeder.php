@@ -15,10 +15,15 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
- * Demo catalog built from real products of Coolmate, Yame, Nike and Puma
- * (names, prices, sale prices, colors, sizes and photos as listed on their
- * Vietnamese stores, see assets/catalog/SOURCES.md). For the course project
- * only; the photos belong to the brands.
+ * Demo catalog built from real products of Coolmate, Yame, Nike, Puma,
+ * Uniqlo, Teelab, Levents and Routine (names, prices, sale prices, colors,
+ * sizes and photos as listed on their Vietnamese stores, see
+ * assets/catalog/SOURCES.md). For the course project only; the photos belong
+ * to the brands.
+ *
+ * Photos in assets/catalog are uploaded on every run. The high-resolution
+ * photos (1080x1350) are kept out of the repo: they are uploaded once to the
+ * image disk (R2) under demo/catalog and the seeder only checks they exist.
  */
 class CatalogDemoSeeder extends Seeder
 {
@@ -76,6 +81,16 @@ class CatalogDemoSeeder extends Seeder
             'teelab' => [
                 'name' => 'Teelab',
                 'description' => 'Local brand Việt Nam phong cách streetwear unisex, nổi tiếng với áo thun, hoodie và áo khoác form rộng giá trẻ.',
+                'country' => 'Việt Nam',
+            ],
+            'levents' => [
+                'name' => 'Levents',
+                'description' => 'Local brand streetwear Việt Nam ra đời năm 2020, nổi tiếng với áo thun, hoodie và áo khoác form rộng in logo Levents.',
+                'country' => 'Việt Nam',
+            ],
+            'routine' => [
+                'name' => 'Routine',
+                'description' => 'Thương hiệu thời trang Việt Nam cho nam và nữ, chuyên trang phục cơ bản dễ phối: áo thun, sơ mi, quần tây và áo khoác.',
                 'country' => 'Việt Nam',
             ],
         ];
@@ -348,9 +363,18 @@ class CatalogDemoSeeder extends Seeder
 
         foreach ($this->productDefinitions() as $definition) {
             foreach ([...array_values($definition['color_images']), ...($definition['gallery'] ?? [])] as $file) {
-                if (! isset($paths[$file])) {
+                if (isset($paths[$file])) {
+                    continue;
+                }
+
+                // High-resolution photos are not in the repo; they were
+                // uploaded once to the image disk (R2).
+                $path = self::STORAGE_DIRECTORY.'/'.$file;
+                if (! Storage::disk(config('filesystems.image_disk'))->exists($path)) {
                     throw new RuntimeException("Thiếu ảnh demo {$file} cho sản phẩm {$definition['slug']}.");
                 }
+
+                $paths[$file] = $path;
             }
         }
 
@@ -369,6 +393,8 @@ class CatalogDemoSeeder extends Seeder
             'puma' => ['PM', '#991b1b', '#fee2e2'],
             'uniqlo' => ['UQ', '#ffffff', '#dc2626'],
             'teelab' => ['TL', '#f9fafb', '#111827'],
+            'levents' => ['LV', '#f9fafb', '#1f2937'],
+            'routine' => ['RT', '#1f2937', '#e5e7eb'],
         ];
         $paths = [];
 

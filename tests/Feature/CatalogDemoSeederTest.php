@@ -9,33 +9,59 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Tests\TestCase;
 
 class CatalogDemoSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Photos the seeder expects to find already uploaded on the image disk
+     * (the high-resolution Levents and Routine shots kept out of the repo).
+     *
+     * @return list<string>
+     */
+    private function remoteOnlyPhotos(): array
+    {
+        $products = json_decode((string) file_get_contents(database_path('seeders/data/catalog-products.json')), true);
+        $files = collect($products)->flatMap(fn (array $product) => [...array_values($product['color_images']), ...($product['gallery'] ?? [])]);
+
+        return $files->unique()
+            ->reject(fn (string $file) => is_file(database_path('seeders/assets/catalog/'.$file)))
+            ->values()
+            ->all();
+    }
+
+    private function fakeUploadedPhotos(array $files): void
+    {
+        foreach ($files as $file) {
+            Storage::disk(config('filesystems.image_disk'))->put('demo/catalog/'.$file, 'jpeg');
+        }
+    }
+
     public function test_database_seeder_creates_a_repeatable_demo_catalog_with_images(): void
     {
         Storage::fake(config('filesystems.image_disk'));
+        $this->fakeUploadedPhotos($this->remoteOnlyPhotos());
 
         $this->seed();
         $this->seed();
 
-        $this->assertDatabaseCount('brands', 6);
+        $this->assertDatabaseCount('brands', 8);
         $this->assertDatabaseCount('categories', 23);
-        $this->assertDatabaseCount('products', 118);
-        $this->assertDatabaseCount('product_variants', 1447);
-        $this->assertDatabaseCount('product_images', 426);
+        $this->assertDatabaseCount('products', 150);
+        $this->assertDatabaseCount('product_variants', 1674);
+        $this->assertDatabaseCount('product_images', 483);
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('size_charts', 13);
 
-        $this->assertSame(23, Product::query()->where('is_featured', true)->count());
+        $this->assertSame(27, Product::query()->where('is_featured', true)->count());
         $this->assertSame(2, Category::query()->whereNull('parent_id')->count());
-        $this->assertSame(['Coolmate', 'Nike', 'Puma', 'Teelab', 'Uniqlo', 'Yame'], Brand::query()->orderBy('name')->pluck('name')->all());
+        $this->assertSame(['Coolmate', 'Levents', 'Nike', 'Puma', 'Routine', 'Teelab', 'Uniqlo', 'Yame'], Brand::query()->orderBy('name')->pluck('name')->all());
         $this->assertSame(53, Product::query()->whereHas('variants.activeDiscounts')->count());
         $this->assertSame(0, Product::query()->whereDoesntHave('images', fn ($query) => $query->where('is_primary', true))->count());
-        $this->assertSame(323, ProductImage::query()->where('sort_order', 0)->whereNotNull('product_variant_id')->count());
+        $this->assertSame(380, ProductImage::query()->where('sort_order', 0)->whereNotNull('product_variant_id')->count());
         $this->assertTrue(ProductVariant::query()->where('stock_quantity', 0)->exists());
         $this->assertTrue(ProductVariant::query()->whereBetween('stock_quantity', [1, 5])->exists());
         $this->assertSame(0, Category::query()->whereNotNull('parent_id')->whereDoesntHave('children')->whereDoesntHave('products')->count());
@@ -58,9 +84,26 @@ class CatalogDemoSeederTest extends TestCase
 
         Storage::disk(config('filesystems.image_disk'))->assertExists('demo/catalog/ao-thun-nam-premium-cotton-den.jpg');
         Storage::disk(config('filesystems.image_disk'))->assertExists('demo/brands/coolmate.svg');
+        Storage::disk(config('filesystems.image_disk'))->assertExists('demo/brands/levents.svg');
         $this->assertEqualsCanonicalizing(
             ['M', 'L', 'XL', '2XL', '3XL'],
             $product->variants->where('color', 'Trắng')->pluck('size')->values()->all(),
         );
+
+        $hoodie = Product::query()->where('slug', 'levents-xl-logo-zipper-hoodie-boxy')->with('images')->firstOrFail();
+        $this->assertSame('Levents', $hoodie->brand->name);
+        $this->assertSame('demo/catalog/levents-xl-logo-zipper-hoodie-boxy-nau.jpg', $hoodie->images->firstWhere('is_primary', true)->path);
+    }
+
+    public function test_seeder_stops_when_a_photo_is_neither_in_the_repo_nor_on_the_image_disk(): void
+    {
+        Storage::fake(config('filesystems.image_disk'));
+        $missing = $this->remoteOnlyPhotos();
+        $this->fakeUploadedPhotos(array_slice($missing, 1));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Thiếu ảnh demo '.$missing[0]);
+
+        $this->seed();
     }
 }
