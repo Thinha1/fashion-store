@@ -107,6 +107,8 @@
     .ai-bot-eyes { animation: ai-bot-glance 9s ease-in-out infinite; }
     .ai-bot-eyes ellipse { transform-box: fill-box; transform-origin: center; animation: ai-bot-blink 4s ease-in-out infinite; }
     .ai-bot-tip { animation: ai-bot-glow 1.6s ease-in-out infinite; }
+    /* While the mouse moves, ai-bot-gaze.js points the eyes at it. */
+    .ai-bot[data-tracking] .ai-bot-eyes { animation: none; transform: translate(var(--look-x, 0), var(--look-y, 0)); transition: transform 120ms ease-out; }
     @media (prefers-reduced-motion: reduce) {
         .ai-bot-eyes, .ai-bot-tip { animation: none; }
         .ai-bot-eyes ellipse { animation-duration: 6s; }
