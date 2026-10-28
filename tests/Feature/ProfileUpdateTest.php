@@ -37,7 +37,7 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('0911111111', $user->phone);
     }
 
-    public function test_email_verification_status_is_reset_when_email_changes(): void
+    public function test_changing_the_email_keeps_the_customer_signed_in_without_verification(): void
     {
         $user = User::factory()->create();
 
@@ -49,6 +49,7 @@ class ProfileUpdateTest extends TestCase
         $user->refresh();
 
         $this->assertSame('new-address@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        $this->assertAuthenticatedAs($user);
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk();
     }
 }

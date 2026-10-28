@@ -87,7 +87,7 @@
         @if (session('status') || session('error'))
             <div class="container flash"><x-flash-messages /></div>
         @endif
-        @if (request()->routeIs('login', 'register', 'password.*', 'verification.notice', 'profile.edit'))
+        @if (request()->routeIs('login', 'register', 'password.*', 'profile.edit'))
             <div class="container page">
                 <div class="auth-shell">
                     <aside class="auth-story">

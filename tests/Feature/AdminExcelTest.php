@@ -301,7 +301,6 @@ class AdminExcelTest extends TestCase
         $this->actingAs($customer)->get(route('admin.excel.export', 'brands'))->assertForbidden();
         $this->actingAs($customer)->get(route('admin.excel.template', 'suppliers'))->assertForbidden();
         $this->actingAs($customer)->post(route('admin.excel.import', 'goods-receipts'))->assertForbidden();
-        $this->actingAs(User::factory()->admin()->unverified()->create())->get(route('admin.excel.export', 'brands'))->assertRedirect(route('verification.notice'));
     }
 
     public function test_invalid_later_row_rolls_back_the_whole_import_and_reports_excel_row(): void

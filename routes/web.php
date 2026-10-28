@@ -40,7 +40,7 @@ Route::get('san-pham/{product:slug}', [ProductController::class, 'show'])->name(
 Route::get('bo-suu-tap', [CollectionController::class, 'index'])->name('collections.index');
 Route::get('bo-suu-tap/{brand:slug}', [CollectionController::class, 'show'])->name('collections.show');
 
-Route::middleware(['auth', 'verified'])->group(function (): void {
+Route::middleware('auth')->group(function (): void {
     Route::get('tai-khoan', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('tai-khoan', [ProfileController::class, 'update'])->name('profile.update');
 
