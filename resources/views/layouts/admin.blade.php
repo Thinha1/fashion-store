@@ -3,16 +3,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#175b60">
+    <meta name="theme-color" content="#1a1a22">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Quản trị') - {{ config('app.name', 'Fashion Store') }}</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap&subset=vietnamese">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="admin-shell min-h-screen bg-gray-50 text-gray-900 antialiased" x-data="{ sidebarOpen: false, desktop: window.innerWidth >= 1024 }" x-effect="document.body.style.overflow = sidebarOpen && !desktop ? 'hidden' : ''" x-on:resize.window="desktop = window.innerWidth >= 1024; if (desktop) sidebarOpen = false" x-on:keydown.escape.window="if (sidebarOpen) { sidebarOpen = false; $nextTick(() => $refs.menuButton.focus()); }">
     <a href="#main-content" class="skip-link">Đến nội dung chính</a>
     <div x-cloak x-show="sidebarOpen" class="fixed inset-0 z-30 bg-gray-900/40 lg:hidden" x-on:click="sidebarOpen = false; $nextTick(() => $refs.menuButton.focus())" aria-hidden="true"></div>
     <aside id="admin-navigation" class="admin-sidebar" data-open="false" :data-open="sidebarOpen ? 'true' : 'false'" x-bind:inert="!sidebarOpen && !desktop">
-        <div class="flex items-center justify-between border-b border-white/10 px-5 py-5"><x-brand /><button type="button" x-ref="closeMenu" class="rounded-lg p-2 text-gray-500 lg:hidden" aria-label="Đóng menu" x-on:click="sidebarOpen = false; $nextTick(() => $refs.menuButton.focus())"><x-icon name="close" /></button></div>
+        <div class="flex items-center justify-between border-b border-white/10 px-5 py-5"><x-storefront.wordmark class="admin-wordmark" /><button type="button" x-ref="closeMenu" class="rounded-lg p-2 text-gray-500 lg:hidden" aria-label="Đóng menu" x-on:click="sidebarOpen = false; $nextTick(() => $refs.menuButton.focus())"><x-icon name="close" /></button></div>
         <nav aria-label="Điều hướng quản trị" tabindex="0" class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
             @foreach (\App\Support\AdminNavigation::for(auth()->user()) as $group => $links)
                 <div><p class="sidebar-label">{{ $group }}</p>

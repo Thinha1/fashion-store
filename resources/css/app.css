@@ -13,33 +13,49 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Admin tokens: the storefront's palette and faces (design.md), at the
+   admin's own density. brand is the ink; the green is a signal only. */
 @theme {
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    --font-display: 'Times New Roman', Times, serif;
-    --color-brand: #175b60;
-    --color-brand-dark: #10464b;
-    --color-brand-soft: #e6f1ef;
-    --color-coral: #e49c89;
-    --color-gray-50: #f4f7f8;
-    --color-gray-100: #edf2f3;
-    --color-gray-200: #dce5e7;
-    --color-gray-300: #c4d1d5;
-    --color-gray-400: #82969e;
-    --color-gray-500: #627880;
-    --color-gray-600: #50666f;
-    --color-gray-700: #36525c;
-    --color-gray-900: #17343a;
+    --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --color-white: oklch(99.2% 0.003 86);
+    --color-brand: oklch(16% 0.012 280);
+    --color-brand-dark: oklch(29% 0.011 280);
+    --color-brand-soft: oklch(94% 0.010 86);
+    --color-coral: oklch(49% 0.130 152);
+    --color-accent: oklch(49% 0.130 152);
+    --color-accent-soft: oklch(94% 0.035 152);
+    --color-focus: oklch(52% 0.135 152);
+    --color-on-ink: oklch(97% 0.007 86);
+    --color-on-ink-muted: oklch(80% 0.008 85);
+    --color-ink-raised: oklch(24% 0.011 280);
+    --color-gray-50: oklch(97% 0.007 86);
+    --color-gray-100: oklch(94% 0.010 86);
+    --color-gray-200: oklch(88% 0.009 85);
+    --color-gray-300: oklch(80% 0.009 85);
+    --color-gray-400: oklch(58% 0.010 80);
+    --color-gray-500: oklch(47% 0.010 75);
+    --color-gray-600: oklch(38% 0.011 280);
+    --color-gray-700: oklch(29% 0.011 280);
+    --color-gray-900: oklch(16% 0.012 280);
+    --color-status-success: oklch(40% 0.110 150);
+    --color-status-success-soft: oklch(95% 0.030 150);
+    --color-status-warning: oklch(45% 0.100 70);
+    --color-status-warning-soft: oklch(95% 0.050 85);
+    --color-status-info: oklch(40% 0.100 250);
+    --color-status-info-soft: oklch(95% 0.020 250);
 }
 
 @layer base {
     html { scroll-behavior: smooth; }
-    body { font-family: var(--font-sans); }
+    body { font-family: var(--font-sans); font-optical-sizing: auto; }
+    h1, h2, h3, .display-title { font-synthesis: none; }
     button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     button:not(:disabled), summary { cursor: pointer; }
-    :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 4px; }
+    :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 4px; }
     input[type='checkbox'] { width: 1.1rem; height: 1.1rem; accent-color: var(--color-brand); }
     input, select, textarea { scroll-margin-top: 6rem; }
-    ::selection { background: #cce4df; color: #17343a; }
+    ::selection { background: color-mix(in oklab, var(--color-accent) 22%, transparent); color: var(--color-gray-900); }
 }
 
 [x-cloak] { display: none !important; }
@@ -50,7 +66,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .brand-mark { @apply flex items-center gap-3 text-lg font-semibold tracking-tight; }
     .brand-symbol { @apply flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white; }
     .eyebrow { @apply text-xs font-semibold tracking-[0.18em] uppercase text-brand; }
-    .display-title { font-family: var(--font-display); @apply font-normal tracking-tight; }
+    .display-title { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; letter-spacing: -0.012em; }
     .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
     .btn-primary { @apply bg-brand text-white shadow-sm hover:bg-brand-dark; }
     .btn-secondary { @apply border border-gray-200 bg-white text-gray-900 hover:border-brand hover:bg-brand-soft; }
@@ -58,7 +74,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .nav-link { @apply rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-soft hover:text-brand; }
     .nav-link[aria-current='page'] { @apply bg-brand-soft text-brand; }
     .store-main { @apply mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:px-8; }
-    .auth-shell { @apply mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_16px_60px_-32px_#17343a50] lg:grid-cols-[0.9fr_1.1fr]; }
+    .auth-shell { @apply mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_16px_60px_-32px_color-mix(in_oklab,var(--color-brand)_30%,transparent)] lg:grid-cols-[0.9fr_1.1fr]; }
     .auth-story { @apply relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-white lg:flex; }
     .auth-card { @apply min-w-0 p-6 sm:p-10; }
     .auth-card h1 { @apply text-2xl tracking-tight; }
@@ -73,9 +89,9 @@ body:has(dialog[open]) { overflow: hidden; }
     .page-header h1 { @apply text-2xl font-semibold tracking-tight sm:text-3xl; }
     .page-actions { @apply flex flex-wrap items-center gap-2; }
     .excel-dialog { @apply m-auto rounded-2xl border-0 bg-white p-0 text-gray-900 shadow-2xl; width: min(38rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
-    .excel-dialog::backdrop { background: rgb(23 52 58 / 55%); backdrop-filter: blur(3px); }
+    .excel-dialog::backdrop { background: color-mix(in oklab, var(--color-brand) 55%, transparent); backdrop-filter: blur(3px); }
     .size-guide-dialog { @apply m-auto rounded-2xl border-0 bg-white p-0 text-gray-900 shadow-2xl; width: min(46rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
-    .size-guide-dialog::backdrop { background: rgb(23 52 58 / 55%); backdrop-filter: blur(3px); }
+    .size-guide-dialog::backdrop { background: color-mix(in oklab, var(--color-brand) 55%, transparent); backdrop-filter: blur(3px); }
     .admin-form .size-chart-grid :is(select, input) { @apply min-h-9 rounded-lg px-2 py-1.5; }
     .admin-form { @apply rounded-2xl border border-gray-200 bg-white p-5 shadow-xs sm:p-7; }
     .admin-form > section + section { @apply border-t border-gray-200 pt-6; }
@@ -105,7 +121,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .style-card { @apply overflow-hidden rounded-2xl border border-gray-200 bg-white; }
     .style-card h3 { @apply text-lg font-semibold; }
     .style-card p { @apply mt-2 text-sm leading-6 text-gray-500; }
-    .product-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_#17343a60]; }
+    .product-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_color-mix(in_oklab,var(--color-brand)_38%,transparent)]; }
     .product-card .product-card-media { @apply relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-brand-soft/60 text-brand/30; }
     .product-card .product-card-media img { @apply size-full object-cover transition-transform duration-300 group-hover:scale-105; }
     .product-card .product-card-tags { @apply absolute top-3 left-3 z-10 flex flex-wrap gap-1.5; }
@@ -118,7 +134,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .variant-option { @apply inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:border-brand; }
     .variant-option[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
     .variant-option:disabled { @apply cursor-not-allowed border-gray-100 text-gray-300 line-through hover:border-gray-100; }
-    .color-swatch { @apply relative size-9 rounded-full border border-gray-300 transition-shadow; background-color: var(--swatch-color, #e5e7eb); }
+    .color-swatch { @apply relative size-9 rounded-full border border-gray-300 transition-shadow; background-color: var(--swatch-color, var(--color-gray-200)); }
     .color-swatch[aria-pressed='true'] { @apply ring-2 ring-brand ring-offset-2; }
     .gallery-thumb { @apply flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 border-transparent bg-brand-soft/60 text-brand/30 transition-colors hover:border-brand/40; }
     .gallery-thumb[aria-current='true'] { @apply border-brand; }
@@ -148,7 +164,7 @@ body:has(dialog[open]) { overflow: hidden; }
     .density-btn { @apply flex size-8 items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-400 transition-colors hover:text-brand; }
     .density-btn[aria-pressed='true'] { @apply border-brand bg-brand-soft text-brand; }
 
-    .collection-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_#17343a60]; }
+    .collection-card { @apply flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-brand/40 hover:shadow-[0_16px_40px_-28px_color-mix(in_oklab,var(--color-brand)_38%,transparent)]; }
     .collection-card-grid { @apply grid grid-cols-2 gap-0.5 bg-gray-100; }
     .collection-card-tile { @apply flex aspect-square items-center justify-center overflow-hidden bg-brand-soft/50 text-brand/25; }
     .collection-card-tile img { @apply size-full object-cover transition-transform duration-500 group-hover:scale-105; }
