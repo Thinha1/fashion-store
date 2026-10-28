@@ -1,0 +1,126 @@
+/* Storefront tokens: Hallmark Editorial (deal 2/3). Every colour and face on
+   the storefront comes from here; the admin keeps its own in app.css. */
+@theme static {
+    --color-paper: oklch(97% 0.007 86);
+    --color-paper-2: oklch(94% 0.010 86);
+    --color-paper-3: oklch(91% 0.012 84);
+    --color-ink: oklch(16% 0.012 280);
+    --color-ink-2: oklch(29% 0.011 280);
+    --color-muted: oklch(46% 0.010 75);
+    --color-rule: oklch(85% 0.009 85);
+    --color-rule-2: oklch(64% 0.010 80);
+    --color-accent: oklch(49% 0.130 152);
+    --color-accent-ink: oklch(98% 0.005 88);
+    --color-focus: oklch(52% 0.135 152);
+    --color-error: oklch(52% 0.19 27);
+    --color-error-soft: oklch(95% 0.025 27);
+    --color-success: oklch(50% 0.12 150);
+    --color-success-soft: oklch(95% 0.025 150);
+    --color-on-ink-muted: oklch(80% 0.008 85);
+
+    /* Names the shared Blade components (alerts, pagination, the chat
+       widget) still use, pointed at this palette. */
+    --color-white: var(--color-paper);
+    --color-brand: var(--color-ink);
+    --color-brand-dark: var(--color-ink-2);
+    --color-brand-soft: var(--color-paper-2);
+    --color-coral: var(--color-accent);
+    --color-gray-50: var(--color-paper-2);
+    --color-gray-100: var(--color-paper-3);
+    --color-gray-200: var(--color-rule);
+    --color-gray-300: var(--color-rule);
+    --color-gray-400: var(--color-muted);
+    --color-gray-500: var(--color-muted);
+    --color-gray-600: var(--color-ink-2);
+    --color-gray-700: var(--color-ink-2);
+    --color-gray-900: var(--color-ink);
+    --color-red-50: var(--color-error-soft);
+    --color-red-200: var(--color-error);
+    --color-red-500: var(--color-error);
+    --color-red-600: var(--color-error);
+    --color-red-700: var(--color-error);
+    --color-red-800: var(--color-error);
+    --color-green-50: var(--color-success-soft);
+    --color-green-200: var(--color-success);
+    --color-green-700: var(--color-success);
+    --color-green-800: var(--color-success);
+    --color-amber-700: oklch(48% 0.11 70);
+
+    --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Source Serif 4", ui-serif, Georgia, serif;
+    --font-sans: var(--font-display);
+    --font-serif: var(--font-body);
+
+    --text-xs: 0.8125rem;
+    --text-sm: 0.875rem;
+    --text-md: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5625rem;
+    --text-2xl: 1.953rem;
+    --text-3xl: 2.441rem;
+    --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem);
+    --text-display: clamp(2.75rem, 5vw + 1rem, 5.75rem);
+    --text-section: clamp(2.25rem, 2.5vw + 1.25rem, 3.5rem);
+    --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem);
+    --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+    --text-body: 1.125rem;
+
+    --radius-card: 0;
+    --radius-pill: 0;
+    /* Square corners on the shared Blade components (alerts, chat) too. */
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+    color-scheme: light;
+    --space-3xs: 2px;
+    --space-2xs: 4px;
+    --space-xs: 8px;
+    --space-sm: 12px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+    --space-2xl: 64px;
+    --space-3xl: 96px;
+    --space-4xl: 144px;
+    --dur-micro: 120ms;
+    --dur-short: 220ms;
+    --dur-long: 420ms;
+    --container: 1440px;
+    --gutter: 64px;
+    --gap-columns: 32px;
+    --section-gap-s: 120px;
+    --section-gap: 144px;
+    --section-gap-l: 176px;
+    --z-base: 1;
+    --z-raised: 10;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-sticky-nav: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+    --z-tooltip: 600;
+    --rule-hair: 1px;
+    --rule-heavy: 4px;
+    --shadow-card: none;
+    --tracking-display: -0.012em;
+    --display-weight: 800;
+    --nav-height: 72px;
+}
+
+@media (max-width: 60rem) {
+    :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; --nav-height: 64px; }
+}
+
+@media (max-width: 40rem) {
+    :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; }
+}

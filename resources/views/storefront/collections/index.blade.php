@@ -1,42 +1,45 @@
 @extends('layouts.app')
 @section('title', 'Bộ sưu tập — ' . config('app.name', 'Fashion Store'))
 @section('content')
-    <section aria-labelledby="collections-title">
-        <div class="mb-9">
-            <p class="eyebrow">Mỗi thương hiệu, một câu chuyện riêng</p>
-            <h1 id="collections-title" class="display-title mt-3 text-3xl sm:text-4xl">Bộ sưu tập</h1>
-        </div>
+    <div class="container page">
+        <header class="catalog-head">
+            <div class="catalog-title">
+                <h1 id="collections-title">Bộ sưu tập</h1>
+                <p class="caption">{{ $brands->count() }} thương hiệu, mỗi thương hiệu một kệ riêng.</p>
+            </div>
+        </header>
 
-        @if ($brands->isEmpty())
-            <div class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-                <x-icon name="box" class="size-8 text-gray-300" />
-                <p class="text-sm text-gray-500">Chưa có bộ sưu tập nào.</p>
-            </div>
-        @else
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($brands as $brand)
-                    <a href="{{ route('collections.show', $brand) }}" class="collection-card group">
-                        <div class="collection-card-grid">
-                            @forelse ($brand->products->take(4) as $product)
-                                @php($image = $product->images->first())
-                                <div class="collection-card-tile">
-                                    @if ($image)
-                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}" alt="" loading="lazy">
-                                    @else
-                                        <x-icon name="shirt" class="size-6" />
-                                    @endif
+        <section aria-labelledby="collections-title">
+            @if ($brands->isEmpty())
+                <div class="catalog-empty">
+                    <h2>Chưa có bộ sưu tập nào.</h2>
+                    <p>Các thương hiệu sẽ xuất hiện ở đây khi có sản phẩm đang bán.</p>
+                </div>
+            @else
+                <ul class="brand-grid" role="list">
+                    @foreach ($brands as $brand)
+                        <li>
+                            <a href="{{ route('collections.show', $brand) }}" class="brand-card">
+                                <div class="brand-card-tiles">
+                                    @foreach ($brand->products->take(4) as $product)
+                                        @php($image = $product->images->first())
+                                        <div data-slot="brand-{{ $brand->id }}-{{ $loop->index }}" data-kind="product" data-alt="{{ $product->name }}">
+                                            @if ($image)
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('filesystems.image_disk'))->url($image->path) }}"
+                                                     alt="" width="400" height="500" loading="lazy">
+                                            @endif
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @empty
-                                <div class="collection-card-tile"><x-icon name="shirt" class="size-6" /></div>
-                            @endforelse
-                        </div>
-                        <div class="collection-card-body">
-                            <h3>{{ $brand->name }}</h3>
-                            <p>{{ $brand->products_count }} sản phẩm</p>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        @endif
-    </section>
+                                <span class="brand-card-body">
+                                    <strong>{{ $brand->name }}</strong>
+                                    <span class="caption">{{ $brand->products_count }} sản phẩm</span>
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+    </div>
 @endsection

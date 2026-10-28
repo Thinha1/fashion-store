@@ -36,3 +36,6 @@ Thumbs.db
 
 # PsySH (artisan tinker) history
 psysh_history
+
+# Hallmark design-lint screenshots and run records
+/.hallmark/

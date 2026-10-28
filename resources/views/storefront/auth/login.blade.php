@@ -4,7 +4,6 @@
 
 @section('content')
     <div class="mx-auto w-full max-w-md">
-        <p class="eyebrow mb-3">Chào mừng bạn trở lại</p>
         <h1 class="mb-2 text-2xl font-semibold">Đăng nhập</h1>
         <p class="mb-7 text-sm leading-6 text-gray-500">Đăng nhập để tiếp tục với tài khoản của bạn.</p>
 

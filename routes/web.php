@@ -5,6 +5,7 @@ use App\Http\Controllers\Storefront\CartController;
 use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\CollectionController;
 use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\HomeShelfController;
 use App\Http\Controllers\Storefront\ImageSearchController;
 use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductAssistController;
@@ -12,9 +13,13 @@ use App\Http\Controllers\Storefront\ProductAssistStreamController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Storefront\ProfileController;
 use App\Http\Controllers\Webhooks\SepayWebhookController;
+use App\Services\Catalog\HomeShelves;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+// The next four products of a home-page shelf, fetched by its carousel.
+Route::get('ke-san-pham/{shelf}', HomeShelfController::class)
+    ->whereIn('shelf', HomeShelves::SHELVES)->name('home.shelf');
 Route::get('san-pham', [ProductController::class, 'index'])
     ->middleware('throttle:catalog-search')->name('products.index');
 // Customer-facing shopping-assist chat — guest-callable on purpose (see

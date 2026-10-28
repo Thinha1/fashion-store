@@ -3,14 +3,18 @@
 @section('title', ($address->exists ? 'Sửa địa chỉ' : 'Thêm địa chỉ') . ' — ' . config('app.name', 'Fashion Store'))
 
 @section('content')
-    <div class="mx-auto w-full max-w-2xl">
-        <a href="{{ route('addresses.index') }}" class="mb-5 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand">
-            <x-icon name="back" class="size-3.5" /> Sổ địa chỉ
-        </a>
-        <h1 class="display-title mb-7 text-3xl">{{ $address->exists ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới' }}</h1>
+    <div class="container page narrow">
+        <nav aria-label="Breadcrumb" class="crumbs">
+            <ol>
+                <li><a href="{{ route('profile.edit') }}">Tài khoản</a></li>
+                <li><a href="{{ route('addresses.index') }}">Sổ địa chỉ</a></li>
+                <li aria-current="page">{{ $address->exists ? 'Sửa địa chỉ' : 'Thêm địa chỉ' }}</li>
+            </ol>
+        </nav>
+        <h1 class="form-title">{{ $address->exists ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới' }}</h1>
 
         <form method="POST" action="{{ $address->exists ? route('addresses.update', $address) : route('addresses.store') }}"
-              class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
+              class="form-panel">
             @csrf
             @if ($address->exists)
                 @method('PUT')
