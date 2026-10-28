@@ -46,7 +46,8 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <x-label for="role_id">Vai trò</x-label>
+            {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the select. --}}
+            <label for="role_id" class="block text-sm font-medium text-gray-700">Vai trò</label>
             <select id="role_id" name="role_id" required @disabled($isSelf) class="field mt-1">
                 <option value="">— Chọn vai trò —</option>
                 @foreach ($roles as $role)
@@ -60,7 +61,8 @@
             <x-input-error :messages="$errors->get('role_id')" />
         </div>
         <div>
-            <x-label for="status">Trạng thái</x-label>
+            {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the select. --}}
+            <label for="status" class="block text-sm font-medium text-gray-700">Trạng thái</label>
             <select id="status" name="status" required @disabled($isSelf) class="field mt-1">
                 <option value="active" @selected(old('status', $staff->status === 'locked' ? 'locked' : 'active') === 'active')>Đang hoạt động</option>
                 <option value="locked" @selected(old('status', $staff->status === 'locked' ? 'locked' : 'active') === 'locked')>Đã khóa</option>
