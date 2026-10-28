@@ -15,7 +15,9 @@ use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SizeChartController;
+use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,23 +45,23 @@ Route::prefix('admin')
             ->name('dashboard');
 
         // Brand
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('thuong-hieu', [BrandController::class, 'index'])->name('brands.index');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('thuong-hieu/tao-moi', [BrandController::class, 'create'])->name('brands.create');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->post('thuong-hieu', [BrandController::class, 'store'])->name('brands.store');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('thuong-hieu/{brand}', [BrandController::class, 'show'])->name('brands.show');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('thuong-hieu/{brand}/sua', [BrandController::class, 'edit'])->name('brands.edit');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->put('thuong-hieu/{brand}', [BrandController::class, 'update'])->name('brands.update');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->delete('thuong-hieu/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
 
         // Size charts — shown on product pages, matched by brand/category.
-        Route::middleware('permission:products.manage')->prefix('bang-size')->name('size-charts.')
+        Route::middleware('permission:catalog.manage')->prefix('bang-size')->name('size-charts.')
             ->group(function (): void {
                 Route::get('/', [SizeChartController::class, 'index'])->name('index');
                 Route::get('tao-moi', [SizeChartController::class, 'create'])->name('create');
@@ -69,18 +71,37 @@ Route::prefix('admin')
                 Route::delete('{sizeChart}', [SizeChartController::class, 'destroy'])->name('destroy');
             });
 
+        // Roles and the permissions they grant; staff accounts and their role.
+        Route::middleware('permission:roles.manage')->prefix('vai-tro')->name('roles.')
+            ->group(function (): void {
+                Route::get('/', [RoleController::class, 'index'])->name('index');
+                Route::get('tao-moi', [RoleController::class, 'create'])->name('create');
+                Route::post('/', [RoleController::class, 'store'])->name('store');
+                Route::get('{role}/sua', [RoleController::class, 'edit'])->name('edit');
+                Route::put('{role}', [RoleController::class, 'update'])->name('update');
+                Route::delete('{role}', [RoleController::class, 'destroy'])->name('destroy');
+            });
+        Route::middleware('permission:staff.manage')->prefix('nhan-vien')->name('staff.')
+            ->group(function (): void {
+                Route::get('/', [StaffController::class, 'index'])->name('index');
+                Route::get('tao-moi', [StaffController::class, 'create'])->name('create');
+                Route::post('/', [StaffController::class, 'store'])->name('store');
+                Route::get('{staff}/sua', [StaffController::class, 'edit'])->name('edit');
+                Route::put('{staff}', [StaffController::class, 'update'])->name('update');
+            });
+
         // Category
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('danh-muc', [CategoryController::class, 'index'])->name('categories.index');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('danh-muc/tao-moi', [CategoryController::class, 'create'])->name('categories.create');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->post('danh-muc', [CategoryController::class, 'store'])->name('categories.store');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->get('danh-muc/{category}/sua', [CategoryController::class, 'edit'])->name('categories.edit');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->put('danh-muc/{category}', [CategoryController::class, 'update'])->name('categories.update');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:catalog.manage')
             ->delete('danh-muc/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
         // Supplier
@@ -98,17 +119,17 @@ Route::prefix('admin')
             });
 
         // Product (with variants + images)
-        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+        Route::middleware(['permission:ai.assistant', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-goi-y', ProductAiAssistController::class)->name('products.ai-assist');
         // SSE variant of the same call — same rate limiter/permission, kept
         // as a separate route+controller so the JSON one above (and its
         // tests) never has to change shape; see ProductDraftResolver for the
         // parsing/validation logic both share.
-        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+        Route::middleware(['permission:ai.assistant', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-goi-y/stream', ProductAiAssistStreamController::class)->name('products.ai-assist-stream');
         // Extracts the text of an uploaded PDF so the chat can attach it to the
         // next message. Calls no model and saves nothing.
-        Route::middleware(['permission:products.manage', 'throttle:product-ai-assist'])
+        Route::middleware(['permission:ai.assistant', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-pdf/doc-file', ProductAiPdfController::class)->name('products.ai-pdf.read');
         Route::middleware('permission:products.manage')
             ->get('san-pham', [ProductController::class, 'index'])->name('products.index');
@@ -142,51 +163,50 @@ Route::prefix('admin')
             ->put('nhap-hang/{goodsReceipt}', [GoodsReceiptController::class, 'update'])->name('goods-receipts.update');
         Route::middleware('permission:inventory.manage')
             ->delete('nhap-hang/{goodsReceipt}', [GoodsReceiptController::class, 'destroy'])->name('goods-receipts.destroy');
-        Route::middleware('permission:inventory.manage')
+        Route::middleware('permission:inventory.confirm')
             ->post('nhap-hang/{goodsReceipt}/xac-nhan', [GoodsReceiptController::class, 'confirm'])->name('goods-receipts.confirm');
 
         // Discount (scope=variant only in Giai đoạn 2)
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->get('giam-gia', [DiscountController::class, 'index'])->name('discounts.index');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->get('giam-gia/tao-moi', [DiscountController::class, 'create'])->name('discounts.create');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->post('giam-gia', [DiscountController::class, 'store'])->name('discounts.store');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->get('giam-gia/{discount}/sua', [DiscountController::class, 'edit'])->name('discounts.edit');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->put('giam-gia/{discount}', [DiscountController::class, 'update'])->name('discounts.update');
-        Route::middleware('permission:products.manage')
+        Route::middleware('permission:discounts.manage')
             ->delete('giam-gia/{discount}', [DiscountController::class, 'destroy'])->name('discounts.destroy');
 
         // Orders — staff move them one step at a time (see ChangeOrderStatus).
         Route::prefix('don-hang')->name('orders.')
-            ->middleware('permission:orders.manage')
+            ->middleware('permission:orders.view')
             ->group(function (): void {
                 Route::get('/', [OrderController::class, 'index'])->name('index');
                 Route::get('{order}', [OrderController::class, 'show'])->name('show');
-                Route::patch('{order}/trang-thai', [OrderController::class, 'updateStatus'])->name('status');
+                Route::patch('{order}/trang-thai', [OrderController::class, 'updateStatus'])->middleware('permission:orders.manage')->name('status');
                 // A transfer the SePay webhook couldn't match, confirmed by hand.
-                Route::patch('{order}/thanh-toan', [OrderController::class, 'confirmPayment'])->name('confirm-payment');
+                Route::patch('{order}/thanh-toan', [OrderController::class, 'confirmPayment'])->middleware('permission:payments.confirm')->name('confirm-payment');
             });
 
-        // Settings — which self-hosted AI backend both chat agents call.
-        // Its own "settings.manage" permission (not products.manage): an API
-        // key is a different trust tier than catalog editing.
+        // Settings — the AI backend and the payment account. Each has its own
+        // permission (settings.ai / settings.payment): an API key or a bank
+        // account is a different trust tier than catalog editing.
         Route::prefix('cai-dat')->name('settings.')
-            ->middleware('permission:settings.manage')
             ->group(function (): void {
-                Route::get('ai', [AiSettingController::class, 'edit'])->name('ai.edit');
-                Route::post('ai', [AiSettingController::class, 'store'])->name('ai.store');
+                Route::get('ai', [AiSettingController::class, 'edit'])->middleware('permission:settings.ai')->name('ai.edit');
+                Route::post('ai', [AiSettingController::class, 'store'])->middleware('permission:settings.ai')->name('ai.store');
                 Route::post('ai/kiem-tra', [AiSettingController::class, 'test'])
-                    ->middleware('throttle:6,1')->name('ai.test');
-                Route::put('ai/{aiSetting}', [AiSettingController::class, 'update'])->name('ai.update');
-                Route::post('ai/{aiSetting}/chinh', [AiSettingController::class, 'makePrimary'])->name('ai.primary');
-                Route::delete('ai/{aiSetting}', [AiSettingController::class, 'destroy'])->name('ai.destroy');
+                    ->middleware('throttle:6,1')->middleware('permission:settings.ai')->name('ai.test');
+                Route::put('ai/{aiSetting}', [AiSettingController::class, 'update'])->middleware('permission:settings.ai')->name('ai.update');
+                Route::post('ai/{aiSetting}/chinh', [AiSettingController::class, 'makePrimary'])->middleware('permission:settings.ai')->name('ai.primary');
+                Route::delete('ai/{aiSetting}', [AiSettingController::class, 'destroy'])->middleware('permission:settings.ai')->name('ai.destroy');
                 // Bank account for the VietQR code + the SePay webhook key.
-                Route::get('thanh-toan', [PaymentSettingController::class, 'edit'])->name('payment.edit');
-                Route::put('thanh-toan', [PaymentSettingController::class, 'update'])->name('payment.update');
+                Route::get('thanh-toan', [PaymentSettingController::class, 'edit'])->middleware('permission:settings.payment')->name('payment.edit');
+                Route::put('thanh-toan', [PaymentSettingController::class, 'update'])->middleware('permission:settings.payment')->name('payment.update');
                 Route::post('thanh-toan/kiem-tra', [PaymentSettingController::class, 'test'])
-                    ->middleware('throttle:6,1')->name('payment.test');
+                    ->middleware('throttle:6,1')->middleware('permission:settings.payment')->name('payment.test');
             });
     });

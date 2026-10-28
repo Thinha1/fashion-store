@@ -67,7 +67,7 @@ class AdminOrderTest extends TestCase
     public function test_staff_with_orders_permission_can_work_orders(): void
     {
         $order = Order::factory()->create();
-        $orderStaff = $this->staffWith('admin.access', 'orders.manage');
+        $orderStaff = $this->staffWith('admin.access', 'orders.view', 'orders.manage');
 
         $this->actingAs($orderStaff)->get(route('admin.orders.index'))->assertOk()->assertSee($order->order_number);
         $this->actingAs($orderStaff)->patch(route('admin.orders.status', $order), ['status' => 'confirmed']);
@@ -229,7 +229,7 @@ class AdminOrderTest extends TestCase
     public function test_staff_confirm_a_bank_transfer_by_hand(): void
     {
         $order = Order::factory()->create(['payment_method' => 'bank_transfer']);
-        $orderStaff = $this->staffWith('admin.access', 'orders.manage');
+        $orderStaff = $this->staffWith('admin.access', 'orders.view', 'payments.confirm');
 
         $this->actingAs($orderStaff)->patch(route('admin.orders.confirm-payment', $order))
             ->assertSessionHas('status', "Đã xác nhận thanh toán cho đơn {$order->order_number}.");

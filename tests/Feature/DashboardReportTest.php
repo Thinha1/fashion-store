@@ -198,7 +198,7 @@ class DashboardReportTest extends TestCase
     public function test_staff_without_order_rights_see_numbers_but_no_order_links(): void
     {
         $role = Role::factory()->create();
-        $role->permissions()->attach(Permission::query()->where('code', 'admin.access')->pluck('id'));
+        $role->permissions()->attach(Permission::query()->whereIn('code', ['admin.access', 'dashboard.view'])->pluck('id'));
         $viewer = User::factory()->create(['role_id' => $role->id]);
         $order = $this->order('2026-10-09 10:00', 330000);
 

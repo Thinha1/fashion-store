@@ -40,7 +40,7 @@ Bảng đánh giá, yêu thích và đổi/trả đã có trong schema nhưng ch
 
 ### Quản trị
 
-- Kiểm soát truy cập theo vai trò và permission; sidebar thích ứng theo quyền của tài khoản.
+- **Phân quyền** (`/admin/vai-tro`, `/admin/nhan-vien`): 21 quyền chia nhóm (hệ thống, catalog, kho, đơn hàng, khách hàng), tạo vai trò bằng cách tick quyền, tạo/khóa tài khoản nhân viên và gán vai trò. Sidebar, nút thao tác và trang đích sau đăng nhập đều theo quyền. Có sẵn 4 vai trò: Quản lý cửa hàng, Nhân viên bán hàng, Nhân viên kho, Nhân viên nội dung. Quy tắc an toàn: không cấp quyền vượt quá quyền của chính mình, không tự khóa hay tự gỡ quyền phân quyền, luôn còn ít nhất một người có quyền phân quyền; mọi thay đổi ghi vào nhật ký.
 - Dashboard tổng hợp doanh thu, tổng đơn hàng và tổng sản phẩm, kèm biểu đồ doanh thu.
 - Quản lý thương hiệu, danh mục, sản phẩm, biến thể và hình ảnh (ảnh riêng cho từng biến thể). Bật/tắt sản phẩm nổi bật ngay trong danh sách.
 - Quản lý nhà cung cấp (tra cứu theo mã số thuế), giảm giá theo biến thể.
@@ -165,10 +165,20 @@ Tài khoản phát triển:
 | Mật khẩu | `password` |
 | Vai trò | `admin` |
 
-Chỉ dùng thông tin đăng nhập này trong môi trường phát triển. Seeder tạo ba vai trò:
+Trong môi trường local còn có một tài khoản cho mỗi vai trò nhân viên, cùng mật khẩu `password`:
 
-- `admin`: có toàn bộ permission;
-- `staff`: chưa có permission mặc định;
+| Email | Vai trò |
+| --- | --- |
+| `quanly@example.com` | Quản lý cửa hàng |
+| `banhang@example.com` | Nhân viên bán hàng |
+| `kho@example.com` | Nhân viên kho |
+| `noidung@example.com` | Nhân viên nội dung |
+
+Chỉ dùng thông tin đăng nhập này trong môi trường phát triển. Vai trò có sẵn:
+
+- `admin`: luôn có toàn bộ quyền, không sửa hay xóa được;
+- `store-manager`, `sales`, `warehouse`, `content`: 4 vai trò nhân viên mặc định, sửa được ở **Vai trò & quyền**;
+- `staff`: vai trò trống, chưa có quyền;
 - `customer`: tự gán khi khách hàng đăng ký.
 
 ### Cập nhật lên dữ liệu demo mới

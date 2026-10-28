@@ -46,5 +46,13 @@
     "size-charts.index": {
         "label": "Bảng size",
         "route": "admin.size-charts.index"
+    },
+    "staff.index": {
+        "label": "Nhân viên",
+        "route": "admin.staff.index"
+    },
+    "roles.index": {
+        "label": "Vai trò & phân quyền",
+        "route": "admin.roles.index"
     }
 }

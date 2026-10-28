@@ -40,5 +40,13 @@ class LoginRequest extends FormRequest
                 'email' => 'Email hoặc mật khẩu không đúng.',
             ]);
         }
+
+        if (! Auth::user()->isActive()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.',
+            ]);
+        }
     }
 }

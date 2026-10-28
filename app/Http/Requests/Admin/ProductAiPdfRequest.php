@@ -6,7 +6,7 @@ class ProductAiPdfRequest extends BaseAdminRequest
 {
     public function permissionCode(): string
     {
-        return 'products.manage';
+        return 'ai.assistant';
     }
 
     /**

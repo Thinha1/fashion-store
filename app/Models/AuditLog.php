@@ -37,6 +37,7 @@ class AuditLog extends Model
         'PaymentSetting' => 'Cấu hình thanh toán',
         'SizeChart' => 'Bảng size',
         'User' => 'Tài khoản',
+        'Role' => 'Vai trò',
     ];
 
     /**
@@ -59,6 +60,13 @@ class AuditLog extends Model
         'ai_settings.primary_changed' => 'Đổi cấu hình AI chính',
         'ai_settings.deleted' => 'Xóa cấu hình AI',
         'payment_settings.updated' => 'Sửa cấu hình thanh toán',
+        'role.created' => 'Tạo vai trò',
+        'role.permissions_changed' => 'Đổi quyền của vai trò',
+        'role.deleted' => 'Xóa vai trò',
+        'staff.created' => 'Tạo tài khoản nhân viên',
+        'staff.updated' => 'Sửa tài khoản nhân viên',
+        'staff.locked' => 'Khóa tài khoản nhân viên',
+        'staff.unlocked' => 'Mở khóa tài khoản nhân viên',
     ];
 
     private const VERBS = ['created' => 'Tạo', 'updated' => 'Sửa', 'deleted' => 'Xóa'];
@@ -100,6 +108,8 @@ class AuditLog extends Model
             $subject instanceof GoodsReceipt => route('admin.goods-receipts.show', $subject),
             $subject instanceof PaymentSetting => route('admin.settings.payment.edit'),
             $subject instanceof SizeChart => route('admin.size-charts.edit', $subject),
+            $subject instanceof Role => route('admin.roles.edit', $subject),
+            $subject instanceof User && $subject->role?->code !== 'customer' => route('admin.staff.edit', $subject),
             default => null,
         };
     }
