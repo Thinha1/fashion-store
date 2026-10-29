@@ -280,8 +280,9 @@ export function collectImageGallery(messages) {
  * "which tool, with what parameters" dropdown under the bubble. Empty when
  * the turn used none (plain chat reply). No DOM access, unit-testable alone.
  */
-export function describeToolCalls({ navigate, setFields, draft }) {
+export function describeToolCalls({ navigate, setFields, draft, actions = [] }) {
     const toolCalls = [];
+    for (const action of actions) toolCalls.push({ name: action.type, args: action });
     if (navigate) toolCalls.push({ name: 'navigate', args: { page: navigate.key, label: navigate.label, url: navigate.url } });
     if (setFields.length) toolCalls.push({ name: 'set_fields', args: { fields: setFields } });
     if (draft) {
@@ -293,6 +294,21 @@ export function describeToolCalls({ navigate, setFields, draft }) {
     }
 
     return toolCalls;
+}
+
+/**
+ * Cards for the admin actions the server previewed this turn (vouchers,
+ * bulk variant discounts, confirming orders, draft goods receipts). Each
+ * starts "pending" (waiting for a click) or "error" (cannot be done).
+ */
+export function actionCards(actions) {
+    return (Array.isArray(actions) ? actions : []).map((action) => ({
+        ...action,
+        lines: Array.isArray(action.lines) ? action.lines : [],
+        warnings: Array.isArray(action.warnings) ? action.warnings : [],
+        state: action.error ? 'error' : 'pending',
+        result: null,
+    }));
 }
 
 /**
@@ -875,7 +891,7 @@ export function toWireMessages(messages) {
 // the existing two) so every existing call site — and every existing test —
 // keeps working unchanged; omitting it simply skips straight to the classic
 // non-streaming request.
-export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
+export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl, actionConfirmUrl = '') => ({
     open: false,
     messages: [],
     input: '',
@@ -1184,7 +1200,8 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
         // Which "tool(s)" this turn actually used, with the parameters each
         // one got — shown as an expandable tag under the bubble so it's easy
         // to check during testing, without having to open devtools.
-        const toolCalls = describeToolCalls({ navigate: this.navigate, setFields, draft: this.draft });
+        const actions = actionCards(payload?.actions);
+        const toolCalls = describeToolCalls({ navigate: this.navigate, setFields, draft: this.draft, actions });
 
         // Carries the resolved page label / edited field names onto the
         // message itself so the bubble can say exactly what happened,
@@ -1197,6 +1214,7 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
             notice: payload?.notice ?? null,
             setFieldsLabel,
             toolCalls,
+            actions,
         });
         // Ties the card to this exact turn — see `draftMessageIndex`.
         this.draftMessageIndex = this.draft ? this.messages.length - 1 : null;
@@ -1239,6 +1257,42 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl) => ({
             this.persist();
             this.goToPage();
         }
+    },
+
+    /**
+     * Runs a previewed action: the server only knows it by the opaque id it
+     * issued, re-checks it and does it once. The card shows the outcome.
+     */
+    async confirmAction(card) {
+        if (card.state !== 'pending' || !actionConfirmUrl) return;
+        card.state = 'running';
+        try {
+            const response = await fetch(actionConfirmUrl.replace('__PROPOSAL__', encodeURIComponent(card.id)), {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            const body = await response.json().catch(() => ({}));
+            card.result = {
+                message: body.message ?? (response.ok ? 'Đã xong.' : 'Không thực hiện được thao tác này.'),
+                links: Array.isArray(body.links) ? body.links : [],
+                problems: Array.isArray(body.problems) ? body.problems : [],
+            };
+            card.state = response.ok ? 'done' : 'failed';
+        } catch {
+            card.result = { message: 'Mất kết nối. Hãy thử lại sau.', links: [], problems: [] };
+            card.state = 'failed';
+        }
+        this.persist();
+    },
+
+    cancelAction(card) {
+        if (card.state !== 'pending') return;
+        card.state = 'cancelled';
+        this.persist();
     },
 
     /** The URL is already resolved server-side against the fixed page directory — never model-provided. */

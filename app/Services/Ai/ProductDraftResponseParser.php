@@ -14,7 +14,7 @@ use App\Support\ColorPalette;
 class ProductDraftResponseParser
 {
     /**
-     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array<string, mixed>>, variant_price: string, variant_stock: string}
+     * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array<string, mixed>>, variant_price: string, variant_stock: string, actions: list<array<string, mixed>>}
      *
      * @throws InvalidAiResponseException
      */
@@ -44,7 +44,7 @@ class ProductDraftResponseParser
         // same thing as an explicitly empty one ("no tool used this turn").
         // A reply that is a tool call (a quick edit or a page change) leaves
         // the compose fields empty anyway, and models sometimes drop them.
-        $isToolReply = ! empty($decoded['set_fields']) || ! empty($decoded['navigate']) || ! empty($decoded['navigate_product']);
+        $isToolReply = ! empty($decoded['set_fields']) || ! empty($decoded['navigate']) || ! empty($decoded['navigate_product']) || ! empty($decoded['actions']);
         foreach (['name', 'description', 'bullets', 'seo_title', 'price', 'sizes', 'colors', 'category', 'brand', 'variant_images'] as $key) {
             if ($isToolReply) {
                 $decoded[$key] ??= in_array($key, ['bullets', 'sizes', 'colors', 'variant_images'], true) ? [] : '';
@@ -79,7 +79,27 @@ class ProductDraftResponseParser
             // variant row this turn creates (see buildFillPlan/applySetFields).
             'variant_price' => trim($stringField($decoded['variant_price'] ?? '')),
             'variant_stock' => trim($stringField($decoded['variant_stock'] ?? '')),
+            // Proposed admin actions (AgentActionRegistry): only the shape is
+            // checked here; each action validates its own parameters.
+            'actions' => $this->actions($decoded['actions'] ?? []),
         ];
+    }
+
+    /**
+     * Up to five {type, ...params} objects; anything without a string type is dropped.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function actions(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_slice(array_values(array_filter(
+            $value,
+            fn (mixed $action): bool => is_array($action) && is_string($action['type'] ?? null) && $action['type'] !== '',
+        )), 0, 5);
     }
 
     /**

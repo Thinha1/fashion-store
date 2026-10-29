@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductAiAssistRequest;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Services\Ai\Actions\AgentActionRegistry;
 use App\Services\Ai\AdminPageDirectory;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\ProductDraftPromptBuilder;
@@ -36,18 +37,19 @@ class ProductAiAssistStreamController extends Controller
         ProductDraftResolver $resolver,
         AdminPageDirectory $pages,
         ProductFormContextDescriber $formContext,
+        AgentActionRegistry $actions,
         SseAssistStream $stream,
     ): StreamedResponse {
         $messages = $request->validated('messages');
         $categories = Category::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
-        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')));
+        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')), $actions->describeForPrompt($request->user()));
 
         return $stream->respond(
             $provider,
             $messages,
             $systemPrompt,
-            fn (string $reply) => $resolver->resolve($reply),
+            fn (string $reply) => $resolver->resolve($reply, $request->user()),
             self::UNAVAILABLE,
             'Product AI assist (stream): reply failed to parse.',
             'AI trả về nội dung không đúng định dạng. Vui lòng thử lại hoặc diễn đạt lại yêu cầu.',

@@ -136,6 +136,18 @@
         .ai-chat-tools, .ai-chat-tools-chevron, .ai-chat-tool-calls-wrap { animation: none; transition: none; }
     }
     .ai-chat-draft-card { @apply space-y-1.5 rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm; animation: ai-chat-rise 220ms cubic-bezier(.2,.8,.2,1) both; }
+    /* An admin action the assistant proposes: preview, confirm/cancel, outcome. */
+    .ai-chat-action { @apply mt-2 space-y-1.5 rounded-xl border border-gray-200 bg-white p-3 text-sm; animation: ai-chat-rise 220ms cubic-bezier(.2,.8,.2,1) both; }
+    .ai-chat-action[data-state="done"] { @apply border-accent; }
+    .ai-chat-action[data-state="cancelled"], .ai-chat-action[data-state="error"] { @apply bg-gray-50; }
+    .ai-chat-action-title { @apply font-semibold text-gray-900; }
+    .ai-chat-action-lines { @apply list-disc space-y-1 pl-4 text-gray-700; }
+    .ai-chat-action-warning { @apply text-xs font-medium text-amber-700; }
+    .ai-chat-action-error { @apply text-gray-700; }
+    .ai-chat-action-buttons { @apply flex flex-wrap gap-2 pt-1; }
+    .ai-chat-action-note { @apply text-xs text-gray-500; }
+    .ai-chat-action-result { @apply space-y-1 border-t border-gray-100 pt-2 text-gray-800; }
+    .ai-chat-action-link { @apply block text-xs font-semibold text-brand underline underline-offset-4; }
     .ai-chat-recap-note { @apply my-1 text-center text-xs text-gray-400; }
     .ai-chat-draft-card dt { @apply text-xs font-medium text-gray-500; }
     .ai-chat-draft-card dd { @apply mb-1.5 whitespace-pre-line text-gray-900; }

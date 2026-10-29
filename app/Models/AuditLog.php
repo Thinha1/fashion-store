@@ -48,6 +48,7 @@ class AuditLog extends Model
      */
     public const ACTION_LABELS = [
         'auth.login' => 'Đăng nhập quản trị',
+        'ai.action' => 'Trợ lý AI thực hiện thao tác',
         'order.placed' => 'Đặt đơn hàng',
         'order.cancelled' => 'Hủy đơn hàng',
         'order.status_changed' => 'Đổi trạng thái đơn hàng',

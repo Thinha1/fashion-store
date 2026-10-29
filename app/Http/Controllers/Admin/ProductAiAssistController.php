@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductAiAssistRequest;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Services\Ai\Actions\AgentActionRegistry;
 use App\Services\Ai\AdminPageDirectory;
 use App\Services\Ai\AiProviderContract;
 use App\Services\Ai\InvalidAiResponseException;
@@ -29,6 +30,7 @@ class ProductAiAssistController extends Controller
         ProductDraftResolver $resolver,
         AdminPageDirectory $pages,
         ProductFormContextDescriber $formContext,
+        AgentActionRegistry $actions,
     ): JsonResponse {
         $messages = $request->validated('messages');
 
@@ -40,13 +42,13 @@ class ProductAiAssistController extends Controller
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
 
         try {
-            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context'))));
+            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')), $actions->describeForPrompt($request->user())));
         } catch (ConnectionException|RuntimeException) {
             abort(503, self::UNAVAILABLE);
         }
 
         try {
-            $payload = $resolver->resolve($reply);
+            $payload = $resolver->resolve($reply, $request->user());
         } catch (InvalidAiResponseException $exception) {
             // The raw reply is the only way to diagnose *why* a model
             // response didn't parse (a genuinely malformed core field vs.

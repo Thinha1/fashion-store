@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\AdminExcel;
+use App\Http\Controllers\Admin\AgentActionController;
 use App\Http\Controllers\Admin\AiSettingController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrandController;
@@ -131,6 +132,12 @@ Route::prefix('admin')
         // next message. Calls no model and saves nothing.
         Route::middleware(['permission:ai.assistant', 'throttle:product-ai-assist'])
             ->post('san-pham/ai-pdf/doc-file', ProductAiPdfController::class)->name('products.ai-pdf.read');
+        // Confirms an action the assistant previewed (vouchers, bulk variant
+        // discounts, confirming orders, draft goods receipts). The action's
+        // own permission is checked inside, against the confirming user.
+        Route::middleware(['permission:ai.assistant', 'throttle:product-ai-assist'])
+            ->post('tro-ly-ai/hanh-dong/{proposal}', AgentActionController::class)
+            ->whereUuid('proposal')->name('ai.actions.confirm');
         Route::middleware('permission:products.manage')
             ->get('san-pham', [ProductController::class, 'index'])->name('products.index');
         Route::middleware('permission:products.manage')
