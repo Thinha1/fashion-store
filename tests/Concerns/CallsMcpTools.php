@@ -12,10 +12,10 @@ use Illuminate\Testing\TestResponse;
  */
 trait CallsMcpTools
 {
-    /** A token for a fresh role holding exactly `$codes`; read-only unless `$write`. */
-    private function tokenFor(array $codes, bool $write = false): string
+    /** A token for a fresh role holding exactly `$codes`. */
+    private function tokenFor(array $codes): string
     {
-        return McpToken::issue($this->roleWith($codes), 30, null, $write)[1];
+        return McpToken::issue($this->roleWith($codes), 30)[1];
     }
 
     private function roleWith(array $codes): Role

@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  */
 class AgentActionProposals
 {
-    public const TTL_MINUTES = 30;
+    private const TTL_MINUTES = 30;
 
     /**
      * @param  array<string, mixed>  $params

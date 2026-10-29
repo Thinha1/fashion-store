@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  * A bearer token for the MCP server, issued per role (see
  * `php artisan mcp:token`). Only the hash is stored.
  */
-#[Fillable(['role_id', 'name', 'can_write', 'token_hash', 'expires_at', 'last_used_at', 'revoked_at'])]
+#[Fillable(['role_id', 'name', 'token_hash', 'expires_at', 'last_used_at', 'revoked_at'])]
 class McpToken extends Model
 {
     /** Container key of the token behind the current MCP request. */
@@ -22,19 +22,17 @@ class McpToken extends Model
 
     /**
      * Creates a token for `$role` and returns it with the plain text, which
-     * is never stored and cannot be shown again. A token is read-only unless
-     * `$canWrite`.
+     * is never stored and cannot be shown again.
      *
      * @return array{0: self, 1: string}
      */
-    public static function issue(Role $role, int $days, ?string $name = null, bool $canWrite = false): array
+    public static function issue(Role $role, int $days, ?string $name = null): array
     {
         $plain = self::PREFIX.Str::random(48);
 
         $token = self::query()->create([
             'role_id' => $role->id,
             'name' => $name ?: 'MCP '.$role->name,
-            'can_write' => $canWrite,
             'token_hash' => self::hash($plain),
             'expires_at' => now()->addDays($days),
         ]);
@@ -85,19 +83,9 @@ class McpToken extends Model
         return $this->role !== null && collect($codes)->contains(fn (string $code): bool => $this->role->hasPermission($code));
     }
 
-    /**
-     * Whether this token may change data: it was issued with --write and its
-     * role holds one of `$codes`, as of now.
-     */
-    public function allowsWrite(array $codes): bool
-    {
-        return $this->can_write && $this->allowsAny($codes);
-    }
-
     protected function casts(): array
     {
         return [
-            'can_write' => 'boolean',
             'expires_at' => 'datetime',
             'last_used_at' => 'datetime',
             'revoked_at' => 'datetime',
