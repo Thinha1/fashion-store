@@ -19,7 +19,9 @@ use Illuminate\Support\Collection;
  * lowers the subtotal; the fixed shipping fee is added and a shipping voucher
  * (scope=shipping) lowers it. An order holds at most one voucher of each
  * kind: the code the customer typed or an automatic one (is_auto_apply),
- * whichever takes off more. All amounts are whole VND.
+ * whichever takes off more. An order voucher can be limited to some brands,
+ * products or variants (`targets`): it is then worked out on those lines only.
+ * All amounts are whole VND.
  */
 class PriceCalculator
 {
@@ -110,7 +112,7 @@ class PriceCalculator
         [$orderVoucher, $discountAmount] = $this->bestVoucher(
             $coupon?->scope === 'order' ? $coupon : null,
             $automatic->where('scope', 'order'),
-            fn (Discount $voucher): int => $this->voucherDiscount($voucher, $subtotal, $shippingFee, $customer),
+            fn (Discount $voucher): int => $this->voucherDiscount($voucher, $this->eligibleAmount($voucher, $lines, $subtotal), $shippingFee, $customer),
         );
 
         // Shipping voucher: its minimum order is checked against the subtotal
@@ -212,9 +214,11 @@ class PriceCalculator
         $minOrderAmount = $this->toMoney($coupon->min_order_amount ?? 0);
 
         if ($orderAmount < $minOrderAmount) {
-            throw new InvalidCouponException(
-                'Mã giảm giá chỉ áp dụng cho đơn từ '.number_format($minOrderAmount, 0, ',', '.').' ₫.'
-            );
+            $minimum = number_format($minOrderAmount, 0, ',', '.');
+
+            throw new InvalidCouponException($coupon->scope === 'order' && $coupon->hasTargets()
+                ? "Mã giảm giá cần các sản phẩm áp dụng có tổng từ {$minimum} ₫."
+                : "Mã giảm giá chỉ áp dụng cho đơn từ {$minimum} ₫.");
         }
 
         return $this->discountAmount($coupon, $coupon->scope === 'shipping' ? $shippingFee : $orderAmount);
@@ -235,6 +239,31 @@ class PriceCalculator
         }
 
         return max(0, min($amount, $baseAmount));
+    }
+
+    /**
+     * What an order voucher is worked out on: the whole subtotal, or only the
+     * lines it is limited to (brands, products, variants).
+     *
+     * @param  Collection<int, LinePrice>  $lines
+     *
+     * @throws InvalidCouponException when it is limited and nothing in the cart qualifies
+     */
+    private function eligibleAmount(Discount $voucher, Collection $lines, int $subtotal): int
+    {
+        if ($voucher->scope !== 'order' || ! $voucher->hasTargets()) {
+            return $subtotal;
+        }
+
+        $eligible = (int) $lines
+            ->filter(fn (LinePrice $line): bool => $voucher->appliesToVariant($line->variant))
+            ->sum(fn (LinePrice $line): int => $line->lineTotal());
+
+        if ($eligible === 0) {
+            throw new InvalidCouponException("Mã giảm giá chỉ áp dụng cho {$voucher->targetSummary()}; giỏ hàng chưa có sản phẩm phù hợp.");
+        }
+
+        return $eligible;
     }
 
     /**

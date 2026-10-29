@@ -42,13 +42,13 @@ class ProductAiAssistController extends Controller
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
 
         try {
-            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')), $actions->describeForPrompt($request->user())));
+            $reply = $provider->complete($messages, $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context'), $request->screen()), $actions->describeForPrompt($request->user()), $request->screen()));
         } catch (ConnectionException|RuntimeException) {
             abort(503, self::UNAVAILABLE);
         }
 
         try {
-            $payload = $resolver->resolve($reply, $request->user());
+            $payload = $resolver->resolve($reply, $request->user(), $request->screen(), (array) $request->validated('form_context'));
         } catch (InvalidAiResponseException $exception) {
             // The raw reply is the only way to diagnose *why* a model
             // response didn't parse (a genuinely malformed core field vs.

@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDiscountRequest;
+use App\Models\Brand;
 use App\Models\Discount;
+use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\Pricing\DiscountTargets;
 use App\Support\AdminPagination;
 use App\Support\AdminSorting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -80,12 +84,28 @@ class DiscountController extends Controller
                 'is_active' => true,
                 'is_auto_apply' => false,
             ]),
-            'variants' => $this->variants(),
+            'variants' => collect(),
+            'targetOptions' => $this->targetOptions($scope, new Discount),
         ]);
     }
 
     public function store(StoreDiscountRequest $request): RedirectResponse
     {
+        // Picked brands, products and variants: one discount per variant they cover.
+        if ($request->isBulkVariant()) {
+            $shared = $request->discountData();
+            $ids = $request->bulkVariantIds();
+
+            DB::transaction(function () use ($ids, $shared): void {
+                foreach ($ids as $id) {
+                    Discount::query()->create(['product_variant_id' => $id] + $shared);
+                }
+            });
+
+            return redirect()->route('admin.discounts.index', ['loai' => 'variant'])
+                ->with('status', 'Đã tạo giảm giá cho '.count($ids).' biến thể.');
+        }
+
         $discount = Discount::query()->create($request->discountData());
 
         return redirect()->route('admin.discounts.index')
@@ -96,7 +116,8 @@ class DiscountController extends Controller
     {
         return view('admin.discounts.edit', [
             'discount' => $discount,
-            'variants' => $this->variants(),
+            'variants' => $discount->scope === 'variant' ? $this->variants() : collect(),
+            'targetOptions' => $this->targetOptions($discount->scope, $discount),
         ]);
     }
 
@@ -145,5 +166,46 @@ class DiscountController extends Controller
     private function variants(): Collection
     {
         return ProductVariant::query()->where('is_active', true)->with('product:id,name')->get();
+    }
+
+    /**
+     * What the brand / product / variant picker offers and has ticked: for a
+     * new variant discount (many at once) and for an order voucher (what it is
+     * limited to). Null for the kinds that have no picker.
+     *
+     * @return array{brands: list<array<string, mixed>>, products: list<array<string, mixed>>, variants: list<array<string, mixed>>, selected: array<string, list<int>>}|null
+     */
+    private function targetOptions(string $scope, Discount $discount): ?array
+    {
+        if ($scope === 'shipping' || ($scope === 'variant' && $discount->exists)) {
+            return null;
+        }
+
+        $selected = old('targets') !== null
+            ? app(DiscountTargets::class)->normalize(old('targets'))
+            : $discount->targetIds();
+
+        $products = Product::query()
+            ->where(fn (Builder $query) => $query->where('status', 'active')->orWhereIn('id', $selected['product']))
+            ->orderBy('name')->get(['id', 'name', 'brand_id']);
+
+        $variants = ProductVariant::query()
+            ->where(fn (Builder $query) => $query->where('is_active', true)->orWhereIn('id', $selected['variant']))
+            ->with('product:id,name,brand_id')->get(['id', 'product_id', 'size', 'color', 'sku'])
+            ->sortBy([fn (ProductVariant $a, ProductVariant $b) => strcmp((string) $a->product?->name, (string) $b->product?->name), ['id', 'asc']]);
+
+        return [
+            'brands' => Brand::query()->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Brand $brand): array => ['id' => $brand->id, 'name' => $brand->name])->all(),
+            'products' => $products->map(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name, 'brand' => $product->brand_id])->all(),
+            'variants' => $variants->map(fn (ProductVariant $variant): array => [
+                'id' => $variant->id,
+                'name' => (string) $variant->product?->name,
+                'detail' => "{$variant->size} / {$variant->color} ({$variant->sku})",
+                'product' => $variant->product_id,
+                'brand' => $variant->product?->brand_id,
+            ])->values()->all(),
+            'selected' => $selected,
+        ];
     }
 }

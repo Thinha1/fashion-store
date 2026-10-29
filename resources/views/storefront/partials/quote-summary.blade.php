@@ -12,6 +12,9 @@
     @endif
     <div class="summary-total"><dt>{{ $totalLabel ?? 'Tổng cộng' }}</dt><dd><x-money :amount="$quote->grandTotal" /></dd></div>
 </dl>
+@if ($quote->discountAmount > 0 && ($scope = $quote->coupon?->targetSummary()))
+    <p class="summary-hint">{{ $quote->coupon->voucherLabel() }} chỉ giảm trên {{ $scope }}.</p>
+@endif
 @if ($quote->freeShippingGap)
     <p class="summary-hint">Mua thêm <x-money :amount="$quote->freeShippingGap" /> để được miễn phí vận chuyển.</p>
 @endif

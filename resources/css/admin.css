@@ -35,9 +35,10 @@
     .admin-shell .admin-form { max-width: none; padding: 24px; border-radius: 12px; box-shadow: none; }
     .admin-shell .admin-form > section { padding: 0 0 24px; }
     .admin-shell .admin-form > section + section { padding-top: 24px; }
-    .admin-shell .admin-form :is(select, textarea, input:not([type='checkbox']):not([type='hidden']):not([type='file'])) { min-width: 0; margin-top: 6px; border-radius: 8px; box-shadow: none; font-size: 14px; }
+    .admin-shell .admin-form :is(select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file'])) { min-width: 0; margin-top: 6px; border-radius: 8px; box-shadow: none; font-size: 14px; }
     .admin-shell .admin-form input[type='file'] { max-width: 100%; background: var(--color-gray-50); width: 100%; }
     .admin-shell .admin-form-simple { max-width: 900px; }
+    .admin-shell .target-picker-bar .btn { min-height: 36px; padding-inline: 12px; font-size: 12px; }
     .admin-form-heading { @apply mb-6 flex items-start gap-3 border-b border-gray-100 pb-5; }
     .admin-form-heading > .ui-icon { @apply mt-1 text-brand; }
     .admin-form-heading h2 { @apply text-base font-semibold; }

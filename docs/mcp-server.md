@@ -68,23 +68,41 @@ claude mcp add --transport http fashion-store https://<tên-máy>.<tailnet>.ts.n
   --header "Authorization: Bearer fsm_..."
 ```
 
-### Claude Desktop
+### Claude Desktop và claude.ai
 
-Màn hình Connectors của Claude Desktop chỉ nhận máy chủ dùng đăng nhập OAuth, nên ta đi qua cầu nối `mcp-remote` (cần Node.js). Thêm vào `claude_desktop_config.json` (Settings → Developer → Edit Config) rồi khởi động lại Claude Desktop:
+Có hai cách. Cách A gọn nhất nhưng tuỳ tài khoản có ô "Request headers" hay không; cách B luôn dùng được.
+
+**Cách A: connector tuỳ chỉnh theo URL** (Customize → Connectors → Add custom connector; gói Team/Enterprise thì Owner thêm ở Organization settings → Connectors):
+
+1. MCP server URL: `https://<tên-máy>.<tailnet>.ts.net/ai/shop`.
+2. Authentication: **No sign-in**.
+3. Request headers: tên `authorization`, giá trị `Bearer fsm_...` (gõ cả chữ `Bearer ` và dấu cách; Claude gửi đúng nguyên giá trị, không tự thêm).
+4. Add, rồi bật connector trong cuộc trò chuyện (nút +, mục Connectors).
+
+Lưu ý:
+
+- Request headers đang ở dạng beta và chỉ một số tổ chức thấy. Không thấy ô này thì dùng cách B. Không chọn "No sign-in" mà để trống header: server sẽ trả 401 nên connector không kết nối được.
+- Claude gọi server từ **máy chủ của Anthropic** (dải IP `160.79.104.0/21`), không phải từ máy bro. Vì vậy URL phải truy cập được từ internet (Funnel), địa chỉ chỉ nằm trong tailnet thì không dùng được.
+- Không đưa token vào URL (`?token=`): đặc tả MCP cấm và URL bị ghi vào nhật ký.
+- Sau khi thêm, không sửa được header; muốn đổi token thì xoá connector rồi thêm lại.
+
+**Cách B: cầu nối `mcp-remote` trong `claude_desktop_config.json`.** `mcp-remote` là chương trình chạy trên máy bro (cần Node.js), nhận lệnh từ Claude Desktop rồi gọi server qua HTTP kèm header. Vì gọi từ máy bro nên cách này dùng được cả khi server chỉ nằm trong tailnet. Mở file ở Settings → Developer → Edit Config (Windows: `%APPDATA%\Claude\claude_desktop_config.json`), thêm mục dưới rồi thoát hẳn và mở lại Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "fashion-store": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://<tên-máy>.<tailnet>.ts.net/ai/shop", "--header", "Authorization:Bearer ${MCP_TOKEN}"],
-      "env": { "MCP_TOKEN": "fsm_..." }
+      "args": ["-y", "mcp-remote", "https://<tên-máy>.<tailnet>.ts.net/ai/shop", "--header", "Authorization:${MCP_AUTH}"],
+      "env": { "MCP_AUTH": "Bearer fsm_..." }
     }
   }
 }
 ```
 
-`Authorization:Bearer` viết liền, không có dấu cách sau dấu hai chấm, để tránh lỗi tách tham số trên Windows.
+Chữ `Bearer ` (có dấu cách) nằm trong biến môi trường, không nằm trong `args`: Claude Desktop trên Windows có thể làm hỏng tham số chứa dấu cách. Claude Desktop không nhận mục kiểu `"url": ...` trong file này, chỉ nhận mục chạy lệnh (`command`).
+
+Lỗi kết nối thì xem `%APPDATA%\Claude\logs\mcp.log` và `mcp-server-fashion-store.log`.
 
 ## Thử nhanh bằng curl
 

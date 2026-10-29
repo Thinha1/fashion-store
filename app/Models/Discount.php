@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'product_variant_id', 'code', 'name', 'scope', 'discount_type', 'discount_value',
     'max_discount_amount', 'min_order_amount', 'usage_limit', 'used_count',
-    'usage_limit_per_customer', 'starts_at', 'ends_at', 'is_active', 'is_auto_apply',
+    'usage_limit_per_customer', 'starts_at', 'ends_at', 'is_active', 'is_auto_apply', 'targets',
     'created_by', 'updated_by',
 ])]
 class Discount extends Model
@@ -33,6 +33,9 @@ class Discount extends Model
 
     public const VOUCHER_SCOPES = ['order', 'shipping'];
 
+    /** What an order voucher can be limited to (the keys of `targets`). */
+    public const TARGET_TYPES = ['brand', 'product', 'variant'];
+
     protected function casts(): array
     {
         return [
@@ -43,12 +46,80 @@ class Discount extends Model
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
             'is_auto_apply' => 'boolean',
+            'targets' => 'array',
         ];
     }
 
     public function isVoucher(): bool
     {
         return in_array($this->scope, self::VOUCHER_SCOPES, true);
+    }
+
+    /**
+     * The ids an order voucher is limited to, by kind; all empty when it
+     * counts the whole order.
+     *
+     * @return array{brand: list<int>, product: list<int>, variant: list<int>}
+     */
+    public function targetIds(): array
+    {
+        $targets = is_array($this->targets) ? $this->targets : [];
+
+        return array_combine(self::TARGET_TYPES, array_map(
+            fn (string $type): array => array_values(array_unique(array_map('intval', (array) ($targets[$type] ?? [])))),
+            self::TARGET_TYPES,
+        ));
+    }
+
+    public function hasTargets(): bool
+    {
+        return array_filter($this->targetIds()) !== [];
+    }
+
+    /**
+     * Whether a cart line for this variant counts towards the voucher: always
+     * when it has no targets, else when the variant, its product or its brand
+     * is one of them.
+     */
+    public function appliesToVariant(ProductVariant $variant): bool
+    {
+        if (! $this->hasTargets()) {
+            return true;
+        }
+
+        $ids = $this->targetIds();
+
+        return in_array((int) $variant->id, $ids['variant'], true)
+            || in_array((int) $variant->product_id, $ids['product'], true)
+            || in_array((int) $variant->product?->brand_id, $ids['brand'], true);
+    }
+
+    /**
+     * "thương hiệu Coolmate, Levents; 3 sản phẩm" — what the voucher is
+     * limited to, for the admin list and the customer; null when it counts
+     * the whole order.
+     */
+    public function targetSummary(): ?string
+    {
+        if (! $this->hasTargets()) {
+            return null;
+        }
+
+        $ids = $this->targetIds();
+        $brands = $ids['brand'] === [] ? collect() : Brand::query()->whereIn('id', $ids['brand'])->orderBy('name')->pluck('name');
+        $parts = [];
+
+        if ($brands->isNotEmpty()) {
+            $parts[] = 'thương hiệu '.$brands->take(2)->implode(', ').($brands->count() > 2 ? ' và '.($brands->count() - 2).' thương hiệu khác' : '');
+        }
+        if ($ids['product'] !== []) {
+            $parts[] = count($ids['product']).' sản phẩm';
+        }
+        if ($ids['variant'] !== []) {
+            $parts[] = count($ids['variant']).' biến thể';
+        }
+
+        return implode('; ', $parts);
     }
 
     /**

@@ -164,7 +164,8 @@ flowchart TD
 
     UP --> T["subtotal = Σ (unit_price × quantity)"]
 
-    T --> O["Khe voucher giảm đơn (scope=order):\nmã khách nhập (phải hợp lệ, sai thì báo lỗi)\nvà các voucher is_auto_apply đang hợp lệ\n→ lấy cái giảm nhiều nhất"]
+    T --> O["Khe voucher giảm đơn (scope=order):\nmã khách nhập (phải hợp lệ, sai thì báo lỗi)\nvà các voucher is_auto_apply đang hợp lệ\n→ lấy cái giảm nhiều nhất
+(voucher có targets: chỉ tính trên dòng thuộc phạm vi)"]
     O --> OA["discount_amount = phần giảm trên subtotal\n(giới hạn bởi max_discount_amount)"]
     OA --> F["shipping_fee = config store.shipping_fee"]
     F --> SH["Khe voucher giảm phí ship (scope=shipping):\nmã khách nhập hoặc voucher tự động,\nmin_order_amount so với subtotal - discount_amount\n→ lấy cái giảm nhiều nhất"]
@@ -177,6 +178,7 @@ Mỗi voucher (mã khách nhập hay voucher tự động) đều phải qua cù
 **Chốt lại**:
 - Giảm giá biến thể (`scope=variant`) luôn tính **trước**, ảnh hưởng `unit_price` từng dòng; voucher giảm đơn (`scope=order`) tính **sau**, ảnh hưởng `subtotal` toàn đơn; voucher giảm phí ship (`scope=shipping`) chỉ giảm `shipping_fee`.
 - Mỗi đơn có tối đa **1 voucher giảm đơn + 1 voucher giảm phí ship**. Trong cùng một khe, mã khách nhập và voucher tự động (`is_auto_apply`) được so với nhau, cái giảm nhiều hơn thắng (hoà thì mã khách nhập thắng); trang thanh toán báo cho khách khi mã của họ bị voucher tự động thắng.
+- Voucher giảm đơn có thể **giới hạn phạm vi** bằng cột JSON `discounts.targets` (`{"brand": [id], "product": [id], "variant": [id]}`): dòng giỏ hàng thuộc phạm vi khi biến thể, sản phẩm hoặc thương hiệu của nó nằm trong danh sách. Khi đó mức giảm, `max_discount_amount` và `min_order_amount` đều tính trên **tổng tiền các dòng thuộc phạm vi** (sau giảm giá biến thể), không phải cả đơn; giỏ không có dòng nào thuộc phạm vi thì mã khách nhập báo lỗi, voucher tự động bị bỏ qua. `targets` rỗng hoặc null là tính cả đơn. Các id không phải khoá ngoại: thương hiệu hoặc sản phẩm bị xoá thì không còn khớp gì. Voucher giảm phí ship không có phạm vi.
 - `usage_limit_per_customer` kiểm tra theo **user hiện tại**, không phải tổng toàn hệ thống (đó là `usage_limit`); voucher ship đếm theo `orders.shipping_discount_id`.
 - Kết quả cuối được snapshot vào `orders`: `discount_id` + `discount_amount`, `shipping_discount_id` + `shipping_discount_amount`, `shipping_fee`, `grand_total` — không tính lại khác đi ở bất kỳ đâu khác (kể cả khi voucher bị sửa, tắt hay xoá sau đó). Huỷ đơn trả lại lượt dùng của cả hai voucher.
 

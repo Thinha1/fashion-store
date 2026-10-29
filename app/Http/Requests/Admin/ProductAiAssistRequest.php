@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Discount;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -35,7 +36,28 @@ class ProductAiAssistRequest extends BaseAdminRequest
             'messages.*.content.*.data' => ['required_if:messages.*.content.*.type,image', 'nullable', 'string'],
             // Snapshot of the product form on screen (describeProductForm in
             // product-ai-chat.js) — see ProductFormContextDescriber.
+            // Which form the widget is on (product or discount); the discount
+            // form's snapshot rides in form_context too — see
+            // ProductFormContextDescriber and discount-form-ai.js.
+            'screen' => ['nullable', Rule::in(['product', 'discount'])],
             'form_context' => ['nullable', 'array'],
+            'form_context.kind' => ['nullable', Rule::in(array_keys(Discount::SCOPE_LABELS))],
+            'form_context.code' => ['nullable', 'string', 'max:40'],
+            'form_context.discount_type' => ['nullable', 'string', 'max:10'],
+            'form_context.discount_value' => ['nullable', 'string', 'max:30'],
+            'form_context.max_discount_amount' => ['nullable', 'string', 'max:30'],
+            'form_context.min_order_amount' => ['nullable', 'string', 'max:30'],
+            'form_context.usage_limit' => ['nullable', 'string', 'max:20'],
+            'form_context.usage_limit_per_customer' => ['nullable', 'string', 'max:20'],
+            'form_context.starts_at' => ['nullable', 'string', 'max:30'],
+            'form_context.ends_at' => ['nullable', 'string', 'max:30'],
+            'form_context.is_active' => ['nullable', 'boolean'],
+            'form_context.is_auto_apply' => ['nullable', 'boolean'],
+            'form_context.applies_to' => ['nullable', Rule::in(['all', 'selected'])],
+            'form_context.brands' => ['nullable', 'array', 'max:100'],
+            'form_context.brands.*' => ['string', 'max:255'],
+            'form_context.products' => ['nullable', 'array', 'max:100'],
+            'form_context.products.*' => ['string', 'max:255'],
             'form_context.mode' => ['nullable', Rule::in(['create', 'edit'])],
             'form_context.name' => ['nullable', 'string', 'max:255'],
             'form_context.price' => ['nullable', 'string', 'max:30'],
@@ -50,6 +72,15 @@ class ProductAiAssistRequest extends BaseAdminRequest
             'form_context.variants.*.price' => ['nullable', 'string', 'max:30'],
             'form_context.variants.*.stock' => ['nullable', 'string', 'max:20'],
         ];
+    }
+
+    /**
+     * The form the staff member is on. The discount form is only honoured for
+     * someone who may manage discounts.
+     */
+    public function screen(): string
+    {
+        return $this->validated('screen') === 'discount' && $this->user()?->can('discounts.manage') ? 'discount' : 'product';
     }
 
     /**

@@ -19,8 +19,8 @@
     </nav>
 @endif
 
-<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5"
-      x-data="{ discountType: {{ Js::from($discountType) }}, discountUnits: {{ Js::from($discountUnits) }} }">
+<form method="POST" action="{{ $route }}" id="discount-form" class="admin-form admin-form-simple space-y-5"
+      x-data="{ discountType: {{ Js::from($discountType) }}, discountUnits: {{ Js::from($discountUnits) }}, appliesTo: {{ Js::from(old('applies_to', $discount->hasTargets() ? 'selected' : 'all')) }} }">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -31,7 +31,7 @@
         <p>{{ match ($scope) {
             'order' => 'Giảm vào tiền hàng của cả đơn. Mỗi đơn dùng tối đa một voucher giảm đơn.',
             'shipping' => 'Giảm vào phí vận chuyển, không vượt quá phí. Mỗi đơn dùng tối đa một voucher giảm phí ship.',
-            default => 'Giảm giá bán của một biến thể sản phẩm.',
+            default => $discount->exists ? 'Giảm giá bán của một biến thể sản phẩm.' : 'Giảm giá bán của nhiều biến thể cùng lúc: chọn cả thương hiệu, từng sản phẩm hoặc từng biến thể.',
         } }}</p></div></div>
 
     @if ($isVoucher)
@@ -59,7 +59,22 @@
                     <span class="text-gray-500">Đơn đủ điều kiện được giảm ngay, khách không cần nhập mã. Nếu khách nhập một mã cùng loại, đơn dùng cái giảm nhiều hơn.</span></span>
             </label>
         </div>
-    @else
+
+        @if ($scope === 'order' && $targetOptions)
+            <fieldset class="space-y-3">
+                <legend class="{{ $labelClass }}">Áp dụng cho</legend>
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700">
+                    <label class="flex items-center gap-2"><input type="radio" name="applies_to" value="all" x-model="appliesTo" class="border-gray-300 text-gray-900 focus:ring-gray-500"> Toàn bộ đơn hàng</label>
+                    <label class="flex items-center gap-2"><input type="radio" name="applies_to" value="selected" x-model="appliesTo" class="border-gray-300 text-gray-900 focus:ring-gray-500"> Chỉ một số thương hiệu, sản phẩm hoặc biến thể</label>
+                </div>
+                <div x-show="appliesTo === 'selected'" x-cloak class="space-y-2">
+                    @include('admin.discounts._target-picker', ['options' => $targetOptions, 'always' => false, 'bulk' => false])
+                    <p class="text-xs text-gray-500">Mức giảm, "Giảm tối đa" và "Áp dụng cho đơn từ" chỉ tính trên phần hàng thuộc các mục đã chọn.</p>
+                </div>
+                <x-input-error :messages="$errors->get('targets')" />
+            </fieldset>
+        @endif
+    @elseif ($discount->exists)
         <div>
             <label for="product_variant_id" class="{{ $labelClass }}">Biến thể sản phẩm</label>
             <select id="product_variant_id" name="product_variant_id" required class="{{ $selectClass }}">
@@ -71,6 +86,12 @@
                 @endforeach
             </select>
             <x-input-error :messages="$errors->get('product_variant_id')" />
+        </div>
+    @else
+        <div class="space-y-2">
+            <span class="{{ $labelClass }}">Giảm giá cho</span>
+            @include('admin.discounts._target-picker', ['options' => $targetOptions, 'always' => true, 'bulk' => true])
+            <x-input-error :messages="$errors->get('targets')" />
         </div>
     @endif
 

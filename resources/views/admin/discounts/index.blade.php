@@ -57,6 +57,7 @@
                             @if ($discount->is_auto_apply)<span class="rounded bg-accent-soft px-1.5 py-0.5 text-gray-800">Tự động áp dụng</span>@endif
                             @if ($discount->min_order_amount !== null && (float) $discount->min_order_amount > 0)<span>Đơn từ <x-money :amount="$discount->min_order_amount" /></span>@endif
                         </span>
+                        @if ($summary = $discount->targetSummary())<span class="mt-1 block text-xs text-gray-500">Áp dụng cho {{ $summary }}</span>@endif
                     @elseif ($discount->productVariant)
                         <span class="font-medium text-gray-900">{{ $discount->productVariant->product?->name }}</span>
                         <span class="ml-2 text-xs text-gray-500">{{ $discount->productVariant->size }} / {{ $discount->productVariant->color }}</span>
