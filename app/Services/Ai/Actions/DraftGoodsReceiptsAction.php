@@ -85,7 +85,7 @@ class DraftGoodsReceiptsAction implements AgentAction
             $noCost += $last ? 0 : 1;
             $receipts[$supplierId][] = [
                 'product_variant_id' => $variant->id,
-                'quantity' => $quantity !== null ? max(1, (int) round($quantity)) : $this->refill($variant),
+                'quantity' => $quantity !== null ? max(1, (int) round($quantity)) : $variant->reorderQuantity(),
                 'cost_price' => $last ? (float) $last->cost_price : 0,
             ];
         }
@@ -219,11 +219,5 @@ class DraftGoodsReceiptsAction implements AgentAction
             ->get(['goods_receipt_items.product_variant_id', 'goods_receipts.supplier_id', 'goods_receipt_items.cost_price'])
             ->unique('product_variant_id')
             ->keyBy('product_variant_id');
-    }
-
-    /** Enough to bring the variant to twice its threshold, at least one. */
-    private function refill(ProductVariant $variant): int
-    {
-        return max(1, 2 * (int) $variant->low_stock_threshold - (int) $variant->stock_quantity);
     }
 }
