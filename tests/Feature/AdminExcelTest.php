@@ -453,6 +453,27 @@ class AdminExcelTest extends TestCase
         $this->assertSame('2026-01-01', $discount->fresh()->starts_at->format('Y-m-d'));
     }
 
+    public function test_import_reads_files_that_store_text_inline_instead_of_in_shared_strings(): void
+    {
+        $discount = $this->record('discounts');
+        $admin = User::factory()->admin()->create();
+        $book = $this->readBytes($this->actingAs($admin)->get(route('admin.excel.export', 'discounts'))->streamedContent());
+        $sheet = $book->getActiveSheet();
+        foreach (['C2' => 'percent', 'F2' => '2026-11-11 00:00:00', 'G2' => '2026-11-11 23:59:59'] as $cell => $text) {
+            $sheet->setCellValueExplicit($cell, $text, DataType::TYPE_STRING);
+        }
+        $sheet->setCellValue('D2', 12);
+
+        $file = $this->withInlineStrings($this->upload($book));
+        $this->actingAs($admin)->post(route('admin.excel.import', 'discounts'), ['file' => $file])->assertSessionHasNoErrors();
+
+        $discount = $discount->fresh();
+        $this->assertSame('2026-11-11 00:00:00', $discount->starts_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-11-11 23:59:59', $discount->ends_at->format('Y-m-d H:i:s'));
+        $this->assertSame('percent', $discount->discount_type);
+        $this->assertSame(12, (int) $discount->discount_value);
+    }
+
     public function test_exports_user_text_as_literal_strings_and_prices_as_numbers(): void
     {
         Brand::factory()->create(['description' => '=HYPERLINK("https://example.com")']);
@@ -597,6 +618,39 @@ class AdminExcelTest extends TestCase
         } finally {
             unlink($path);
             $book->disconnectWorksheets();
+        }
+    }
+
+    /**
+     * The same workbook with its text moved from the shared string table into
+     * the cells themselves (t="inlineStr"), as scripts and some tools write it.
+     */
+    private function withInlineStrings(UploadedFile $file): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'excel-test-');
+        try {
+            file_put_contents($path, $file->get());
+            $zip = new \ZipArchive;
+            $this->assertTrue($zip->open($path));
+
+            $shared = [];
+            foreach (simplexml_load_string($zip->getFromName('xl/sharedStrings.xml'))->si as $item) {
+                $shared[] = implode('', array_map('strval', $item->xpath('.//*[local-name()="t"]')));
+            }
+            $sheet = preg_replace_callback(
+                '#<c ([^>]*?)t="s"([^>]*)><v>(\d+)</v></c>#',
+                fn (array $match): string => '<c '.$match[1].'t="inlineStr"'.$match[2].'><is><t xml:space="preserve">'.htmlspecialchars($shared[(int) $match[3]], ENT_XML1).'</t></is></c>',
+                $zip->getFromName('xl/worksheets/sheet1.xml'),
+                -1,
+                $count,
+            );
+            $this->assertGreaterThan(0, $count);
+            $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
+            $zip->close();
+
+            return UploadedFile::fake()->createWithContent('import.xlsx', file_get_contents($path));
+        } finally {
+            unlink($path);
         }
     }
 

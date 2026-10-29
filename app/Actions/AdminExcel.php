@@ -34,6 +34,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Exception;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -484,6 +485,10 @@ class AdminExcel
                     throw ValidationException::withMessages(['file' => $title.', dòng '.$number.': Không dùng công thức trong dữ liệu nhập.']);
                 }
                 $value = $cell->getValue();
+                // Files written by scripts (not Excel) keep text inline, which the reader hands back as rich text.
+                if ($value instanceof RichText) {
+                    $value = $value->getPlainText();
+                }
                 if ($value !== null && Date::isDateTime($cell) && is_numeric($value)) {
                     $value = Date::excelToDateTimeObject($value)->format('Y-m-d H:i:s');
                 }
