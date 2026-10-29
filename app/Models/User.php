@@ -33,6 +33,16 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Accounts that shop here: the "customer" role, as opposed to staff.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeCustomers(Builder $query): void
+    {
+        $query->whereHas('role', fn (Builder $role) => $role->where('code', 'customer'));
+    }
+
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);

@@ -179,9 +179,9 @@ class McpServerTest extends TestCase
     public function test_low_stock_and_attention_counts(): void
     {
         $product = Product::factory()->create(['status' => 'active', 'name' => 'Quần jean']);
-        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-30', 'stock_quantity' => 0, 'low_stock_threshold' => 5, 'is_active' => true]);
-        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-32', 'stock_quantity' => 3, 'low_stock_threshold' => 5, 'is_active' => true]);
-        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-34', 'stock_quantity' => 40, 'low_stock_threshold' => 5, 'is_active' => true]);
+        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-30', 'size' => 'S', 'color' => 'Xanh', 'stock_quantity' => 0, 'low_stock_threshold' => 5, 'is_active' => true]);
+        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-32', 'size' => 'M', 'color' => 'Xanh', 'stock_quantity' => 3, 'low_stock_threshold' => 5, 'is_active' => true]);
+        ProductVariant::factory()->for($product)->create(['sku' => 'QJ-34', 'size' => 'L', 'color' => 'Xanh', 'stock_quantity' => 40, 'low_stock_threshold' => 5, 'is_active' => true]);
         Order::factory()->create(['status' => 'pending']);
 
         $lowStock = $this->callTool($this->tokenFor(['inventory.manage']), 'low_stock', ['limit' => 1])['structuredContent'];

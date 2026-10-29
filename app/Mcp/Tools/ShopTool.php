@@ -4,9 +4,11 @@ namespace App\Mcp\Tools;
 
 use App\Models\McpToken;
 use App\Services\Audit\AuditLogger;
+use App\Services\Reports\DashboardPeriod;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
+use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Server\Tool;
 
@@ -55,6 +57,34 @@ abstract class ShopTool extends Tool
         $request->validate(['limit' => ['nullable', 'integer', 'min:1', "max:{$max}"]]);
 
         return (int) ($request->get('limit') ?? $default);
+    }
+
+    /** The `period` argument every period-based tool takes. */
+    protected function periodSchema(JsonSchema $schema): Type
+    {
+        return $schema->string()
+            ->enum(array_keys(DashboardPeriod::PRESETS))
+            ->description('Khoảng thời gian, giống bộ lọc trên Dashboard: hom-nay, 7-ngay, 30-ngay (mặc định), 90-ngay, tat-ca (toàn thời gian).');
+    }
+
+    protected function period(Request $request): DashboardPeriod
+    {
+        $request->validate(['period' => ['nullable', 'string', Rule::in(array_keys(DashboardPeriod::PRESETS))]]);
+
+        return DashboardPeriod::fromKey($request->get('period'));
+    }
+
+    /**
+     * @return array{key: string, label: string, from: ?string, to: string}
+     */
+    protected function describePeriod(DashboardPeriod $period): array
+    {
+        return [
+            'key' => $period->key,
+            'label' => DashboardPeriod::PRESETS[$period->key],
+            'from' => $period->start ? $this->time($period->start) : null,
+            'to' => $this->time($period->end),
+        ];
     }
 
     protected function time(\DateTimeInterface $moment): string

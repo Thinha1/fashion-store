@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AiSettingController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
@@ -70,6 +71,13 @@ Route::prefix('admin')
                 Route::get('{sizeChart}/sua', [SizeChartController::class, 'edit'])->name('edit');
                 Route::put('{sizeChart}', [SizeChartController::class, 'update'])->name('update');
                 Route::delete('{sizeChart}', [SizeChartController::class, 'destroy'])->name('destroy');
+            });
+
+        // Customers — read-only: who they are, where they ship, what they bought.
+        Route::middleware('permission:customers.view')->prefix('khach-hang')->name('customers.')
+            ->group(function (): void {
+                Route::get('/', [CustomerController::class, 'index'])->name('index');
+                Route::get('{customer}', [CustomerController::class, 'show'])->name('show');
             });
 
         // Roles and the permissions they grant; staff accounts and their role.
