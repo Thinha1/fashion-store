@@ -31,7 +31,6 @@
                     @endforeach
                 </nav>
                 <div class="catalog-tools">
-                    <span class="caption">Bấm một loại để lọc.</span>
                     <fieldset class="catalog-density" x-cloak>
                         <legend class="visually-hidden">Số cột hiển thị</legend>
                         <button type="button" class="density-btn" :aria-pressed="(density === '2').toString()" x-on:click="density = '2'" aria-label="Lưới 2 cột">2</button>
