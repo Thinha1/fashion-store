@@ -320,7 +320,8 @@ class DiscountTargetsTest extends TestCase
     public function test_the_list_and_the_cart_say_what_a_voucher_covers(): void
     {
         $brand = Brand::factory()->create(['name' => 'Coolmate']);
-        $variant = $this->variant($brand, 300000);
+        // In stock for certain: the factory's random stock can be 0, which keeps it out of the cart.
+        $variant = $this->variant($brand, 300000, variant: ['stock_quantity' => 20]);
         Discount::factory()->coupon()->automatic()->create(['name' => 'Giảm 10% Coolmate', 'discount_type' => 'percent', 'discount_value' => 10, 'targets' => ['brand' => [$brand->id]]]);
 
         $this->actingAs($this->admin())->get(route('admin.discounts.index'))->assertOk()->assertSee('Áp dụng cho thương hiệu Coolmate');

@@ -43,13 +43,13 @@ class ProductAiAssistStreamController extends Controller
         $messages = $request->validated('messages');
         $categories = Category::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
         $brands = Brand::query()->where('is_active', true)->orderBy('name')->pluck('name')->all();
-        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context')), $actions->describeForPrompt($request->user()));
+        $systemPrompt = $promptBuilder->build($categories, $brands, $pages->describeForPrompt(), $formContext->describe($request->validated('form_context'), $request->screen()), $actions->describeForPrompt($request->user()), $request->screen());
 
         return $stream->respond(
             $provider,
             $messages,
             $systemPrompt,
-            fn (string $reply) => $resolver->resolve($reply, $request->user()),
+            fn (string $reply) => $resolver->resolve($reply, $request->user(), $request->screen(), (array) $request->validated('form_context')),
             self::UNAVAILABLE,
             'Product AI assist (stream): reply failed to parse.',
             'AI trả về nội dung không đúng định dạng. Vui lòng thử lại hoặc diễn đạt lại yêu cầu.',

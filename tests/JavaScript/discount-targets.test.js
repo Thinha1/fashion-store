@@ -102,3 +102,29 @@ test('picks lists every ticked id with its kind for the hidden inputs', () => {
     picker.toggle(101);
     assert.deepEqual(picker.picks, [{ type: 'brand', id: 2 }, { type: 'variant', id: 101 }]);
 });
+
+test('the assistant can replace, add to and remove from the picked brands', () => {
+    const picker = discountTargets({ ...options, selected: { brand: [1] } });
+    picker.applyTargets('brand', { add: [{ id: 2, name: 'Levents' }] });
+    assert.deepEqual(picker.selected.brand, [1, 2]);
+    picker.applyTargets('brand', { remove: [{ id: 1, name: 'Coolmate' }] });
+    assert.deepEqual(picker.selected.brand, [2]);
+    picker.applyTargets('brand', { value: [{ id: 1, name: 'Coolmate' }] });
+    assert.deepEqual(picker.selected.brand, [1]);
+    picker.applyTargets('brand', { value: [] });
+    assert.deepEqual(picker.selected.brand, []);
+});
+
+test('an assistant edit can be undone from a snapshot', () => {
+    const picker = discountTargets({ ...options, selected: { product: [10] } });
+    const before = picker.snapshot();
+    picker.applyTargets('product', { add: [{ id: 11, name: 'Quần jean' }] });
+    picker.applyTargets('brand', { add: [{ id: 2, name: 'Levents' }] });
+    picker.restore(before);
+    assert.deepEqual(picker.selected, { brand: [], product: [10], variant: [] });
+});
+
+test('describe tells the assistant what is picked, by name', () => {
+    const picker = discountTargets({ ...options, selected: { brand: [2], product: [10, 12], variant: [100] } });
+    assert.deepEqual(picker.describe(), { brands: ['Levents'], products: ['Áo khoác gió', 'Áo thun'], variants: 1 });
+});

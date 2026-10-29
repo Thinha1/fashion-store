@@ -1,4 +1,6 @@
 import { createSessionStore, sendAssistTurn } from './ai-chat-transport.js';
+import { flashField, setFieldValue, setCheckboxChecked } from './form-fill.js';
+import { DISCOUNT_FIELD_LABELS, applyDiscountFields, describeDiscountForm } from './discount-form-ai.js';
 
 const MAX_VARIANT_ROWS = 12;
 const MAX_DOCUMENTS = 2;
@@ -67,47 +69,6 @@ function dataUrlToFile(dataUrl, filename) {
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
     return new File([bytes], filename, { type: mediaType });
-}
-
-/**
- * Briefly highlights a field the AI just wrote into, so the staff member can
- * see at a glance what changed without having to scan the whole form — pure
- * CSS (a fading ring/background via `.ai-chat-field-flash`, see admin.css),
- * never `.focus()`, since keyboard focus should stay in the chat box so
- * they can keep typing right away.
- */
-function flashField(el) {
-    if (!el) return;
-    el.classList.remove('ai-chat-field-flash');
-    void el.offsetWidth; // forces a reflow so re-triggering the animation on the same element restarts it
-    el.classList.add('ai-chat-field-flash');
-    el.addEventListener('animationend', () => el.classList.remove('ai-chat-field-flash'), { once: true });
-}
-
-/**
- * Sets a form field's value through its native setter (not just `.value =`)
- * so frameworks/plugins hooking the native input event — Alpine's x-model,
- * the currency mask plugin — see the change, then fires input+change for
- * anything listening the plain way. Works whether the field belongs to a
- * plain PHP-rendered form or one later rewritten with a JS framework.
- */
-function setFieldValue(el, value) {
-    if (!el) return;
-    const proto = { TEXTAREA: HTMLTextAreaElement, SELECT: HTMLSelectElement }[el.tagName]?.prototype ?? HTMLInputElement.prototype;
-    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    flashField(el);
-}
-
-/** Sets a checkbox's checked state (e.g. the "Đang kinh doanh" status toggle) through its native setter. */
-function setCheckboxChecked(el, checked) {
-    if (!el) return;
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked').set.call(el, checked);
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    // The checkbox itself is tiny — flash its whole label so the change is
-    // actually noticeable ("Đang kinh doanh" text + box together).
-    flashField(el.closest('label') ?? el);
 }
 
 /**
@@ -666,6 +627,7 @@ export function matchesVariant({ size, color }, { sizes = [], colors = [] } = {}
 }
 
 const SET_FIELD_LABELS = {
+    ...DISCOUNT_FIELD_LABELS,
     name: 'tên', price: 'giá', category: 'danh mục', brand: 'thương hiệu', sizes: 'size', colors: 'màu',
     variant_price: 'giá biến thể', variant_stock: 'tồn kho biến thể', description: 'mô tả', status: 'trạng thái kinh doanh',
 };
@@ -1152,8 +1114,17 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl, action
         this.loading = true;
         this.requestId++;
         const requestId = this.requestId;
-        const formContext = describeProductForm(document.getElementById('product-form'));
-        const body = JSON.stringify({ messages: toWireMessages(this.messages), ...(formContext ? { form_context: formContext } : {}) });
+        // The form on screen decides what the assistant fills in: the
+        // discount form (screen "discount") or the product form.
+        const discountForm = document.getElementById('discount-form');
+        const formContext = discountForm
+            ? describeDiscountForm(discountForm, window.Alpine)
+            : describeProductForm(document.getElementById('product-form'));
+        const body = JSON.stringify({
+            messages: toWireMessages(this.messages),
+            ...(discountForm ? { screen: 'discount' } : {}),
+            ...(formContext ? { form_context: formContext } : {}),
+        });
 
         await sendAssistTurn({
             jsonUrl: assistUrl,
@@ -1229,7 +1200,13 @@ export default (assistUrl, productCreateUrl, assistStreamUrl, pdfReadUrl, action
             this.pendingSetFields = setFields;
         } else if (setFields.length) {
             const form = document.getElementById('product-form');
-            if (form) {
+            const discountForm = document.getElementById('discount-form');
+            if (discountForm) {
+                // Same single-step undo as a product edit.
+                const { restore } = applyDiscountFields(setFields, discountForm, window.Alpine);
+                this.lastFormChange = { restore };
+                this.lastFormChangeMessageIndex = this.messages.length - 1;
+            } else if (form) {
                 const { restore, variantChanges } = applySetFields(setFields, form, window.Alpine);
                 if (variantChanges) this.messages.at(-1).variantNote = describeVariantChanges(variantChanges);
                 this.lastFormChange = { restore };

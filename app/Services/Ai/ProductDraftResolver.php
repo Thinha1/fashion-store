@@ -22,16 +22,19 @@ class ProductDraftResolver
         private readonly ProductLocator $products,
         private readonly AgentActionRegistry $actions,
         private readonly AgentActionProposals $proposals,
+        private readonly DiscountFieldResolver $discountFields,
     ) {}
 
     /**
+     * @param  string  $screen  "product" or "discount" — the form the staff member is on (ProductAiAssistRequest::screen)
+     * @param  array<string, mixed>  $formContext  the form snapshot the widget sent; the discount screen reads its kind and mode
      * @return array{data: array<string, mixed>, navigate: array{key: string, label: string, url: string}|null, notice: string|null, actions: list<array<string, mixed>>, raw: string}
      *
      * @throws InvalidAiResponseException
      */
-    public function resolve(string $reply, ?User $actor = null): array
+    public function resolve(string $reply, ?User $actor = null, string $screen = 'product', array $formContext = []): array
     {
-        $draft = $this->responseParser->parse($reply);
+        $draft = $this->responseParser->parse($reply, $screen);
 
         // A hallucinated/unknown key just silently resolves to null — never
         // sent to the browser as if it were a real destination.
@@ -46,6 +49,10 @@ class ProductDraftResolver
                 ? ['key' => 'products.edit', 'label' => 'sửa sản phẩm “'.$product->name.'”', 'url' => route('admin.products.edit', $product)]
                 : null;
             $notice = $product ? null : 'Không tìm thấy sản phẩm “'.$draft['navigate_product'].'”. Bạn thử gọi bằng tên khác hoặc SKU nhé.';
+        }
+        if ($screen === 'discount') {
+            [$draft['set_fields'], $problems] = $this->discountFields->resolve($draft['set_fields'], $formContext);
+            $notice = $problems === [] ? $notice : trim(($notice ? $notice.' ' : '').implode(' ', $problems));
         }
         $actions = $actor ? array_map(fn (array $action) => $this->previewAction($action, $actor), $draft['actions']) : [];
         unset($draft['navigate'], $draft['navigate_product'], $draft['actions']);

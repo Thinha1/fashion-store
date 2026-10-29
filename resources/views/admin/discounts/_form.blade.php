@@ -19,7 +19,7 @@
     </nav>
 @endif
 
-<form method="POST" action="{{ $route }}" class="admin-form admin-form-simple space-y-5"
+<form method="POST" action="{{ $route }}" id="discount-form" class="admin-form admin-form-simple space-y-5"
       x-data="{ discountType: {{ Js::from($discountType) }}, discountUnits: {{ Js::from($discountUnits) }}, appliesTo: {{ Js::from(old('applies_to', $discount->hasTargets() ? 'selected' : 'all')) }} }">
     @csrf
     @if ($method !== 'POST')

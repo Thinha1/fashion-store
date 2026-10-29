@@ -14,11 +14,13 @@ use App\Support\ColorPalette;
 class ProductDraftResponseParser
 {
     /**
+     * @param  string  $screen  the form the staff member is on: "product" or "discount" — decides which
+     *                          `set_fields` whitelist applies (DiscountFormFields for the discount form)
      * @return array{name: string, description: string, bullets: array<int, string>, seo_title: string, price: string, sizes: array<int, string>, colors: array<int, string>, category: string, brand: string, variant_images: array<int, array{color: string, image_index: int}>, navigate: string, navigate_product: string, set_fields: array<int, array<string, mixed>>, variant_price: string, variant_stock: string, actions: list<array<string, mixed>>}
      *
      * @throws InvalidAiResponseException
      */
-    public function parse(string $raw): array
+    public function parse(string $raw, string $screen = 'product'): array
     {
         $json = trim($raw);
         // Tolerate a ```json ... ``` fence even though the prompt asks the model not to use one.
@@ -73,7 +75,9 @@ class ProductDraftResponseParser
             // Quick single/few-field edits (see ProductDraftPromptBuilder) —
             // applied straight to the live form, no draft-card review step,
             // so only a small whitelisted set of simple fields is accepted.
-            'set_fields' => $this->setFields($decoded['set_fields'] ?? []),
+            'set_fields' => $screen === 'discount'
+                ? (new DiscountFormFields)->sanitize($decoded['set_fields'] ?? [])
+                : $this->setFields($decoded['set_fields'] ?? []),
             // Per-variant overrides — distinct from "price" above, which is
             // the product's own base price. Applied uniformly to every
             // variant row this turn creates (see buildFillPlan/applySetFields).

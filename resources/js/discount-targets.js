@@ -31,6 +31,10 @@ export default (options, always = false, maxVariants = 500) => {
         product: (options.products ?? []).map(item => ({ ...item, detail: brandName.get(item.brand) ?? '', text: fold(`${item.name} ${brandName.get(item.brand) ?? ''}`) })),
         variant: (options.variants ?? []).map(item => ({ ...item, text: fold(`${item.name} ${item.detail} ${brandName.get(item.brand) ?? ''}`) })),
     };
+    const names = {
+        brand: new Map((options.brands ?? []).map(item => [item.id, item.name])),
+        product: new Map((options.products ?? []).map(item => [item.id, item.name])),
+    };
     let cache = null;
 
     return {
@@ -109,6 +113,37 @@ export default (options, always = false, maxVariants = 500) => {
             const brands = new Set(this.selected.brand);
 
             return lists.variant.filter(item => variants.has(item.id) || products.has(item.product) || brands.has(item.brand)).length;
+        },
+
+        /**
+         * Edits the ticked brands or products the way the assistant words it:
+         * `value` is the whole list, `add` and `remove` change it; each is a
+         * list of {id, name}.
+         */
+        applyTargets(type, edit) {
+            let picked = [...this.selected[type]];
+            if (Array.isArray(edit.value)) picked = ids(edit.value.map(item => item.id));
+            if (Array.isArray(edit.add)) picked = ids([...picked, ...edit.add.map(item => item.id)]);
+            if (Array.isArray(edit.remove)) {
+                const gone = new Set(ids(edit.remove.map(item => item.id)));
+                picked = picked.filter(id => !gone.has(id));
+            }
+            this.selected[type] = picked;
+        },
+
+        snapshot() {
+            return { brand: [...this.selected.brand], product: [...this.selected.product], variant: [...this.selected.variant] };
+        },
+
+        restore(snapshot) {
+            for (const tab of TABS) this.selected[tab.key] = ids(snapshot[tab.key]);
+        },
+
+        /** What is ticked, by name, for the assistant's view of the form. */
+        describe() {
+            const named = type => this.selected[type].map(id => names[type].get(id)).filter(Boolean).slice(0, 30);
+
+            return { brands: named('brand'), products: named('product'), variants: this.selected.variant.length };
         },
 
         get overLimit() {
