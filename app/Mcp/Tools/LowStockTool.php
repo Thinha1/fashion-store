@@ -19,7 +19,7 @@ class LowStockTool extends DashboardTool
 
     protected string $title = 'Hàng sắp hết';
 
-    protected string $description = 'Các biến thể đang bán có tồn kho bằng hoặc dưới ngưỡng cảnh báo của chính nó, ít hàng nhất lên trước: sản phẩm, SKU, size, màu, tồn kho, ngưỡng. total_low_stock là tổng số biến thể sắp hết, kể cả những dòng vượt quá limit.';
+    protected string $description = 'Các biến thể đang bán có tồn kho bằng hoặc dưới ngưỡng cảnh báo của chính nó, ít hàng nhất lên trước: sản phẩm, SKU, size, màu, tồn kho, ngưỡng và suggested_quantity (số nên nhập để tồn kho lên gấp đôi ngưỡng). total_low_stock là tổng số biến thể sắp hết, kể cả những dòng vượt quá limit. Muốn soạn phiếu nhập thì dùng propose_draft_goods_receipts.';
 
     protected function permissions(): array
     {
@@ -44,6 +44,7 @@ class LowStockTool extends DashboardTool
                 'color' => $variant->color,
                 'stock' => (int) $variant->stock_quantity,
                 'threshold' => (int) $variant->low_stock_threshold,
+                'suggested_quantity' => $variant->reorderQuantity(),
             ])->all(),
         ];
     }

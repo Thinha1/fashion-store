@@ -79,7 +79,8 @@ class StaffAccess
     {
         return match (true) {
             $this->isLocked($role) => 'Vai trò hệ thống không xóa được.',
-            $role->users()->exists() => 'Vai trò đang có tài khoản sử dụng. Hãy chuyển các tài khoản sang vai trò khác trước.',
+            $role->users()->where('status', '!=', User::STATUS_SYSTEM)->exists() => 'Vai trò đang có tài khoản sử dụng. Hãy chuyển các tài khoản sang vai trò khác trước.',
+            $role->users()->exists() => 'Vai trò đã được dùng qua MCP (tài khoản hệ thống "Claude (MCP)"), nên không xóa được. Hãy thu hồi token của vai trò này và bỏ quyền của vai trò thay vì xóa.',
             default => null,
         };
     }
@@ -125,7 +126,7 @@ class StaffAccess
     private function anotherRoleManager(?int $exceptRoleId = null, ?int $exceptUserId = null): bool
     {
         return User::query()
-            ->where('status', '!=', 'locked')
+            ->whereNotIn('status', ['locked', User::STATUS_SYSTEM])
             ->when($exceptRoleId, fn ($query) => $query->where('role_id', '!=', $exceptRoleId))
             ->when($exceptUserId, fn ($query) => $query->whereKeyNot($exceptUserId))
             ->whereHas('role.permissions', fn ($query) => $query->where('code', 'roles.manage'))

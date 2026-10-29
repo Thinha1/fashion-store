@@ -50,7 +50,7 @@ class AuditLog extends Model
     public const ACTION_LABELS = [
         'auth.login' => 'Đăng nhập quản trị',
         'ai.action' => 'Trợ lý AI thực hiện thao tác',
-        'mcp.tool_called' => 'MCP: tra cứu số liệu',
+        'mcp.tool_called' => 'MCP: gọi công cụ',
         'mcp_token.created' => 'Tạo token MCP',
         'mcp_token.revoked' => 'Thu hồi token MCP',
         'order.placed' => 'Đặt đơn hàng',

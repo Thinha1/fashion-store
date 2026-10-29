@@ -62,6 +62,16 @@ class ProductVariant extends Model
         return "CASE size {$cases} ELSE ".count(self::SIZES).' END';
     }
 
+    /**
+     * How many to order to bring a low variant back to twice its warning
+     * threshold, at least one (what the goods-receipt drafts and the MCP
+     * `low_stock` tool suggest).
+     */
+    public function reorderQuantity(): int
+    {
+        return max(1, 2 * (int) $this->low_stock_threshold - (int) $this->stock_quantity);
+    }
+
     protected function casts(): array
     {
         return [
