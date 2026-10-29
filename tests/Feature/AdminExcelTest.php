@@ -474,6 +474,20 @@ class AdminExcelTest extends TestCase
         $this->assertSame(12, (int) $discount->discount_value);
     }
 
+    #[DataProvider('resources')]
+    public function test_every_import_reads_workbooks_that_store_text_inline(string $resource): void
+    {
+        $model = $this->record($resource);
+        $admin = User::factory()->admin()->create();
+        $bytes = $this->actingAs($admin)->get(route('admin.excel.export', $resource))->streamedContent();
+        $file = $this->withInlineStrings(UploadedFile::fake()->createWithContent('import.xlsx', $bytes));
+
+        $this->actingAs($admin)->post(route('admin.excel.import', $resource), ['file' => $file])
+            ->assertSessionHasNoErrors()->assertRedirect(route('admin.'.$resource.'.index'));
+
+        $this->assertSame(1, $model::query()->count(), 'the rows are matched to the existing record, not duplicated');
+    }
+
     public function test_exports_user_text_as_literal_strings_and_prices_as_numbers(): void
     {
         Brand::factory()->create(['description' => '=HYPERLINK("https://example.com")']);
@@ -637,15 +651,23 @@ class AdminExcelTest extends TestCase
             foreach (simplexml_load_string($zip->getFromName('xl/sharedStrings.xml'))->si as $item) {
                 $shared[] = implode('', array_map('strval', $item->xpath('.//*[local-name()="t"]')));
             }
-            $sheet = preg_replace_callback(
-                '#<c ([^>]*?)t="s"([^>]*)><v>(\d+)</v></c>#',
-                fn (array $match): string => '<c '.$match[1].'t="inlineStr"'.$match[2].'><is><t xml:space="preserve">'.htmlspecialchars($shared[(int) $match[3]], ENT_XML1).'</t></is></c>',
-                $zip->getFromName('xl/worksheets/sheet1.xml'),
-                -1,
-                $count,
-            );
-            $this->assertGreaterThan(0, $count);
-            $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
+            $converted = 0;
+            foreach (range(1, 12) as $number) {
+                $name = "xl/worksheets/sheet{$number}.xml";
+                if ($zip->locateName($name) === false) {
+                    continue;
+                }
+                $sheet = preg_replace_callback(
+                    '#<c ([^>]*?)t="s"([^>]*)><v>(\d+)</v></c>#',
+                    fn (array $match): string => '<c '.$match[1].'t="inlineStr"'.$match[2].'><is><t xml:space="preserve">'.htmlspecialchars($shared[(int) $match[3]], ENT_XML1).'</t></is></c>',
+                    $zip->getFromName($name),
+                    -1,
+                    $count,
+                );
+                $converted += $count;
+                $zip->addFromString($name, $sheet);
+            }
+            $this->assertGreaterThan(0, $converted);
             $zip->close();
 
             return UploadedFile::fake()->createWithContent('import.xlsx', file_get_contents($path));
