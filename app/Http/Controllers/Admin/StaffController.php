@@ -34,6 +34,7 @@ class StaffController extends Controller
         $staff = User::query()
             ->with('role')
             ->whereHas('role', fn ($query) => $query->where('code', '!=', 'customer'))
+            ->where('status', '!=', User::STATUS_SYSTEM)
             ->when($filters['q'], fn ($query, string $q) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%")))
             ->when($filters['role'], fn ($query, int $role) => $query->where('role_id', $role))
@@ -113,7 +114,7 @@ class StaffController extends Controller
      */
     private function ensureStaff(User $staff): void
     {
-        abort_if($staff->role?->code === 'customer', 404);
+        abort_if($staff->role?->code === 'customer' || $staff->status === User::STATUS_SYSTEM, 404);
     }
 
     /**

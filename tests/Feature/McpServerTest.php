@@ -23,7 +23,7 @@ class McpServerTest extends TestCase
 
     private const ALL_TOOLS = [
         'sales_summary', 'sales_series', 'top_products', 'order_status_breakdown',
-        'attention_counts', 'low_stock', 'latest_orders',
+        'attention_counts', 'low_stock', 'latest_orders', 'find_stock',
     ];
 
     protected function setUp(): void
@@ -83,8 +83,8 @@ class McpServerTest extends TestCase
     public function test_a_role_sees_only_the_tools_its_permissions_unlock(): void
     {
         $this->assertSame(collect(self::ALL_TOOLS)->sort()->values()->all(), $this->toolNames($this->tokenFor(['dashboard.view'])));
-        $this->assertSame(['low_stock'], $this->toolNames($this->tokenFor(['inventory.manage'])));
-        $this->assertSame(['latest_orders'], $this->toolNames($this->tokenFor(['orders.view'])));
+        $this->assertSame(['find_stock', 'low_stock'], $this->toolNames($this->tokenFor(['inventory.manage'])));
+        $this->assertSame(['get_order', 'latest_orders', 'orders_to_process'], $this->toolNames($this->tokenFor(['orders.view'])));
         $this->assertSame([], $this->toolNames($this->tokenFor(['catalog.manage'])));
     }
 
@@ -232,7 +232,7 @@ class McpServerTest extends TestCase
         $log = AuditLog::query()->where('action', 'mcp.tool_called')->sole();
         $this->assertNull($log->actor_id);
         $this->assertSame('attention_counts', $log->new_values['tool']);
-        $this->assertSame('MCP: tra cứu số liệu', $log->actionLabel());
+        $this->assertSame('MCP: gọi công cụ', $log->actionLabel());
         $this->assertNotNull(McpToken::query()->sole()->last_used_at);
     }
 
@@ -256,9 +256,11 @@ class McpServerTest extends TestCase
 
         $this->artisan('mcp:token', ['role' => 'kho', '--days' => 7])
             ->expectsOutputToContain('Quyền dùng được qua MCP: inventory.manage.')
+            ->expectsOutputToContain('Token chỉ đọc.')
             ->assertSuccessful();
 
         $token = McpToken::query()->sole();
+        $this->assertFalse($token->can_write);
         $this->assertSame($role->id, $token->role_id);
         $this->assertSame('2026-10-17', $token->expires_at->toDateString());
         $this->assertSame(64, strlen($token->token_hash));

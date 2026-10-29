@@ -21,6 +21,13 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Status of the accounts the system acts as (see App\Mcp\McpActor): they
+     * hold their role's permissions but nobody logs in as them, so they are
+     * not listed as staff and do not count as a remaining permission manager.
+     */
+    public const STATUS_SYSTEM = 'system';
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
