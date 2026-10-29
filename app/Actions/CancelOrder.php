@@ -66,8 +66,9 @@ class CancelOrder
                 return ['variant_id' => $variantId, 'quantity' => $quantity, 'stock_before' => $before, 'stock_after' => $variant->stock_quantity];
             })->filter()->values()->all();
 
-            if ($lockedOrder->discount_id) {
-                Discount::query()->whereKey($lockedOrder->discount_id)->where('used_count', '>', 0)->lockForUpdate()->first()?->decrement('used_count');
+            // Both vouchers the order used get their use back.
+            foreach (array_filter([$lockedOrder->discount_id, $lockedOrder->shipping_discount_id]) as $voucherId) {
+                Discount::query()->whereKey($voucherId)->where('used_count', '>', 0)->lockForUpdate()->first()?->decrement('used_count');
             }
 
             $previousStatus = $lockedOrder->status;

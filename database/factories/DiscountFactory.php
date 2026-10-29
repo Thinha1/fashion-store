@@ -39,4 +39,32 @@ class DiscountFactory extends Factory
             'discount_value' => 50000,
         ]);
     }
+
+    /**
+     * A voucher on the shipping fee; free shipping unless the value is changed.
+     */
+    public function shippingVoucher(): static
+    {
+        return $this->state(fn () => [
+            'product_variant_id' => null,
+            'scope' => 'shipping',
+            'code' => 'SHIP-'.strtoupper(Str::random(6)),
+            'name' => 'Miễn phí vận chuyển',
+            'discount_type' => 'percent',
+            'discount_value' => 100,
+        ]);
+    }
+
+    /**
+     * Applied to every order that qualifies, with no code to type.
+     */
+    public function automatic(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'product_variant_id' => null,
+            'code' => null,
+            'name' => $attributes['name'] ?? 'Ưu đãi tự động',
+            'is_auto_apply' => true,
+        ]);
+    }
 }

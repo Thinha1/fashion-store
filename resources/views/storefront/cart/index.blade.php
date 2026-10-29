@@ -96,12 +96,8 @@
 
                 <aside class="cart-summary" aria-labelledby="cart-summary-title">
                     <h2 id="cart-summary-title">Tóm tắt đơn hàng</h2>
-                    <dl class="summary">
-                        <div><dt>Tạm tính</dt><dd><x-money :amount="$quote->subtotal" /></dd></div>
-                        <div><dt>Phí vận chuyển</dt><dd><x-money :amount="$quote->shippingFee" /></dd></div>
-                        <div class="summary-total"><dt>Tổng cộng</dt><dd><x-money :amount="$quote->grandTotal" /></dd></div>
-                    </dl>
-                    <p class="caption">Mã giảm giá được nhập ở bước thanh toán.</p>
+                    @include('storefront.partials.quote-summary', ['quote' => $quote])
+                    <p class="caption">Mã giảm giá được nhập ở bước thanh toán; ưu đãi tự động đã được tính sẵn.</p>
 
                     @if ($hasProblems)
                         <p class="cart-problem" role="alert">Vui lòng xóa hoặc giảm số lượng các sản phẩm được đánh dấu đỏ trước khi thanh toán.</p>

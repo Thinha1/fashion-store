@@ -44,9 +44,12 @@
                 <dl class="mt-5 ml-auto max-w-xs space-y-2 text-sm">
                     <div class="flex justify-between"><dt class="text-gray-500">Tạm tính</dt><dd><x-money :amount="$order->subtotal" /></dd></div>
                     @if ((float) $order->discount_amount > 0)
-                        <div class="flex justify-between"><dt class="text-gray-500">Mã giảm giá {{ $order->discount?->code }}</dt><dd>−<x-money :amount="$order->discount_amount" /></dd></div>
+                        <div class="flex justify-between"><dt class="text-gray-500">Giảm giá đơn{{ $order->discount ? ' ('.$order->discount->voucherLabel().')' : '' }}</dt><dd>−<x-money :amount="$order->discount_amount" /></dd></div>
                     @endif
                     <div class="flex justify-between"><dt class="text-gray-500">Phí vận chuyển</dt><dd><x-money :amount="$order->shipping_fee" /></dd></div>
+                    @if ((float) $order->shipping_discount_amount > 0)
+                        <div class="flex justify-between"><dt class="text-gray-500">Giảm phí vận chuyển{{ $order->shippingDiscount ? ' ('.$order->shippingDiscount->voucherLabel().')' : '' }}</dt><dd>−<x-money :amount="$order->shipping_discount_amount" /></dd></div>
+                    @endif
                     <div class="flex justify-between border-t border-gray-100 pt-2 font-semibold"><dt>Tổng thanh toán</dt><dd><x-money :amount="$order->grand_total" /></dd></div>
                 </dl>
             </x-admin.panel>

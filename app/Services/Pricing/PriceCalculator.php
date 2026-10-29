@@ -15,8 +15,11 @@ use Illuminate\Support\Collection;
  * nothing here trusts a price sent by the client.
  *
  * Order of application: the best active variant discount (scope=variant)
- * lowers each line's unit price first; a coupon (scope=order) then lowers the
- * subtotal; the fixed shipping fee is added last. All amounts are whole VND.
+ * lowers each line's unit price first; an order voucher (scope=order) then
+ * lowers the subtotal; the fixed shipping fee is added and a shipping voucher
+ * (scope=shipping) lowers it. An order holds at most one voucher of each
+ * kind: the code the customer typed or an automatic one (is_auto_apply),
+ * whichever takes off more. All amounts are whole VND.
  */
 class PriceCalculator
 {
@@ -88,37 +91,67 @@ class PriceCalculator
     }
 
     /**
-     * Totals for already-priced lines, optionally with a coupon.
+     * Totals for already-priced lines. `$coupon` is the voucher whose code the
+     * customer typed, of either kind; an invalid one throws. Each kind's slot
+     * then takes the typed voucher or the best automatic one, whichever takes
+     * off more (the typed one wins a tie).
      *
      * @param  Collection<int, LinePrice>  $lines
      *
      * @throws InvalidCouponException
      */
-    public function quote(Collection $lines, ?Discount $coupon = null, ?User $customer = null): OrderQuote
+    public function quote(Collection $lines, ?Discount $coupon = null, ?User $customer = null, bool $lockForUpdate = false): OrderQuote
     {
         $subtotal = (int) $lines->sum(fn (LinePrice $line): int => $line->lineTotal());
-        $discountAmount = $coupon ? $this->couponDiscount($coupon, $subtotal, $customer) : 0;
         $shippingFee = $lines->isEmpty() ? 0 : $this->toMoney(config('store.shipping_fee'));
+        $automatic = $lines->isEmpty() ? collect() : $this->automaticVouchers($lockForUpdate);
+
+        // Order voucher: lowers the subtotal.
+        [$orderVoucher, $discountAmount] = $this->bestVoucher(
+            $coupon?->scope === 'order' ? $coupon : null,
+            $automatic->where('scope', 'order'),
+            fn (Discount $voucher): int => $this->voucherDiscount($voucher, $subtotal, $shippingFee, $customer),
+        );
+
+        // Shipping voucher: its minimum order is checked against the subtotal
+        // after the order voucher, and it never takes off more than the fee.
+        $afterOrderVoucher = $subtotal - $discountAmount;
+        [$shippingVoucher, $shippingDiscountAmount] = $this->bestVoucher(
+            $coupon?->scope === 'shipping' ? $coupon : null,
+            $automatic->where('scope', 'shipping'),
+            fn (Discount $voucher): int => $this->voucherDiscount($voucher, $afterOrderVoucher, $shippingFee, $customer),
+        );
+
+        $notice = null;
+        if ($coupon && ! $coupon->is($orderVoucher) && ! $coupon->is($shippingVoucher)) {
+            $better = $coupon->scope === 'shipping' ? $shippingVoucher : $orderVoucher;
+            $notice = "Mã {$coupon->code} giảm ít hơn ưu đãi tự động \"{$better?->voucherLabel()}\", nên đơn dùng ưu đãi tự động.";
+        }
 
         return new OrderQuote(
             lines: $lines,
             subtotal: $subtotal,
             discountAmount: $discountAmount,
             shippingFee: $shippingFee,
-            grandTotal: $subtotal - $discountAmount + $shippingFee,
-            coupon: $coupon,
+            grandTotal: $subtotal - $discountAmount + $shippingFee - $shippingDiscountAmount,
+            coupon: $orderVoucher,
+            shippingDiscountAmount: $shippingDiscountAmount,
+            shippingVoucher: $shippingVoucher,
+            notice: $notice,
+            freeShippingGap: $this->freeShippingGap($automatic, $afterOrderVoucher, $shippingFee, $shippingDiscountAmount, $customer),
         );
     }
 
     /**
-     * Look up a coupon by the code the customer typed (case-insensitive).
+     * Look up a voucher (order or shipping) by the code the customer typed,
+     * case-insensitively.
      *
      * @throws InvalidCouponException
      */
     public function findCoupon(string $code, bool $lockForUpdate = false): Discount
     {
         $coupon = Discount::query()
-            ->where('scope', 'order')
+            ->whereIn('scope', Discount::VOUCHER_SCOPES)
             ->where('code', mb_strtoupper(trim($code)))
             ->when($lockForUpdate, fn ($query) => $query->lockForUpdate())
             ->first();
@@ -131,15 +164,31 @@ class PriceCalculator
     }
 
     /**
-     * How much the coupon takes off this subtotal, after checking every rule.
+     * How much an order voucher takes off this subtotal, after checking every rule.
      *
      * @throws InvalidCouponException
      */
     public function couponDiscount(Discount $coupon, int $subtotal, ?User $customer): int
     {
+        if ($coupon->scope !== 'order') {
+            throw new InvalidCouponException('Mã giảm giá không còn hiệu lực.');
+        }
+
+        return $this->voucherDiscount($coupon, $subtotal, 0, $customer);
+    }
+
+    /**
+     * How much a voucher takes off: an order voucher off `$orderAmount`, a
+     * shipping voucher off `$shippingFee`. Both need `$orderAmount` to reach
+     * the voucher's minimum order.
+     *
+     * @throws InvalidCouponException
+     */
+    public function voucherDiscount(Discount $coupon, int $orderAmount, int $shippingFee, ?User $customer): int
+    {
         $now = now();
 
-        if ($coupon->scope !== 'order' || ! $coupon->is_active) {
+        if (! $coupon->isVoucher() || ! $coupon->is_active) {
             throw new InvalidCouponException('Mã giảm giá không còn hiệu lực.');
         }
 
@@ -162,13 +211,13 @@ class PriceCalculator
 
         $minOrderAmount = $this->toMoney($coupon->min_order_amount ?? 0);
 
-        if ($subtotal < $minOrderAmount) {
+        if ($orderAmount < $minOrderAmount) {
             throw new InvalidCouponException(
                 'Mã giảm giá chỉ áp dụng cho đơn từ '.number_format($minOrderAmount, 0, ',', '.').' ₫.'
             );
         }
 
-        return $this->discountAmount($coupon, $subtotal);
+        return $this->discountAmount($coupon, $coupon->scope === 'shipping' ? $shippingFee : $orderAmount);
     }
 
     /**
@@ -199,16 +248,102 @@ class PriceCalculator
     }
 
     /**
-     * Orders that used this coupon and still count — a cancelled order gives
+     * Orders that used this voucher and still count — a cancelled order gives
      * the use back.
      */
     private function customerUsageCount(Discount $coupon, User $customer): int
     {
         return Order::query()
             ->where('user_id', $customer->id)
-            ->where('discount_id', $coupon->id)
+            ->where($coupon->scope === 'shipping' ? 'shipping_discount_id' : 'discount_id', $coupon->id)
             ->where('status', '!=', 'cancelled')
             ->count();
+    }
+
+    /**
+     * Automatic vouchers of both kinds that are on and inside their dates.
+     * Usage limits and the minimum order are checked per quote.
+     *
+     * @return Collection<int, Discount>
+     */
+    private function automaticVouchers(bool $lockForUpdate): Collection
+    {
+        return Discount::query()
+            ->whereIn('scope', Discount::VOUCHER_SCOPES)
+            ->where('is_auto_apply', true)
+            ->currentlyActive()
+            ->orderBy('id')
+            ->when($lockForUpdate, fn ($query) => $query->lockForUpdate())
+            ->get();
+    }
+
+    /**
+     * The voucher that takes off the most: the typed one (which must be
+     * valid) or an automatic one that passes its rules; the typed one wins a
+     * tie and an automatic one that fails a rule is skipped.
+     *
+     * @param  Collection<int, Discount>  $automatic
+     * @param  callable(Discount): int  $amountOf
+     * @return array{0: ?Discount, 1: int}
+     *
+     * @throws InvalidCouponException
+     */
+    private function bestVoucher(?Discount $typed, Collection $automatic, callable $amountOf): array
+    {
+        $best = $typed;
+        $bestAmount = $typed ? $amountOf($typed) : 0;
+
+        foreach ($automatic as $voucher) {
+            if ($typed?->is($voucher)) {
+                continue;
+            }
+
+            try {
+                $amount = $amountOf($voucher);
+            } catch (InvalidCouponException) {
+                continue;
+            }
+
+            if ($amount > $bestAmount) {
+                [$best, $bestAmount] = [$voucher, $amount];
+            }
+        }
+
+        return $bestAmount > 0 || $typed ? [$best, $bestAmount] : [null, 0];
+    }
+
+    /**
+     * How much more the customer must buy for an automatic shipping voucher
+     * to cover the whole fee, when one would and none does yet.
+     *
+     * @param  Collection<int, Discount>  $automatic
+     */
+    private function freeShippingGap(Collection $automatic, int $orderAmount, int $shippingFee, int $shippingDiscount, ?User $customer): ?int
+    {
+        if ($shippingFee === 0 || $shippingDiscount >= $shippingFee) {
+            return null;
+        }
+
+        $thresholds = $automatic
+            ->where('scope', 'shipping')
+            ->filter(function (Discount $voucher) use ($orderAmount, $shippingFee, $customer): bool {
+                $minimum = $this->toMoney($voucher->min_order_amount ?? 0);
+                if ($minimum <= $orderAmount || $this->discountAmount($voucher, $shippingFee) < $shippingFee) {
+                    return false;
+                }
+
+                try {
+                    // Every rule but the minimum order must already pass.
+                    $this->voucherDiscount($voucher, $minimum, $shippingFee, $customer);
+                } catch (InvalidCouponException) {
+                    return false;
+                }
+
+                return true;
+            })
+            ->map(fn (Discount $voucher): int => $this->toMoney($voucher->min_order_amount));
+
+        return $thresholds->isEmpty() ? null : $thresholds->min() - $orderAmount;
     }
 
     private function toMoney(mixed $amount): int

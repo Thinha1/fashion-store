@@ -115,7 +115,7 @@ class AdminSortingTest extends TestCase
         $this->assertSortedIds($resource, $viewKey, $column, [$ids[1], $ids[0], $ids[2]]);
     }
 
-    public function test_discounts_sort_by_product_then_size_and_color_and_exclude_coupons(): void
+    public function test_discounts_sort_by_product_then_size_and_color_and_list_vouchers_alongside(): void
     {
         $this->actingAs(User::factory()->admin()->create());
         $product = Product::factory()->create(['name' => 'Alpha']);
@@ -131,6 +131,8 @@ class AdminSortingTest extends TestCase
 
         $this->assertSortedIds('discounts', 'discounts', 'variant', [$ids[1], $ids[2], $ids[0], $last->id]);
         $this->get(route('admin.discounts.index', ['sort' => 'variant']))
+            ->assertViewHas('discounts', fn ($discounts) => $discounts->total() === 5 && $discounts->contains('id', $coupon->id));
+        $this->get(route('admin.discounts.index', ['sort' => 'variant', 'loai' => 'variant']))
             ->assertViewHas('discounts', fn ($discounts) => $discounts->total() === 4 && ! $discounts->contains('id', $coupon->id));
     }
 

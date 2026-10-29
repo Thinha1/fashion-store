@@ -350,6 +350,7 @@
     .checkout-coupon-form .field::placeholder { text-transform: none; }
     .checkout-coupon-applied { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); }
     .summary .summary-discount dt, .summary .summary-discount dd { color: var(--color-success); }
+    .summary-hint { margin: 0; color: var(--color-success); font-size: var(--text-sm); }
 
     /* Orders (/don-hang) ------------------------------------------------ */
     .narrow { max-width: 64rem; }

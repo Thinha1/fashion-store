@@ -84,6 +84,9 @@
                         <div class="summary-discount"><dt>Mã giảm giá</dt><dd>−<x-money :amount="$order->discount_amount" /></dd></div>
                     @endif
                     <div><dt>Phí vận chuyển</dt><dd><x-money :amount="$order->shipping_fee" /></dd></div>
+                    @if ((float) $order->shipping_discount_amount > 0)
+                        <div class="summary-discount"><dt>Giảm phí vận chuyển</dt><dd>−<x-money :amount="$order->shipping_discount_amount" /></dd></div>
+                    @endif
                     <div class="summary-total"><dt>Tổng thanh toán</dt><dd><x-money :amount="$order->grand_total" /></dd></div>
                 </dl>
             </section>
