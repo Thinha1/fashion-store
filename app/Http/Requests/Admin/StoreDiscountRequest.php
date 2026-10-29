@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Discount;
+use App\Services\Pricing\DiscountTargets;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -11,9 +13,16 @@ use Illuminate\Validation\Validator;
  * One form for every discount kind: a variant discount (scope=variant) or a
  * voucher (scope=order lowers the subtotal, scope=shipping the shipping fee).
  * A voucher needs a code unless it applies automatically.
+ *
+ * The form can also pick brands, products and variants (`targets`). Creating
+ * a variant discount with picks makes one discount per variant they cover;
+ * an order voucher can be limited to them (`applies_to` = selected).
  */
 class StoreDiscountRequest extends BaseAdminRequest
 {
+    /** @var list<int>|null */
+    private ?array $bulkVariants = null;
+
     public function permissionCode(): string
     {
         return 'discounts.manage';
@@ -29,6 +38,7 @@ class StoreDiscountRequest extends BaseAdminRequest
             'scope' => $existing instanceof Discount ? $existing->scope : ($this->input('scope') ?? 'variant'),
             // Codes are stored upper-case, which is how checkout looks them up.
             'code' => $this->filled('code') ? mb_strtoupper(trim((string) $this->input('code'))) : null,
+            'targets' => app(DiscountTargets::class)->normalize($this->input('targets')),
         ]);
     }
 
@@ -42,7 +52,15 @@ class StoreDiscountRequest extends BaseAdminRequest
 
         return [
             'scope' => ['required', Rule::in(array_keys(Discount::SCOPE_LABELS))],
-            'product_variant_id' => [Rule::requiredIf(! $voucher), 'nullable', 'integer', Rule::exists('product_variants', 'id')],
+            'product_variant_id' => [Rule::requiredIf(! $voucher && ($discount instanceof Discount || ! $this->isBulkVariant())), 'nullable', 'integer', Rule::exists('product_variants', 'id')],
+            'applies_to' => ['nullable', Rule::in(['all', 'selected'])],
+            'targets' => ['nullable', 'array'],
+            'targets.brand' => ['array', 'max:500'],
+            'targets.brand.*' => ['integer', Rule::exists('brands', 'id')],
+            'targets.product' => ['array', 'max:500'],
+            'targets.product.*' => ['integer', Rule::exists('products', 'id')->whereNull('deleted_at')],
+            'targets.variant' => ['array', 'max:2000'],
+            'targets.variant.*' => ['integer', Rule::exists('product_variants', 'id')],
             'name' => [Rule::requiredIf($voucher), 'nullable', 'string', 'max:120'],
             'code' => [
                 Rule::requiredIf($voucher && ! $this->boolean('is_auto_apply')), 'nullable', 'string', 'max:40', 'regex:/^[A-Z0-9_-]+$/',
@@ -71,6 +89,8 @@ class StoreDiscountRequest extends BaseAdminRequest
             'code.regex' => 'Mã chỉ gồm chữ không dấu, số, gạch ngang hoặc gạch dưới.',
             'code.unique' => 'Mã này đã được dùng cho một giảm giá khác.',
             'name.required' => 'Hãy đặt tên cho voucher để khách biết ưu đãi là gì.',
+            'product_variant_id.required' => 'Hãy chọn thương hiệu, sản phẩm hoặc biến thể để giảm giá.',
+            'targets.*.max' => 'Đã chọn quá nhiều mục. Hãy chọn ít hơn hoặc chọn theo thương hiệu.',
         ];
     }
 
@@ -80,6 +100,19 @@ class StoreDiscountRequest extends BaseAdminRequest
             // A variant discount lowers one variant's price: no code, no auto-apply.
             if (! $this->isVoucher() && $this->filled('code')) {
                 $validator->errors()->add('code', 'Giảm giá theo biến thể không được dùng mã giảm giá.');
+            }
+
+            if ($this->input('scope') === 'order' && $this->input('applies_to') === 'selected' && app(DiscountTargets::class)->isEmpty($this->pickedTargets())) {
+                $validator->errors()->add('targets', 'Hãy chọn ít nhất một thương hiệu, sản phẩm hoặc biến thể mà voucher áp dụng.');
+            }
+
+            if ($this->isBulkVariant() && ! $validator->errors()->has('targets')) {
+                $count = count($this->bulkVariantIds());
+                if ($count === 0) {
+                    $validator->errors()->add('targets', 'Không có biến thể nào đang bán thuộc các mục đã chọn.');
+                } elseif ($count > DiscountTargets::MAX_VARIANTS) {
+                    $validator->errors()->add('targets', "Các mục đã chọn có {$count} biến thể, nhiều hơn giới hạn ".DiscountTargets::MAX_VARIANTS.' một lần. Hãy chọn ít hơn.');
+                }
             }
 
             // For percent discounts, the value must be between 0 and 100.
@@ -105,7 +138,44 @@ class StoreDiscountRequest extends BaseAdminRequest
             ? ['product_variant_id' => null, 'is_auto_apply' => $this->boolean('is_auto_apply')]
             : array_fill_keys(['code', 'name', 'min_order_amount', 'usage_limit', 'usage_limit_per_customer'], null) + ['is_auto_apply' => false];
 
-        return array_merge($this->validated(), $kindFields, ['is_active' => $this->boolean('is_active', true)]);
+        $data = array_merge(Arr::except($this->validated(), ['targets', 'applies_to']), $kindFields, ['is_active' => $this->boolean('is_active', true)]);
+
+        // Only the voucher form says what an order voucher applies to; the
+        // Excel import and the assistant leave it as it is.
+        if ($this->input('scope') === 'order' && $this->has('applies_to')) {
+            $data['targets'] = $this->input('applies_to') === 'selected' ? $this->pickedTargets() : null;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Brands, products and variants picked on the form.
+     *
+     * @return array{brand: list<int>, product: list<int>, variant: list<int>}
+     */
+    public function pickedTargets(): array
+    {
+        return app(DiscountTargets::class)->normalize($this->input('targets'));
+    }
+
+    /**
+     * Whether this creates a discount for every variant the picks cover
+     * rather than for the one in `product_variant_id`.
+     */
+    public function isBulkVariant(): bool
+    {
+        return $this->input('scope') === 'variant'
+            && ! $this->route('discount') instanceof Discount
+            && ! app(DiscountTargets::class)->isEmpty($this->pickedTargets());
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function bulkVariantIds(): array
+    {
+        return $this->bulkVariants ??= app(DiscountTargets::class)->variants($this->pickedTargets())->modelKeys();
     }
 
     private function isVoucher(): bool
