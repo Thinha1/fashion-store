@@ -11,14 +11,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'product_variant_id', 'code', 'scope', 'discount_type', 'discount_value',
+    'product_variant_id', 'code', 'name', 'scope', 'discount_type', 'discount_value',
     'max_discount_amount', 'min_order_amount', 'usage_limit', 'used_count',
-    'usage_limit_per_customer', 'starts_at', 'ends_at', 'is_active',
+    'usage_limit_per_customer', 'starts_at', 'ends_at', 'is_active', 'is_auto_apply',
     'created_by', 'updated_by',
 ])]
 class Discount extends Model
 {
     use HasFactory, RecordsAuditTrail;
+
+    /**
+     * What a discount lowers: one variant's unit price, the order subtotal
+     * (an order voucher) or the shipping fee (a shipping voucher). An order
+     * holds at most one voucher of each kind.
+     */
+    public const SCOPE_LABELS = [
+        'variant' => 'Giảm theo biến thể',
+        'order' => 'Voucher giảm đơn',
+        'shipping' => 'Voucher giảm phí ship',
+    ];
+
+    public const VOUCHER_SCOPES = ['order', 'shipping'];
 
     protected function casts(): array
     {
@@ -29,7 +42,34 @@ class Discount extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_auto_apply' => 'boolean',
         ];
+    }
+
+    public function isVoucher(): bool
+    {
+        return in_array($this->scope, self::VOUCHER_SCOPES, true);
+    }
+
+    /**
+     * How the voucher is shown to the customer: its name, else its code.
+     */
+    public function voucherLabel(): string
+    {
+        return $this->name ?: (string) $this->code;
+    }
+
+    /**
+     * Running, upcoming, expired or switched off, as on the admin list.
+     */
+    public function lifecycle(): string
+    {
+        return match (true) {
+            ! $this->is_active => 'disabled',
+            $this->starts_at?->isFuture() => 'upcoming',
+            $this->ends_at?->isPast() => 'expired',
+            default => 'running',
+        };
     }
 
     /**
@@ -52,6 +92,11 @@ class Discount extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function shippingOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'shipping_discount_id');
     }
 
     public function orderItems(): HasMany

@@ -1,4 +1,4 @@
-<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}', '{{ route('admin.products.ai-pdf.read') }}')" x-cloak>
+<div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}', '{{ route('admin.products.ai-pdf.read') }}', '{{ route('admin.ai.actions.confirm', ['proposal' => '00000000-0000-4000-8000-000000000000']) }}'.replace('00000000-0000-4000-8000-000000000000', '__PROPOSAL__'))" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
         <x-ai-bot x-show="!open" />
@@ -32,6 +32,8 @@
                 Đính kèm ảnh sản phẩm (ảnh đầu là ảnh chung; các ảnh sau nếu là biến thể màu khác, AI sẽ tự gán đúng màu)
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
                 Có thể đính kèm cả file PDF (catalog, phiếu thông số, báo giá) có chữ để AI đọc.
+                Trợ lý cũng tạo được voucher, giảm giá hàng loạt, xác nhận đơn và soạn phiếu nhập cho hàng sắp hết;
+                mọi thao tác đều chờ bạn bấm xác nhận.
             </p>
             <template x-for="(message, index) in messages" :key="index">
                 <div>
@@ -81,6 +83,8 @@
                         <div>
                             <p x-text="message.notice
                                 ? message.notice
+                                : message.actions?.length
+                                ? 'Mình đã chuẩn bị thao tác bên dưới. Bạn kiểm tra rồi bấm xác nhận nhé.'
                                 : message.navigateLabel
                                 ? `Đã di chuyển đến trang ${message.navigateLabel}.`
                                 : (message.setFieldsLabel
@@ -88,6 +92,43 @@
                                     : 'Đã cập nhật nội dung gợi ý bên dưới.')"></p>
                             <p class="mt-1 text-xs" x-show="message.variantNote" x-text="message.variantNote"
                                :class="/gỡ|Không có biến thể/.test(message.variantNote ?? '') ? 'font-medium text-amber-700' : 'text-gray-600'"></p>
+                            <template x-for="(card, cardIndex) in message.actions ?? []" :key="index + '-action-' + cardIndex">
+                                <div class="ai-chat-action" :data-state="card.state">
+                                    <template x-if="card.state === 'error'">
+                                        <p class="ai-chat-action-error" x-text="card.error"></p>
+                                    </template>
+                                    <template x-if="card.state !== 'error'">
+                                        <div>
+                                            <p class="ai-chat-action-title" x-text="card.title"></p>
+                                            <ul class="ai-chat-action-lines">
+                                                <template x-for="(line, lineIndex) in card.lines" :key="lineIndex">
+                                                    <li x-text="line"></li>
+                                                </template>
+                                            </ul>
+                                            <template x-for="(warning, warningIndex) in card.warnings" :key="'w' + warningIndex">
+                                                <p class="ai-chat-action-warning" x-text="warning"></p>
+                                            </template>
+                                            <div class="ai-chat-action-buttons" x-show="card.state === 'pending' || card.state === 'running'">
+                                                <button type="button" class="admin-action admin-action-primary" x-on:click="confirmAction(card)"
+                                                        :disabled="card.state === 'running'" x-text="card.state === 'running' ? 'Đang thực hiện…' : card.confirm_label"></button>
+                                                <button type="button" class="admin-action admin-action-secondary" x-on:click="cancelAction(card)" :disabled="card.state === 'running'">Huỷ</button>
+                                            </div>
+                                            <p class="ai-chat-action-note" x-show="card.state === 'cancelled'">Đã huỷ, không có gì thay đổi.</p>
+                                            <template x-if="card.result">
+                                                <div class="ai-chat-action-result" role="status">
+                                                    <p x-text="card.result.message"></p>
+                                                    <template x-for="(problem, problemIndex) in card.result.problems" :key="'p' + problemIndex">
+                                                        <p class="ai-chat-action-warning" x-text="problem"></p>
+                                                    </template>
+                                                    <template x-for="(link, linkIndex) in card.result.links" :key="'l' + linkIndex">
+                                                        <a class="ai-chat-action-link" :href="link.url" x-text="link.label"></a>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
                             <button type="button" class="mt-1 block text-xs font-semibold text-brand underline underline-offset-4"
                                     x-show="lastFormChange && lastFormChangeMessageIndex === index && index === messages.length - 1"
                                     x-on:click="undoLastFormChange()">

@@ -131,16 +131,12 @@
                         </form>
                     @endif
                     <x-input-error :messages="$couponError ?? $errors->get('coupon_code')" />
+                    @if ($quote->notice)
+                        <p class="summary-hint" role="status">{{ $quote->notice }}</p>
+                    @endif
                 </div>
 
-                <dl class="summary">
-                    <div><dt>Tạm tính</dt><dd><x-money :amount="$quote->subtotal" /></dd></div>
-                    @if ($quote->discountAmount > 0)
-                        <div class="summary-discount"><dt>Mã giảm giá</dt><dd>−<x-money :amount="$quote->discountAmount" /></dd></div>
-                    @endif
-                    <div><dt>Phí vận chuyển</dt><dd><x-money :amount="$quote->shippingFee" /></dd></div>
-                    <div class="summary-total"><dt>Tổng thanh toán</dt><dd><x-money :amount="$quote->grandTotal" /></dd></div>
-                </dl>
+                @include('storefront.partials.quote-summary', ['quote' => $quote, 'totalLabel' => 'Tổng thanh toán'])
 
                 <button type="submit" form="checkout-form" class="btn btn-primary btn-block">Đặt hàng</button>
                 <p class="caption">Giá và tồn kho được kiểm tra lại khi bạn bấm Đặt hàng.</p>

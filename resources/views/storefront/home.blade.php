@@ -132,9 +132,9 @@
                         </li>
                     @endforeach
                     <li>
-                        <a href="{{ route('collections.index') }}" class="brands-more">
-                            <strong>{{ $hiddenBrands > 0 ? 'Xem thêm' : 'Tất cả' }}</strong>
-                            <span>{{ $hiddenBrands > 0 ? $hiddenBrands.' thương hiệu nữa' : 'Xem bộ sưu tập' }}</span>
+                        <a href="{{ route('collections.index') }}" class="brands-more"
+                           @if ($hiddenBrands > 0) aria-label="Xem thêm {{ $hiddenBrands }} thương hiệu" @endif>
+                            <strong>{{ $hiddenBrands > 0 ? 'Xem thêm' : 'Xem tất cả' }}</strong>
                         </a>
                     </li>
                 </ul>

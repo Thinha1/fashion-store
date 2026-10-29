@@ -29,7 +29,7 @@ class CartController extends Controller
         $lines = $this->cart->lines($request->user()->activeCart);
         $quote = $prices->quote($lines->filter(fn (CartLine $line): bool => $line->isAvailable())
             ->map(fn (CartLine $line) => $line->price)
-            ->values());
+            ->values(), customer: $request->user());
 
         return view('storefront.cart.index', [
             'lines' => $lines,

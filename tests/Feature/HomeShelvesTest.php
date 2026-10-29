@@ -88,7 +88,8 @@ class HomeShelvesTest extends TestCase
 
         $this->get(route('home'))->assertOk()
             ->assertSee('9 thương hiệu, một giỏ hàng')
-            ->assertSeeInOrder(['Hãng 9', 'Hãng 8', 'Hãng 7', 'Hãng 2', 'Xem thêm', '1 thương hiệu nữa'])
+            ->assertSeeInOrder(['Hãng 9', 'Hãng 8', 'Hãng 7', 'Hãng 2', 'aria-label="Xem thêm 1 thương hiệu"', 'Xem thêm'], false)
+            ->assertDontSee('thương hiệu nữa')
             ->assertDontSee('Hãng 1<', false);
     }
 
@@ -98,8 +99,8 @@ class HomeShelvesTest extends TestCase
 
         $this->get(route('home'))->assertOk()
             ->assertSee('Hãng duy nhất')
-            ->assertSee('Xem bộ sưu tập')
-            ->assertDontSee('thương hiệu nữa');
+            ->assertSee('Xem tất cả')
+            ->assertDontSee('Xem thêm');
     }
 
     public function test_an_unknown_shelf_is_not_found(): void

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import productAiChat, {
     buildFillPlan, toWireMessages, parsePriceToInteger, parseStockQuantity, collectImageGallery, compactMessages, applySetFields,
-    parseSseFrames, describeStreamProgress, describeToolCalls,
+    parseSseFrames, describeStreamProgress, describeToolCalls, actionCards,
 } from '../../resources/js/product-ai-chat.js';
 
 // send()/fillForm() read `document` for the CSRF token / the product form,
@@ -879,4 +879,41 @@ test('init() leaves the fill pending when the destination page still has no form
     } finally {
         globalThis.document = defaultDocument;
     }
+});
+
+test('actionCards() starts previewed actions as pending and refused ones as errors', () => {
+    const cards = actionCards([
+        { type: 'create_vouchers', id: 'abc', title: 'Tạo voucher', lines: ['Voucher giảm phí ship'], confirm_label: 'Tạo voucher' },
+        { type: 'confirm_orders', error: 'Không có đơn nào đang chờ xác nhận khớp yêu cầu.' },
+    ]);
+
+    assert.equal(cards[0].state, 'pending');
+    assert.deepEqual(cards[0].warnings, []);
+    assert.equal(cards[0].result, null);
+    assert.equal(cards[1].state, 'error');
+    assert.deepEqual(actionCards(undefined), []);
+});
+
+test('confirmAction() posts the opaque id once and shows the outcome on the card', async () => {
+    const calls = [];
+    globalThis.fetch = async (url, options) => {
+        calls.push({ url, method: options.method });
+        return { ok: true, json: async () => ({ message: 'Đã tạo 1 voucher.', links: [{ label: 'Freeship', url: '/admin/giam-gia/1/sua' }], problems: [] }) };
+    };
+    const widget = productAiChat('/assist', '/create', '/stream', '/pdf', '/admin/tro-ly-ai/hanh-dong/__PROPOSAL__');
+    widget.persist = () => {};
+    const [card] = actionCards([{ type: 'create_vouchers', id: '5f0c', title: 'Tạo voucher', lines: [], confirm_label: 'Tạo voucher' }]);
+
+    await widget.confirmAction(card);
+    await widget.confirmAction(card);
+
+    assert.deepEqual(calls, [{ url: '/admin/tro-ly-ai/hanh-dong/5f0c', method: 'POST' }]);
+    assert.equal(card.state, 'done');
+    assert.equal(card.result.message, 'Đã tạo 1 voucher.');
+
+    const [cancelled] = actionCards([{ type: 'confirm_orders', id: 'x', title: 'Xác nhận', lines: [] }]);
+    widget.cancelAction(cancelled);
+    await widget.confirmAction(cancelled);
+    assert.equal(cancelled.state, 'cancelled');
+    assert.equal(calls.length, 1);
 });

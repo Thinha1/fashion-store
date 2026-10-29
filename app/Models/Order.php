@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'order_number', 'user_id', 'discount_id', 'status',
+    'order_number', 'user_id', 'discount_id', 'shipping_discount_id', 'status',
     'status_history', 'payment_method', 'payment_status', 'transaction_code',
     'payment_reviewed_by', 'payment_reviewed_at', 'customer_name',
     'customer_email', 'customer_phone', 'province_name', 'district_name',
     'ward_name', 'shipping_address', 'customer_note', 'subtotal',
-    'discount_amount', 'shipping_fee', 'grand_total', 'placed_at', 'updated_by',
+    'discount_amount', 'shipping_fee', 'shipping_discount_amount', 'grand_total', 'placed_at', 'updated_by',
 ])]
 class Order extends Model
 {
@@ -112,6 +112,7 @@ class Order extends Model
             'subtotal' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'shipping_fee' => 'decimal:2',
+            'shipping_discount_amount' => 'decimal:2',
             'grand_total' => 'decimal:2',
         ];
     }
@@ -132,6 +133,11 @@ class Order extends Model
     public function discount(): BelongsTo
     {
         return $this->belongsTo(Discount::class);
+    }
+
+    public function shippingDiscount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class, 'shipping_discount_id');
     }
 
     public function paymentReviewer(): BelongsTo

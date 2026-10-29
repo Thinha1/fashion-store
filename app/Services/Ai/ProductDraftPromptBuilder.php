@@ -18,12 +18,17 @@ class ProductDraftPromptBuilder
      *                            the fixed set of pages the model may send the staff member to.
      * @param  string  $formContext  the product form on screen (ProductFormContextDescriber), or "" when
      *                               the staff member is not on a product form.
+     * @param  string  $actionList  the admin actions this staff member may propose
+     *                              (AgentActionRegistry::describeForPrompt), or "" when none.
      */
-    public function build(array $categories, array $brands, string $pageList, string $formContext = ''): string
+    public function build(array $categories, array $brands, string $pageList, string $formContext = '', string $actionList = ''): string
     {
         $formBlock = $formContext === '' ? '' : '
 
 '.$formContext;
+        $actionBlock = $actionList === '' ? '' : '
+
+'.$actionList;
 
         $categoryList = $categories === [] ? '(chưa có danh mục nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $categories));
         $brandList = $brands === [] ? '(chưa có thương hiệu nào)' : implode("\n", array_map(fn ($name) => "- {$name}", $brands));
@@ -83,7 +88,8 @@ class ProductDraftPromptBuilder
               "navigate_product": "string (tên, SKU hoặc mô tả sản phẩm mà nhân viên muốn MỞ để xem/chỉnh sửa, giữ đúng cách nhân viên gọi; hoặc chuỗi rỗng)",
               "set_fields": [{"field": "string", "value": "string hoặc mảng string tùy field (xem quy tắc bên dưới)"}],
               "variant_price": "string (giá RIÊNG cho mỗi biến thể size/màu, khác với \"price\" ở trên là giá chung của cả sản phẩm; để trống nếu biến thể dùng chung giá với sản phẩm)",
-              "variant_stock": "string (số lượng tồn kho cho mỗi biến thể được tạo lượt này; để trống nếu nhân viên không nói tới tồn kho)"
+              "variant_stock": "string (số lượng tồn kho cho mỗi biến thể được tạo lượt này; để trống nếu nhân viên không nói tới tồn kho)",
+              "actions": [{"type": "string", "...": "tham số của hành động (xem phần HÀNH ĐỘNG TRONG KHU QUẢN TRỊ nếu có)"}]
             }
 
             "variant_images" chỉ liệt kê ảnh số 1 trở đi (ảnh số 0 luôn là ảnh đại diện chung, không đưa vào đây)
@@ -130,7 +136,7 @@ class ProductDraftPromptBuilder
             Nếu nhân viên yêu cầu XOÁ/bỏ trống một giá trị đã điền (ví dụ "xoá giá đi", "bỏ trống tên sản phẩm",
             "xoá mô tả đi"), vẫn thêm entry cho field đó trong "set_fields" nhưng để value là chuỗi rỗng "" —
             đây là tín hiệu XOÁ rõ ràng, khác với việc không nhắc tới field đó (không có entry = không đổi gì).
-            "status" không có khái niệm xoá — chỉ nhận "active" hoặc "archived".{$formBlock}
+            "status" không có khái niệm xoá — chỉ nhận "active" hoặc "archived".{$actionBlock}{$formBlock}
             PROMPT;
     }
 }

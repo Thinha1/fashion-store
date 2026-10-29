@@ -45,7 +45,7 @@ class CheckoutController extends Controller
         } catch (InvalidCouponException $exception) {
             $couponError = $exception->getMessage();
             $couponCode = '';
-            $quote = $prices->quote($linePrices);
+            $quote = $prices->quote($linePrices, customer: $user);
         }
 
         return view('storefront.checkout.create', [

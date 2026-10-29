@@ -38,6 +38,7 @@ class AuditLog extends Model
         'SizeChart' => 'Bảng size',
         'User' => 'Tài khoản',
         'Role' => 'Vai trò',
+        'McpToken' => 'Token MCP',
     ];
 
     /**
@@ -48,6 +49,10 @@ class AuditLog extends Model
      */
     public const ACTION_LABELS = [
         'auth.login' => 'Đăng nhập quản trị',
+        'ai.action' => 'Trợ lý AI thực hiện thao tác',
+        'mcp.tool_called' => 'MCP: tra cứu số liệu',
+        'mcp_token.created' => 'Tạo token MCP',
+        'mcp_token.revoked' => 'Thu hồi token MCP',
         'order.placed' => 'Đặt đơn hàng',
         'order.cancelled' => 'Hủy đơn hàng',
         'order.status_changed' => 'Đổi trạng thái đơn hàng',

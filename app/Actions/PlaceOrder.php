@@ -24,8 +24,9 @@ use Illuminate\Support\Str;
  * the order fixed by BUSINESS_FLOWS.md §3:
  *  - lock the cart (a double-submitted checkout can't place two orders);
  *  - lock every variant row FIRST, then check it is still on sale and in stock;
- *  - reprice every line server-side and check/apply the coupon (row-locked);
- *  - snapshot the order and its lines, take stock, count the coupon use;
+ *  - reprice every line server-side and apply the vouchers: the typed code
+ *    and the automatic ones, all row-locked, one order and one shipping voucher;
+ *  - snapshot the order and its lines, take stock, count each voucher's use;
  *  - mark the cart `converted` and write an audit log with stock before/after.
  * Any failure rolls the whole thing back.
  */
@@ -68,12 +69,13 @@ class PlaceOrder
 
             $couponCode = trim((string) ($input['coupon_code'] ?? ''));
             $coupon = $couponCode === '' ? null : $this->prices->findCoupon($couponCode, lockForUpdate: true);
-            $quote = $this->prices->quote($lines, $coupon, $customer);
+            $quote = $this->prices->quote($lines, $coupon, $customer, lockForUpdate: true);
 
             $order = Order::query()->create([
                 'order_number' => $this->newOrderNumber(),
                 'user_id' => $customer->id,
-                'discount_id' => $coupon?->id,
+                'discount_id' => $quote->coupon?->id,
+                'shipping_discount_id' => $quote->shippingVoucher?->id,
                 'status' => 'pending',
                 'status_history' => [[
                     'from' => null,
@@ -95,6 +97,7 @@ class PlaceOrder
                 'subtotal' => $quote->subtotal,
                 'discount_amount' => $quote->discountAmount,
                 'shipping_fee' => $quote->shippingFee,
+                'shipping_discount_amount' => $quote->shippingDiscountAmount,
                 'grand_total' => $quote->grandTotal,
                 'placed_at' => now(),
             ]);
@@ -129,7 +132,8 @@ class PlaceOrder
                 $variant->save();
             }
 
-            $coupon?->increment('used_count');
+            $quote->coupon?->increment('used_count');
+            $quote->shippingVoucher?->increment('used_count');
             $cart->update(['status' => 'converted']);
 
             app(AuditLogger::class)->record(
@@ -139,7 +143,8 @@ class PlaceOrder
                 [
                     'order_number' => $order->order_number,
                     'grand_total' => $quote->grandTotal,
-                    'coupon_id' => $coupon?->id,
+                    'coupon_id' => $quote->coupon?->id,
+                    'shipping_voucher_id' => $quote->shippingVoucher?->id,
                     'stock' => $stockChanges,
                 ],
                 actor: $customer,

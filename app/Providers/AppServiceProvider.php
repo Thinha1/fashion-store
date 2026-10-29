@@ -78,6 +78,9 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
+        // MCP server (/ai/shop): per token, after AuthenticateMcpToken.
+        RateLimiter::for('mcp', fn ($request): Limit => Limit::perMinute(60)->by('mcp|'.hash('sha256', (string) $request->bearerToken())));
+
         // Only text searches are limited; browsing and filtering the
         // catalog without `q` is unlimited.
         RateLimiter::for('catalog-search', fn ($request): Limit => trim((string) $request->query('q')) === ''

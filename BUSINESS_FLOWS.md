@@ -124,8 +124,8 @@ sequenceDiagram
         PO-->>CC: InsufficientStockException
         CC-->>KH: 422 quay lại giỏ, báo dòng nào hết hàng
     else Đủ tồn kho
-        opt Có nhập coupon
-            PO->>PC: Kiểm tra + áp coupon (scope=order)
+        opt Có nhập mã hoặc có voucher tự động
+            PO->>PC: Kiểm tra + áp voucher giảm đơn và voucher giảm phí ship (khóa dòng)
             alt Coupon không hợp lệ (hết hạn / vượt lượt dùng / dưới min_order_amount)
                 PO->>DB: ROLLBACK
                 PO-->>CC: InvalidCouponException
@@ -135,7 +135,7 @@ sequenceDiagram
         PO->>DB: INSERT orders (status=pending, snapshot subtotal/discount/shipping_fee/grand_total/địa chỉ)
         PO->>DB: INSERT order_items (snapshot tên/sku/size/color/giá từng dòng)
         PO->>DB: UPDATE product_variants SET stock_quantity -= quantity
-        PO->>DB: UPDATE discounts SET used_count += 1 (nếu dùng coupon)
+        PO->>DB: UPDATE discounts SET used_count += 1 (cho từng voucher đã dùng)
         PO->>DB: UPDATE carts SET status = converted
         PO->>DB: COMMIT
         PO-->>CC: order (order_number)
@@ -164,22 +164,21 @@ flowchart TD
 
     UP --> T["subtotal = Σ (unit_price × quantity)"]
 
-    T --> C{"Checkout có nhập mã coupon?"}
-    C -->|Không| G["grand_total = subtotal + shipping_fee"]
-    C -->|Có| CV{"Coupon hợp lệ?\nis_active, còn hiệu lực thời gian,\nusage_limit chưa đạt,\nusage_limit_per_customer chưa đạt cho user này"}
-    CV -->|Không| CE["Báo lỗi, không áp dụng, giữ nguyên subtotal"]
-    CV -->|Có| CM{"subtotal >= min_order_amount?"}
-    CM -->|Không đủ| CE
-    CM -->|Đủ| CA["Áp giảm giá coupon lên subtotal\n(giới hạn bởi max_discount_amount)\ndiscount_amount = phần đã giảm"]
-
-    CE --> G
-    CA --> G2["grand_total = subtotal - discount_amount + shipping_fee"]
+    T --> O["Khe voucher giảm đơn (scope=order):\nmã khách nhập (phải hợp lệ, sai thì báo lỗi)\nvà các voucher is_auto_apply đang hợp lệ\n→ lấy cái giảm nhiều nhất"]
+    O --> OA["discount_amount = phần giảm trên subtotal\n(giới hạn bởi max_discount_amount)"]
+    OA --> F["shipping_fee = config store.shipping_fee"]
+    F --> SH["Khe voucher giảm phí ship (scope=shipping):\nmã khách nhập hoặc voucher tự động,\nmin_order_amount so với subtotal - discount_amount\n→ lấy cái giảm nhiều nhất"]
+    SH --> SA["shipping_discount_amount = phần giảm trên shipping_fee\n(không vượt quá phí ship)"]
+    SA --> G["grand_total = subtotal - discount_amount\n+ shipping_fee - shipping_discount_amount"]
 ```
 
+Mỗi voucher (mã khách nhập hay voucher tự động) đều phải qua cùng các điều kiện: `is_active`, trong khoảng thời gian, `usage_limit` chưa đạt, `usage_limit_per_customer` chưa đạt cho user này, đơn đạt `min_order_amount`. Voucher tự động không qua được điều kiện thì bị bỏ qua trong im lặng; mã khách nhập không qua được thì báo lỗi.
+
 **Chốt lại**:
-- Giảm giá biến thể (`scope=variant`) luôn tính **trước**, ảnh hưởng `unit_price` từng dòng; coupon (`scope=order`) tính **sau**, ảnh hưởng `subtotal` toàn đơn — hai loại không cộng dồn theo cách khác.
-- `usage_limit_per_customer` kiểm tra theo **user hiện tại**, không phải tổng toàn hệ thống (đó là `usage_limit`).
-- Kết quả cuối luôn là 2 số: `discount_amount` và `grand_total` — đây chính là 2 cột snapshot vào `orders`/`order_items`, không tính lại khác đi ở bất kỳ đâu khác (kể cả hiển thị hoá đơn sau này).
+- Giảm giá biến thể (`scope=variant`) luôn tính **trước**, ảnh hưởng `unit_price` từng dòng; voucher giảm đơn (`scope=order`) tính **sau**, ảnh hưởng `subtotal` toàn đơn; voucher giảm phí ship (`scope=shipping`) chỉ giảm `shipping_fee`.
+- Mỗi đơn có tối đa **1 voucher giảm đơn + 1 voucher giảm phí ship**. Trong cùng một khe, mã khách nhập và voucher tự động (`is_auto_apply`) được so với nhau, cái giảm nhiều hơn thắng (hoà thì mã khách nhập thắng); trang thanh toán báo cho khách khi mã của họ bị voucher tự động thắng.
+- `usage_limit_per_customer` kiểm tra theo **user hiện tại**, không phải tổng toàn hệ thống (đó là `usage_limit`); voucher ship đếm theo `orders.shipping_discount_id`.
+- Kết quả cuối được snapshot vào `orders`: `discount_id` + `discount_amount`, `shipping_discount_id` + `shipping_discount_amount`, `shipping_fee`, `grand_total` — không tính lại khác đi ở bất kỳ đâu khác (kể cả khi voucher bị sửa, tắt hay xoá sau đó). Huỷ đơn trả lại lượt dùng của cả hai voucher.
 
 ## 5. Đổi/trả hàng
 
