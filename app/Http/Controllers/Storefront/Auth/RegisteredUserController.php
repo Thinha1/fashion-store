@@ -39,8 +39,10 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // No email verification: the new customer is signed in and can shop
+        // right away, back where they were headed (cart, checkout) if anywhere.
         Auth::login($user);
 
-        return redirect()->route('verification.notice');
+        return redirect()->intended(route('home'))->with('status', 'Đăng ký thành công. Chào mừng bạn đến với cửa hàng!');
     }
 }

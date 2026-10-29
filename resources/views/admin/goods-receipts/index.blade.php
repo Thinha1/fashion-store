@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Nhập hàng',
-        'subtitle' => 'Theo dõi phiếu nhập. Chỉ phiếu đã xác nhận mới làm tăng tồn kho.',
         'actionUrl' => route('admin.goods-receipts.create'),
         'actionLabel' => 'Thêm phiếu nhập',
     ])

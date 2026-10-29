@@ -12,17 +12,19 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\FileAttributes;
 use RuntimeException;
 
 /**
  * Demo catalog built from real products of Coolmate, Yame, Nike, Puma,
- * Uniqlo, Teelab, Levents and Routine (names, prices, sale prices, colors,
- * sizes and photos as listed on their Vietnamese stores, see
+ * Uniqlo, Teelab, Levents, Routine and Alo Yoga (names, prices, sale prices,
+ * colors, sizes and photos as listed on their Vietnamese stores, or on the US
+ * store with prices converted to VND for Alo Yoga, see
  * assets/catalog/SOURCES.md). For the course project only; the photos belong
  * to the brands.
  *
  * Photos in assets/catalog are uploaded on every run. The high-resolution
- * photos (1080x1350) are kept out of the repo: they are uploaded once to the
+ * photos (up to 1080x1350) are kept out of the repo: they are uploaded once to the
  * image disk (R2) under demo/catalog and the seeder only checks they exist.
  */
 class CatalogDemoSeeder extends Seeder
@@ -92,6 +94,11 @@ class CatalogDemoSeeder extends Seeder
                 'name' => 'Routine',
                 'description' => 'Thương hiệu thời trang Việt Nam cho nam và nữ, chuyên trang phục cơ bản dễ phối: áo thun, sơ mi, quần tây và áo khoác.',
                 'country' => 'Việt Nam',
+            ],
+            'alo' => [
+                'name' => 'Alo Yoga',
+                'description' => 'Thương hiệu đồ tập và thời trang thể thao cao cấp từ Los Angeles, nổi tiếng với quần legging, áo khoác và đồ mặc hằng ngày cho nam và nữ.',
+                'country' => 'Mỹ',
             ],
         ];
 
@@ -348,17 +355,24 @@ class CatalogDemoSeeder extends Seeder
     private function publishImages(): array
     {
         $paths = [];
+        $stored = $this->storedPhotoSizes();
 
         foreach (glob(database_path('seeders/'.self::ASSET_DIRECTORY.'/*.jpg')) ?: [] as $source) {
             $filename = basename($source);
             $path = self::STORAGE_DIRECTORY.'/'.$filename;
+            $paths[$filename] = $path;
+
+            // Already on the disk with the same size: skip the upload, which
+            // is what made every reseed take minutes against R2.
+            if (($stored[$path] ?? null) === filesize($source)) {
+                continue;
+            }
+
             $contents = file_get_contents($source);
 
             if ($contents === false || ! Storage::disk(config('filesystems.image_disk'))->put($path, $contents, ['visibility' => 'public'])) {
                 throw new RuntimeException("Không thể đưa ảnh demo {$filename} lên disk s3.");
             }
-
-            $paths[$filename] = $path;
         }
 
         foreach ($this->productDefinitions() as $definition) {
@@ -370,7 +384,7 @@ class CatalogDemoSeeder extends Seeder
                 // High-resolution photos are not in the repo; they were
                 // uploaded once to the image disk (R2).
                 $path = self::STORAGE_DIRECTORY.'/'.$file;
-                if (! Storage::disk(config('filesystems.image_disk'))->exists($path)) {
+                if (! isset($stored[$path])) {
                     throw new RuntimeException("Thiếu ảnh demo {$file} cho sản phẩm {$definition['slug']}.");
                 }
 
@@ -379,6 +393,25 @@ class CatalogDemoSeeder extends Seeder
         }
 
         return $paths;
+    }
+
+    /**
+     * Every photo already under demo/catalog on the image disk, with its
+     * size in bytes, from one directory listing instead of a request per file.
+     *
+     * @return array<string, int>
+     */
+    private function storedPhotoSizes(): array
+    {
+        $sizes = [];
+
+        foreach (Storage::disk(config('filesystems.image_disk'))->listContents(self::STORAGE_DIRECTORY, false) as $item) {
+            if ($item instanceof FileAttributes) {
+                $sizes[$item->path()] = $item->fileSize();
+            }
+        }
+
+        return $sizes;
     }
 
     /**
@@ -395,6 +428,7 @@ class CatalogDemoSeeder extends Seeder
             'teelab' => ['TL', '#f9fafb', '#111827'],
             'levents' => ['LV', '#f9fafb', '#1f2937'],
             'routine' => ['RT', '#1f2937', '#e5e7eb'],
+            'alo' => ['AL', '#f9fafb', '#0f172a'],
         ];
         $paths = [];
 

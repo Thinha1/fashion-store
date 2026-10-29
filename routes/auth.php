@@ -1,12 +1,9 @@
 <?php
 
 use App\Http\Controllers\Storefront\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Storefront\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Storefront\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Storefront\Auth\NewPasswordController;
 use App\Http\Controllers\Storefront\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Storefront\Auth\RegisteredUserController;
-use App\Http\Controllers\Storefront\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -24,15 +21,5 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('xac-minh-email', EmailVerificationPromptController::class)->name('verification.notice');
-
-    Route::get('xac-minh-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
-
-    Route::post('xac-minh-email/gui-lai', [EmailVerificationNotificationController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
-
     Route::post('dang-xuat', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });

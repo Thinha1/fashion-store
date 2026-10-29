@@ -15,6 +15,7 @@ use App\Support\AdminSorting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -28,14 +29,57 @@ class ProductController extends Controller
             'category' => Category::query()->select('name')->whereColumn('categories.id', 'products.category_id'),
             'brand' => Brand::query()->select('name')->whereColumn('brands.id', 'products.brand_id'),
         ]);
+        $brands = Brand::query()->orderBy('name')->get(['id', 'name']);
+        $categories = $this->categoryOptions();
+
+        // Unknown ids are ignored rather than rejected, like the other list filters.
+        $brandId = filter_var($request->query('brand'), FILTER_VALIDATE_INT);
+        $categoryId = filter_var($request->query('category'), FILTER_VALIDATE_INT);
+        $filters = [
+            'brand' => is_int($brandId) && $brands->contains('id', $brandId) ? $brandId : null,
+            'category' => is_int($categoryId) && $categories->contains('id', $categoryId) ? $categoryId : null,
+        ];
+
         $products = $sorting->apply(Product::query()
             ->with(['category:id,name', 'brand:id,name', 'images'])
             ->withCount('variants')
+            ->when($filters['brand'], fn ($query, int $id) => $query->where('brand_id', $id))
+            // A parent category takes in everything filed below it.
+            ->when($filters['category'], fn ($query, int $id) => $query->whereIn('category_id', Category::withDescendantIds([$id])))
             ->orderByDesc('created_at')
             ->orderByDesc('id'))
             ->paginate(AdminPagination::perPage($request))->withQueryString();
 
-        return view('admin.products.index', ['products' => $products, 'sorting' => $sorting]);
+        return view('admin.products.index', [
+            'products' => $products,
+            'sorting' => $sorting,
+            'filters' => $filters,
+            'brands' => $brands,
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Every category in tree order (Nam, Áo nam, Áo thun…) with its depth,
+     * for the indented category filter.
+     *
+     * @return Collection<int, array{id: int, name: string, depth: int}>
+     */
+    private function categoryOptions(): Collection
+    {
+        $byParent = Category::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name'])->groupBy('parent_id');
+
+        $walk = function (?int $parentId, int $depth) use (&$walk, $byParent): array {
+            $rows = [];
+            foreach ($byParent->get($parentId ?? '', collect()) as $category) {
+                $rows[] = ['id' => (int) $category->id, 'name' => $category->name, 'depth' => $depth];
+                $rows = [...$rows, ...$walk((int) $category->id, $depth + 1)];
+            }
+
+            return $rows;
+        };
+
+        return collect($walk(null, 0));
     }
 
     public function create(): View

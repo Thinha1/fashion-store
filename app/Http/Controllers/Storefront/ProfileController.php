@@ -25,13 +25,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->fill($request->validated());
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        $user->fill($request->validated())->save();
 
         return redirect()->route('profile.edit')->with('status', 'Cập nhật hồ sơ thành công.');
     }

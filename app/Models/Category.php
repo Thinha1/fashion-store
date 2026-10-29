@@ -42,6 +42,25 @@ class Category extends Model
         return ['is_active' => 'boolean'];
     }
 
+    /**
+     * The given category ids plus every category below them, at any depth.
+     *
+     * @param  list<int>  $ids
+     * @return list<int>
+     */
+    public static function withDescendantIds(array $ids): array
+    {
+        $all = $ids;
+        $level = $ids;
+
+        while ($level !== []) {
+            $level = self::query()->whereIn('parent_id', $level)->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $all = [...$all, ...$level];
+        }
+
+        return array_values(array_unique(array_map('intval', $all)));
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');

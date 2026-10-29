@@ -65,15 +65,6 @@ class ProductFeaturedTest extends TestCase
         $this->assertFalse($product->fresh()->is_featured);
     }
 
-    public function test_unverified_admin_cannot_change_featured_state(): void
-    {
-        $product = Product::factory()->create();
-
-        $this->actingAs(User::factory()->admin()->unverified()->create())
-            ->patchJson(route('admin.products.featured', $product), ['is_featured' => true])->assertForbidden();
-        $this->assertFalse($product->fresh()->is_featured);
-    }
-
     public function test_missing_or_invalid_featured_state_is_rejected(): void
     {
         $product = Product::factory()->create();

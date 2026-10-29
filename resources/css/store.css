@@ -461,6 +461,7 @@
     .brands a:focus-visible { outline-color: var(--color-paper); outline-offset: -4px; }
     .brands strong { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; font-size: var(--text-display-s); line-height: 1; letter-spacing: var(--tracking-display); }
     .brands span { font-family: var(--font-display); font-size: var(--text-md); color: var(--color-on-ink-muted); font-variant-numeric: tabular-nums; }
+    .brands .brands-more strong { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--color-accent); text-underline-offset: 0.12em; }
     @media (max-width: 60rem) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); } .brands li:not(:nth-child(3n + 1)) { border-left: 0; } .brands li:nth-child(2n) { border-left: 1px solid var(--color-ink-2); } }
 
     /* Footer ------------------------------------------------------------ */
@@ -492,11 +493,26 @@
 
     /* Shopping assistant widget ----------------------------------------- */
     .ai-chat-widget { position: fixed; right: var(--space-lg); bottom: var(--space-lg); z-index: var(--z-modal); }
-    .ai-chat-toggle { display: flex; align-items: center; justify-content: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-md); border: 1px solid var(--color-ink); background: var(--color-ink); color: var(--color-paper); font-family: var(--font-display); font-weight: 500; transition: background-color var(--dur-short) var(--ease-out); }
+    .ai-chat-toggle { display: flex; align-items: center; justify-content: center; gap: var(--space-xs); width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-ink); border-radius: 50%; background: var(--color-ink); color: var(--color-paper); font-family: var(--font-display); font-weight: 500; transition: background-color var(--dur-short) var(--ease-out); }
     .ai-chat-toggle:hover { background: var(--color-ink-2); }
     .ai-chat-toggle:active { transform: translateY(1px); }
     .ai-chat-toggle:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-    .ai-chat-panel { position: absolute; right: 0; bottom: calc(48px + var(--space-sm)); width: min(24rem, calc(100dvw - 2 * var(--space-md))); max-height: min(75svh, 40rem); display: flex; flex-direction: column; border: 1px solid var(--color-ink); background: var(--color-paper); }
+    .ai-chat-toggle .ai-bot { width: 38px; height: 38px; }
+    .ai-chat-toggle .ai-bot-tip, .ai-chat-panel-header .ai-bot-tip { fill: var(--color-accent); }
+    .ai-chat-panel-header .ai-bot { width: 28px; height: 28px; }
+    /* The robot blinks (now and then twice), glances left and right, and its
+       antenna tip pulses. With reduced motion it keeps only a slow blink. */
+    .ai-bot { display: block; flex-shrink: 0; overflow: visible; }
+    .ai-bot-eyes { animation: ai-bot-glance 9s ease-in-out infinite; }
+    .ai-bot-eyes ellipse { transform-box: fill-box; transform-origin: center; animation: ai-bot-blink 4s ease-in-out infinite; }
+    .ai-bot-tip { animation: ai-bot-glow 1.6s ease-in-out infinite; }
+    /* While the mouse moves, ai-bot-gaze.js points the eyes at it. */
+    .ai-bot[data-tracking] .ai-bot-eyes { animation: none; transform: translate(var(--look-x, 0), var(--look-y, 0)); transition: transform 120ms ease-out; }
+    @media (prefers-reduced-motion: reduce) {
+        .ai-bot-eyes, .ai-bot-tip { animation: none; }
+        .ai-bot-eyes ellipse { animation-duration: 6s; }
+    }
+    .ai-chat-panel { position: absolute; right: 0; bottom: calc(56px + var(--space-sm)); width: min(30rem, calc(100dvw - 2 * var(--space-md))); height: min(48rem, calc(100dvh - 56px - var(--space-sm) - 2 * var(--space-lg))); display: flex; flex-direction: column; border: 1px solid var(--color-ink); background: var(--color-paper); }
     .ai-chat-panel-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); padding: var(--space-sm) var(--space-md); border-bottom: var(--rule-heavy) solid var(--color-ink); }
     .ai-chat-panel-header h2 { display: flex; align-items: center; gap: var(--space-xs); max-width: none; font-size: var(--text-xl); }
     .ai-chat-messages { flex: 1; min-height: 15rem; display: grid; align-content: start; gap: var(--space-sm); overflow-y: auto; padding: var(--space-md); font-size: var(--text-md); }
@@ -518,7 +534,12 @@
     .shop-chat-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-weight: 500; font-size: var(--text-md); }
     .shop-chat-card-price { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75; font-size: var(--text-md); font-variant-numeric: tabular-nums; }
     @media (max-width: 40rem) { .ai-chat-widget { right: var(--space-md); bottom: var(--space-md); } }
+    /* Phones and short windows: the open chat takes the screen, the header's close button closes it. */
+    @media (max-width: 40rem), (max-height: 34rem) { .ai-chat-panel { position: fixed; inset: var(--space-sm); width: auto; height: auto; } .ai-chat-messages { min-height: 0; } }
 }
+@keyframes ai-bot-blink { 0%, 40%, 50%, 80%, 86%, 92%, 100% { transform: scaleY(1); } 45%, 83%, 89% { transform: scaleY(0.1); } }
+@keyframes ai-bot-glance { 0%, 18%, 50%, 68%, 100% { transform: translateX(0); } 24%, 40% { transform: translateX(-2.2px); } 74%, 90% { transform: translateX(2.2px); } }
+@keyframes ai-bot-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 
 @keyframes ai-chat-dot { 0%, 80%, 100% { opacity: 0.35; } 40% { opacity: 1; } }
 @keyframes catalog-spin { to { transform: rotate(360deg); } }

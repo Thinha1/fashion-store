@@ -19,6 +19,7 @@ import salesChart from './sales-chart';
 import addressPicker from './address-picker';
 import shelfCarousel from './shelf-carousel';
 import coverCarousel from './cover-carousel';
+import startAiBotGaze from './ai-bot-gaze';
 
 window.Alpine = Alpine;
 
@@ -42,6 +43,8 @@ Alpine.data('salesChart', salesChart);
 Alpine.data('addressPicker', addressPicker);
 Alpine.data('shelfCarousel', shelfCarousel);
 Alpine.data('coverCarousel', coverCarousel);
+
+startAiBotGaze();
 
 Alpine.data('excelImport', (reopen = false) => ({
     busy: false,

@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
-    ->middleware(['auth', 'verified'])
+    ->middleware('auth')
     ->name('admin.')
     ->group(function (): void {
         Route::prefix('excel/{resource}')

@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Danh mục',
-        'subtitle' => 'Sắp xếp sản phẩm theo nhóm và danh mục con.',
         'actionUrl' => route('admin.categories.create'),
         'actionLabel' => 'Thêm danh mục',
     ])

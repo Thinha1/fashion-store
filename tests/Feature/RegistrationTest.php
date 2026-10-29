@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -34,11 +35,31 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('verification.notice'));
+        $response->assertRedirect(route('home'));
+        $response->assertSessionHas('status');
 
         $user = User::query()->where('email', 'a@example.com')->firstOrFail();
 
         $this->assertSame('customer', $user->role->code);
+    }
+
+    public function test_registration_sends_no_verification_email_and_returns_to_the_intended_page(): void
+    {
+        Notification::fake();
+        Role::factory()->create(['code' => 'customer', 'name' => 'Khách hàng']);
+
+        $this->get(route('profile.edit'))->assertRedirect(route('login'));
+
+        $this->post(route('register'), [
+            'name' => 'Trần Thị B',
+            'email' => 'b@example.com',
+            'phone' => '0900000001',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('profile.edit'));
+
+        Notification::assertNothingSent();
+        $this->get(route('profile.edit'))->assertOk();
     }
 
     public function test_registration_requires_unique_email(): void

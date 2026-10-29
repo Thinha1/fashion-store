@@ -26,13 +26,11 @@ class AdminAccessTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_unverified_admin_is_redirected_to_verification_notice(): void
+    public function test_admin_without_a_verified_email_can_still_open_the_dashboard(): void
     {
         $admin = User::factory()->admin()->unverified()->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
-
-        $response->assertRedirect(route('verification.notice'));
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
     }
 
     public function test_admin_user_can_access_the_dashboard(): void

@@ -181,7 +181,8 @@ textarea {
     outline-offset: -1px;
 }
 
-[data-slot]:has(> img)> :not(img):not([data-keep]) {
+/* .vton-btn: the Anywear "Thử ngay" button its script drops onto product photos. */
+[data-slot]:has(> img)> :not(img):not([data-keep]):not(.vton-btn) {
     display: none !important;
 }
 

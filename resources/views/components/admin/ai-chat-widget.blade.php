@@ -1,8 +1,8 @@
 <div class="ai-chat-widget" x-data="productAiChat('{{ route('admin.products.ai-assist') }}', '{{ route('admin.products.create') }}', '{{ route('admin.products.ai-assist-stream') }}', '{{ route('admin.products.ai-pdf.read') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý AI hỗ trợ đăng sản phẩm">
-        <x-icon name="robot" x-show="!open" class="size-4" />
-        <x-icon name="close" x-show="open" class="size-4" />
+        <x-ai-bot x-show="!open" />
+        <x-icon name="close" x-show="open" class="size-5" />
     </button>
 
     <div class="ai-chat-panel" x-show="open"
@@ -15,7 +15,7 @@
          x-on:click.outside="open = false" role="dialog"
          aria-label="Trợ lý AI">
         <div class="ai-chat-panel-header">
-            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Trợ lý AI</h2>
+            <h2><x-ai-bot /> Trợ lý AI</h2>
             <div class="flex items-center gap-1">
                 <button type="button" class="admin-action-quiet admin-action !min-h-8 !px-2" x-show="messages.length"
                         x-on:click="startNewConversation()" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
@@ -28,7 +28,7 @@
         </div>
 
         <div class="ai-chat-messages" x-ref="messageList">
-            <p class="text-xs text-gray-500" x-show="!messages.length">
+            <p class="text-sm leading-relaxed text-gray-500" x-show="!messages.length">
                 Đính kèm ảnh sản phẩm (ảnh đầu là ảnh chung; các ảnh sau nếu là biến thể màu khác, AI sẽ tự gán đúng màu)
                 và mô tả nhanh (giá, size, màu, danh mục, thương hiệu nếu có), AI sẽ soạn nội dung đăng sản phẩm giúp bạn.
                 Có thể đính kèm cả file PDF (catalog, phiếu thông số, báo giá) có chữ để AI đọc.

@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => 'Vai trò & quyền',
-        'subtitle' => 'Mỗi tài khoản có một vai trò; vai trò quyết định những trang và thao tác được dùng.',
         'actionUrl' => route('admin.roles.create'),
         'actionLabel' => 'Thêm vai trò',
     ])

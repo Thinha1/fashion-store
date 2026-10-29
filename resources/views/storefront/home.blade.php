@@ -118,10 +118,12 @@
             <div class="container">
                 <div class="section-head">
                     <h2 id="brands-title">{{ $brands->count() }} thương hiệu, một giỏ hàng</h2>
-                    <a href="{{ route('collections.index') }}" class="slab-cta slab-cta--quiet">Xem bộ sưu tập</a>
                 </div>
+                {{-- The brands with the most products, then one cell to the rest:
+                     "Xem thêm" once there are more than fit, otherwise the full list. --}}
+                @php($hiddenBrands = max(0, $brands->count() - $brandsShown))
                 <ul class="brands" role="list">
-                    @foreach ($brands as $brand)
+                    @foreach ($brands->take($brandsShown) as $brand)
                         <li>
                             <a href="{{ route('collections.show', $brand) }}">
                                 <strong>{{ $brand->name }}</strong>
@@ -129,6 +131,12 @@
                             </a>
                         </li>
                     @endforeach
+                    <li>
+                        <a href="{{ route('collections.index') }}" class="brands-more">
+                            <strong>{{ $hiddenBrands > 0 ? 'Xem thêm' : 'Tất cả' }}</strong>
+                            <span>{{ $hiddenBrands > 0 ? $hiddenBrands.' thương hiệu nữa' : 'Xem bộ sưu tập' }}</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </section>

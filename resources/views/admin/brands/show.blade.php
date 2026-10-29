@@ -5,7 +5,6 @@
 @section('content')
     @include('admin.partials.page-header', [
         'title' => $brand->name,
-        'subtitle' => 'Chi tiết thương hiệu và thông tin liên quan.',
         'actionUrl' => route('admin.brands.edit', $brand),
         'actionLabel' => 'Chỉnh sửa',
         'actionIcon' => 'edit',

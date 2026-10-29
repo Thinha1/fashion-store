@@ -1,8 +1,8 @@
 <div class="ai-chat-widget" x-data="shoppingAssistChat('{{ route('products.assist') }}', '{{ route('products.assist-stream') }}')" x-cloak>
     <button type="button" class="ai-chat-toggle" x-on:click="toggle()" :aria-expanded="open.toString()"
             aria-label="Trợ lý gợi ý sản phẩm">
-        <x-icon name="robot" x-show="!open" class="size-4" />
-        <x-icon name="close" x-show="open" class="size-4" />
+        <x-ai-bot x-show="!open" />
+        <x-icon name="close" x-show="open" class="size-5" />
     </button>
 
     <div class="ai-chat-panel" x-show="open"
@@ -15,7 +15,7 @@
          x-on:click.outside="open = false" role="dialog"
          aria-label="Trợ lý gợi ý sản phẩm">
         <div class="ai-chat-panel-header">
-            <h2><x-icon name="robot" class="mr-1.5 size-4" /> Gợi ý cho bạn</h2>
+            <h2><x-ai-bot /> Gợi ý cho bạn</h2>
             <div class="flex items-center gap-1">
                 <button type="button" class="flex size-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700" x-show="messages.length"
                         x-on:click="startNewConversation()" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
