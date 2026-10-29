@@ -22,7 +22,7 @@ use Illuminate\Console\Command;
 class McpTokenCommand extends Command
 {
     /** Permissions that unlock at least one MCP tool (see App\Mcp\Tools). */
-    private const TOOL_PERMISSIONS = ['dashboard.view', 'inventory.manage', 'orders.view', 'orders.manage'];
+    private const TOOL_PERMISSIONS = ['dashboard.view', 'inventory.manage', 'orders.view', 'orders.manage', 'customers.view'];
 
     public function handle(AuditLogger $audit): int
     {

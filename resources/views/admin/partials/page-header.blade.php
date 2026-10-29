@@ -2,7 +2,7 @@
     $title = $title ?? 'Trang';
     $subtitle = $subtitle ?? null;
     $section = explode('.', request()->route()?->getName() ?? '')[1] ?? '';
-    $sections = ['products' => ['Sản phẩm', 'shirt'], 'categories' => ['Danh mục', 'layers'], 'brands' => ['Thương hiệu', 'tag'], 'size-charts' => ['Bảng size', 'table'], 'discounts' => ['Giảm giá', 'percent'], 'suppliers' => ['Nhà cung cấp', 'truck'], 'goods-receipts' => ['Phiếu nhập hàng', 'box'], 'orders' => ['Đơn hàng', 'orders'], 'payments' => ['Duyệt thanh toán', 'revenue'], 'audit-logs' => ['Nhật ký hệ thống', 'clock'], 'roles' => ['Vai trò & quyền', 'key'], 'staff' => ['Nhân viên', 'user']];
+    $sections = ['products' => ['Sản phẩm', 'shirt'], 'categories' => ['Danh mục', 'layers'], 'brands' => ['Thương hiệu', 'tag'], 'size-charts' => ['Bảng size', 'table'], 'discounts' => ['Giảm giá', 'percent'], 'suppliers' => ['Nhà cung cấp', 'truck'], 'goods-receipts' => ['Phiếu nhập hàng', 'box'], 'orders' => ['Đơn hàng', 'orders'], 'customers' => ['Khách hàng', 'user'], 'payments' => ['Duyệt thanh toán', 'revenue'], 'audit-logs' => ['Nhật ký hệ thống', 'clock'], 'roles' => ['Vai trò & quyền', 'key'], 'staff' => ['Nhân viên', 'user']];
     $sectionInfo = $sections[$section] ?? ['Tổng quan', 'grid'];
 @endphp
 

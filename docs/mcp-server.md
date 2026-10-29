@@ -16,8 +16,14 @@ Nhân viên hỏi số liệu Dashboard, tra đơn và tồn kho bằng lời th
 | `orders_to_process` | Đơn "Chờ xác nhận" cũ nhất trước: xác nhận được ngay hay còn chờ tiền, đã chờ bao nhiêu giờ (tối đa 50) | `orders.view` hoặc `orders.manage` |
 | `get_order` | Chi tiết một đơn theo mã: dòng hàng, các khoản tiền, lịch sử trạng thái; không có thông tin liên hệ của khách | `orders.view` hoặc `orders.manage` |
 | `find_stock` | Tồn kho theo tên sản phẩm hoặc SKU, thu hẹp theo thương hiệu (tối đa 50) | `dashboard.view` hoặc `inventory.manage` |
+| `find_customer` | Tìm khách theo số điện thoại, email, tên hoặc mã đơn (ít nhất 3 ký tự): số đơn, đã chi, đơn gần nhất (tối đa 10) | `customers.view` |
+| `get_customer` | Một khách theo id: số đơn, đã chi, giá trị trung bình, tỷ lệ huỷ, 10 đơn gần nhất, số địa chỉ, tỉnh/thành đã giao | `customers.view` |
+| `top_customers` | Khách chi nhiều nhất trong kỳ (tối đa 20) | `customers.view` |
+| `lapsed_customers` | Khách đã mua từ `min_orders` đơn (mặc định 2) nhưng chưa có đơn nào trong `days` ngày (mặc định 60) (tối đa 20) | `customers.view` |
 
 Kỳ (`period`): `hom-nay`, `7-ngay`, `30-ngay` (mặc định), `90-ngay`, `tat-ca`.
+
+Các tool khách hàng dùng cùng cách tính với màn hình **Khách hàng** trong admin (`/admin/khach-hang`): "số đơn" gồm cả đơn đã huỷ, "đã chi" chỉ tính đơn đã giao và đã thanh toán. Dữ liệu cá nhân luôn được che: tên viết tắt, chỉ 3 số cuối điện thoại (để đối chiếu), không có email, số điện thoại đầy đủ hay địa chỉ. Kết quả kèm `admin_url` để nhân viên mở trang đầy đủ trong admin. Không có tool liệt kê toàn bộ khách: phải đưa số điện thoại, email, tên hoặc mã đơn.
 
 ## Cấp token
 

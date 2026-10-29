@@ -22,6 +22,7 @@ class AdminNavigation
         ],
         'Bán hàng' => [
             ['admin.orders.index', 'admin.orders.*', 'orders', 'Đơn hàng', 'orders.view'],
+            ['admin.customers.index', 'admin.customers.*', 'user', 'Khách hàng', 'customers.view'],
         ],
         'Sản phẩm & thương hiệu' => [
             ['admin.products.index', 'admin.products.*', 'shirt', 'Sản phẩm', 'products.manage'],
