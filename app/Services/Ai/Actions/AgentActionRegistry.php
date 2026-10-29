@@ -26,12 +26,6 @@ class AgentActionRegistry
         }
     }
 
-    /** The action of this type, whoever may use it. */
-    public function action(string $type): AgentAction
-    {
-        return $this->actions[$type] ?? throw new \InvalidArgumentException("Không có hành động \"{$type}\".");
-    }
-
     /** The action of this type if the staff member may use it. */
     public function forUser(string $type, User $actor): ?AgentAction
     {

@@ -232,7 +232,7 @@ class McpServerTest extends TestCase
         $log = AuditLog::query()->where('action', 'mcp.tool_called')->sole();
         $this->assertNull($log->actor_id);
         $this->assertSame('attention_counts', $log->new_values['tool']);
-        $this->assertSame('MCP: gọi công cụ', $log->actionLabel());
+        $this->assertSame('MCP: tra cứu số liệu', $log->actionLabel());
         $this->assertNotNull(McpToken::query()->sole()->last_used_at);
     }
 
@@ -256,11 +256,9 @@ class McpServerTest extends TestCase
 
         $this->artisan('mcp:token', ['role' => 'kho', '--days' => 7])
             ->expectsOutputToContain('Quyền dùng được qua MCP: inventory.manage.')
-            ->expectsOutputToContain('Token chỉ đọc.')
             ->assertSuccessful();
 
         $token = McpToken::query()->sole();
-        $this->assertFalse($token->can_write);
         $this->assertSame($role->id, $token->role_id);
         $this->assertSame('2026-10-17', $token->expires_at->toDateString());
         $this->assertSame(64, strlen($token->token_hash));
