@@ -21,7 +21,7 @@ class PermissionGroups
     ];
 
     /** Permissions reserved for screens that are not built yet. */
-    public const NOT_BUILT = ['returns.manage', 'reviews.manage', 'coupons.manage', 'customers.view'];
+    public const NOT_BUILT = ['returns.manage', 'coupons.manage', 'customers.view'];
 
     /**
      * @return Collection<string, Collection<int, Permission>> group label => permissions

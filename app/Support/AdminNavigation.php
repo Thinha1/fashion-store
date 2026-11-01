@@ -26,6 +26,7 @@ class AdminNavigation
         ],
         'Sản phẩm & thương hiệu' => [
             ['admin.products.index', 'admin.products.*', 'shirt', 'Sản phẩm', 'products.manage'],
+            ['admin.reviews.index', 'admin.reviews.*', 'star', 'Đánh giá', 'reviews.manage'],
             ['admin.categories.index', 'admin.categories.*', 'layers', 'Danh mục', 'catalog.manage'],
             ['admin.brands.index', 'admin.brands.*', 'tag', 'Thương hiệu', 'catalog.manage'],
             ['admin.size-charts.index', 'admin.size-charts.*', 'table', 'Bảng size', 'catalog.manage'],

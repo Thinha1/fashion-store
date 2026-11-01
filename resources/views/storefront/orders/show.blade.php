@@ -75,6 +75,25 @@
                                 </p>
                             </div>
                             <x-money :amount="$item->line_total" class="order-row-total" />
+                            @if ($order->status === 'delivered')
+                                <div class="order-review">
+                                    @if ($item->review)
+                                        <x-storefront.stars :rating="$item->review->rating" :label="'Bạn đã đánh giá '.$item->review->rating.' trên 5 sao'" />
+                                        <p class="caption">Bạn đã đánh giá sản phẩm này.
+                                            @if ($item->review->status === \App\Models\Review::STATUS_PENDING)
+                                                Đánh giá đang chờ cửa hàng duyệt.
+                                            @elseif ($item->review->status === \App\Models\Review::STATUS_HIDDEN)
+                                                Cửa hàng đã ẩn đánh giá này.
+                                            @endif
+                                        </p>
+                                        @if ($item->review->comment)
+                                            <p class="review-comment">{{ $item->review->comment }}</p>
+                                        @endif
+                                    @else
+                                        <a href="{{ route('reviews.index') }}" class="text-link">Đánh giá sản phẩm</a>
+                                    @endif
+                                </div>
+                            @endif
                         </li>
                     @endforeach
                 </ul>

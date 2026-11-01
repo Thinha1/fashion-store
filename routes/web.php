@@ -12,6 +12,7 @@ use App\Http\Controllers\Storefront\ProductAssistController;
 use App\Http\Controllers\Storefront\ProductAssistStreamController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Storefront\ProfileController;
+use App\Http\Controllers\Storefront\ReviewController;
 use App\Http\Controllers\Webhooks\SepayWebhookController;
 use App\Services\Catalog\HomeShelves;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('tai-khoan', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('tai-khoan', [ProfileController::class, 'update'])->name('profile.update');
 
+    Route::get('tai-khoan/danh-gia', [ReviewController::class, 'index'])->name('reviews.index');
+
     Route::prefix('tai-khoan/dia-chi')->name('addresses.')->controller(AddressController::class)->group(function (): void {
         Route::get('/', 'index')->name('index');
         Route::get('tao-moi', 'create')->name('create');
@@ -71,6 +74,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('don-hang/{order:order_number}/trang-thai-thanh-toan', [OrderController::class, 'paymentStatus'])
         ->middleware('throttle:30,1')->name('orders.payment-status');
     Route::patch('don-hang/{order:order_number}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('don-hang/{order:order_number}/danh-gia/{orderItem}', [ReviewController::class, 'store'])
+        ->whereNumber('orderItem')->middleware('throttle:20,1')->name('reviews.store');
 });
 
 // SePay → shop: no session/CSRF (exempted in bootstrap/app.php); the

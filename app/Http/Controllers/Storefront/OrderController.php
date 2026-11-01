@@ -34,7 +34,7 @@ class OrderController extends Controller
     {
         Gate::authorize('view', $order);
 
-        $order->load('items');
+        $order->load('items.review');
 
         return view('storefront.orders.show', [
             'order' => $order,
