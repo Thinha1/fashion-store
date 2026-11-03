@@ -10,8 +10,10 @@ use App\Models\User;
 use App\Services\Ai\ProductDraftResponseParser;
 use App\Support\ColorPalette;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class ColorPaletteTest extends TestCase
 {
     use RefreshDatabase;

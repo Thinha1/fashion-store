@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Address;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class AddressBookTest extends TestCase
 {
     use RefreshDatabase;

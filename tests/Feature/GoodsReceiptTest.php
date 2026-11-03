@@ -8,8 +8,10 @@ use App\Models\ProductVariant;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('inventory')]
 class GoodsReceiptTest extends TestCase
 {
     use RefreshDatabase;

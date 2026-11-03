@@ -9,8 +9,10 @@ use App\Models\ProductVariant;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class ListingPriceTest extends TestCase
 {
     use RefreshDatabase;

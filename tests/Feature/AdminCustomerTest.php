@@ -8,12 +8,14 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * The admin's read-only view of customers: who they are, what they ordered
  * and spent, and where they ship.
  */
+#[Group('accounts')]
 class AdminCustomerTest extends TestCase
 {
     use RefreshDatabase;

@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('ai')]
 class ProductAssistStreamTest extends TestCase
 {
     use RefreshDatabase;

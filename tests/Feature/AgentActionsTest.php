@@ -19,12 +19,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * The assistant proposes admin actions; the server previews them, and only a
  * confirming click by a staff member with the right permission does them.
  */
+#[Group('ai')]
 class AgentActionsTest extends TestCase
 {
     use RefreshDatabase;

@@ -12,8 +12,10 @@ use App\Services\Reports\DashboardPeriod;
 use App\Services\Reports\SalesDashboard;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('admin')]
 class DashboardReportTest extends TestCase
 {
     use RefreshDatabase;

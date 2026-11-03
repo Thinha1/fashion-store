@@ -14,12 +14,14 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * The assistant on the discount form: the same `set_fields` reply as on the
  * product form, read against the discount form's fields (screen "discount").
  */
+#[Group('ai')]
 class DiscountAssistantFieldsTest extends TestCase
 {
     use RefreshDatabase;

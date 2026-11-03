@@ -7,8 +7,10 @@ use App\Models\ProductVariant;
 use App\Models\Role;
 use Database\Seeders\OrderDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class OrderDemoSeederTest extends TestCase
 {
     use RefreshDatabase;

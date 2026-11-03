@@ -10,8 +10,10 @@ use App\Models\User;
 use App\Services\Pricing\InvalidCouponException;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('pricing')]
 class PriceCalculatorTest extends TestCase
 {
     use RefreshDatabase;

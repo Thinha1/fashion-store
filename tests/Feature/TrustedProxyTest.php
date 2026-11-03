@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('system')]
 class TrustedProxyTest extends TestCase
 {
     private const HTTPS_PROXY_HEADERS = [

@@ -29,6 +29,7 @@ If working directly (PHP/Composer/Node installed locally) instead of through Doc
 ```powershell
 php artisan test                       # full suite (PHPUnit, not Pest)
 php artisan test --filter=testName     # single test
+php artisan test --group=orders        # one area: accounts admin ai catalog inventory mcp orders pricing reviews system
 vendor/bin/phpunit path/to/SomeTest.php
 vendor/bin/pint --dirty --format agent # run after any PHP change, before finishing
 npm run dev                            # Vite dev server

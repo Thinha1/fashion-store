@@ -265,6 +265,9 @@ docker compose exec app php artisan route:list
 
 # Chạy test
 docker compose exec app php artisan test --compact
+# Chạy riêng một mảng khi đang sửa mảng đó (nhanh hơn nhiều so với cả bộ):
+# accounts admin ai catalog inventory mcp orders pricing reviews system
+docker compose exec app php artisan test --group=orders
 node --test tests/JavaScript/*.test.js
 
 # Kiểm tra định dạng PHP

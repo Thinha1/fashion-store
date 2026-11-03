@@ -9,9 +9,11 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Group;
 use RuntimeException;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class CatalogDemoSeederTest extends TestCase
 {
     use RefreshDatabase;

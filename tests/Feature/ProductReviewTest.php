@@ -12,11 +12,13 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\ReviewerName;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * Customers rate what they received; staff hide reviews that break the rules.
  */
+#[Group('reviews')]
 class ProductReviewTest extends TestCase
 {
     use RefreshDatabase;

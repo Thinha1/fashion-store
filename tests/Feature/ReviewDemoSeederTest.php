@@ -9,8 +9,10 @@ use App\Models\Role;
 use Database\Seeders\OrderDemoSeeder;
 use Database\Seeders\ReviewDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('reviews')]
 class ReviewDemoSeederTest extends TestCase
 {
     use RefreshDatabase;

@@ -15,8 +15,10 @@ use App\Services\Reports\SalesDashboard;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('mcp')]
 class McpServerTest extends TestCase
 {
     use RefreshDatabase;

@@ -6,8 +6,10 @@ use DOMDocument;
 use DOMXPath;
 use Illuminate\Support\Facades\Blade;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('admin')]
 class CurrencyInputTest extends TestCase
 {
     public static function fieldValues(): array
