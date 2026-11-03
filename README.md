@@ -155,6 +155,12 @@ Trong môi trường local, lệnh trên tạo thêm catalog demo gồm sản ph
 docker compose exec app php artisan db:seed --class=OrderDemoSeeder
 ```
 
+Sau khi có đơn demo, tạo thêm đánh giá demo (khoảng một trong bốn dòng hàng của đơn đã giao; phần lớn đang hiển thị, một ít chờ duyệt hoặc bị ẩn) để thử trang sản phẩm và `/admin/danh-gia`:
+
+```powershell
+docker compose exec app php artisan db:seed --class=ReviewDemoSeeder
+```
+
 `CatalogDemoSeeder` chạy lại an toàn: sản phẩm được nhận diện bằng slug, biến thể bằng SKU, nên chạy lại chỉ cập nhật chứ không tạo trùng. Seeder **không xóa** sản phẩm cũ không còn trong dữ liệu, vì vậy khi dữ liệu demo đổi hẳn (như lần chuyển sang catalog 4 thương hiệu), hãy làm theo mục [Cập nhật lên dữ liệu demo mới](#cập-nhật-lên-dữ-liệu-demo-mới). Xem [nguồn và giấy phép ảnh](database/seeders/assets/catalog/SOURCES.md).
 
 Tài khoản phát triển:
@@ -208,6 +214,7 @@ Dùng khi máy bạn còn catalog cũ (thương hiệu giả lập như Lặng S
    ```powershell
    docker compose exec app php artisan migrate:fresh --seed
    docker compose exec app php artisan db:seed --class=OrderDemoSeeder
+   docker compose exec app php artisan db:seed --class=ReviewDemoSeeder
    ```
 
    > `migrate:fresh` xóa **toàn bộ** dữ liệu MySQL trên máy bạn: tài khoản tự tạo, đơn hàng và cấu hình AI (nhập lại API key ở **Cấu hình AI**). Tài khoản `admin@example.com` được tạo lại.
