@@ -73,11 +73,11 @@ Entity: `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Suppl
 - **Giá hiển thị**: `Services/PriceCalculator` (hoặc tương đương) áp dụng discount biến thể đang hiệu lực — dùng lại được ở giỏ hàng/checkout.
 - **Giỏ hàng** (`Cart`, `CartItem`, chỉ cho tài khoản đã đăng nhập — không có giỏ hàng khách vãng lai):
   - `Storefront/CartController` (`/gio-hang/*`, sau middleware `auth`): thêm/sửa/xóa dòng, unique (`cart_id`, `product_variant_id`), giá luôn tính lại chứ không lưu ở cart item (plan §3 mục 14); mỗi user chỉ có một `cart` `active`.
-- **Yêu thích** (`Wishlist`): `Storefront/WishlistController` (`/yeu-thich/*`, sau `auth`).
+- ~~**Yêu thích** (`Wishlist`)~~: đã bỏ. Bảng `wishlists` bị gỡ ngày 03/11/2026 vì chưa có màn hình nào dùng; làm lại tính năng thì tạo lại bảng bằng migration mới.
 - **Đánh giá** (`Review`): `Storefront/ReviewController` — chỉ cho phép khi `order_item` thuộc đơn đã giao của đúng user/sản phẩm, `order_item_id` unique (plan §3 mục 17).
 - **Sổ địa chỉ** (`Address`): CRUD trong `/tai-khoan/*`, đảm bảo tối đa 1 địa chỉ mặc định/user.
   - Địa chỉ theo cấu trúc 2 cấp từ 01/07/2025: **Tỉnh/Thành → Phường/Xã**, không còn Quận/Huyện (`district_name` để trống với địa chỉ/đơn mới; dữ liệu cũ giữ nguyên). Danh sách lấy từ API `provinces.open-api.vn/api/v2` qua server (`Services/Address/AdministrativeDivisions`, cache 30 ngày, route `addresses.wards`). Có danh sách thì tỉnh/phường phải khớp (lưu tên chuẩn + `province_code`); API lỗi thì cho nhập tay. Cấu hình `VN_DIVISIONS_API_URL` (để trống = luôn nhập tay).
-- **Test**: thêm/sửa số lượng giỏ hàng, review chỉ tạo được sau khi giao hàng, wishlist toggle, khách chưa đăng nhập bị redirect sang `/dang-nhap` khi vào `/gio-hang`.
+- **Test**: thêm/sửa số lượng giỏ hàng, review chỉ tạo được sau khi giao hàng, khách chưa đăng nhập bị redirect sang `/dang-nhap` khi vào `/gio-hang`.
 
 ## Giai đoạn 4 — Checkout
 

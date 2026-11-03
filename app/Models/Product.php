@@ -124,11 +124,6 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
-    public function wishlists(): HasMany
-    {
-        return $this->hasMany(Wishlist::class);
-    }
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
