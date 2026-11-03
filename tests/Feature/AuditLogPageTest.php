@@ -10,8 +10,10 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('admin')]
 class AuditLogPageTest extends TestCase
 {
     use RefreshDatabase;

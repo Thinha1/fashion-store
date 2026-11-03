@@ -8,8 +8,10 @@ use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class CustomerOrdersTest extends TestCase
 {
     use RefreshDatabase;

@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class AnywearTryOnTest extends TestCase
 {
     use RefreshDatabase;

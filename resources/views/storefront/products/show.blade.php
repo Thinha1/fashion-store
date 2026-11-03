@@ -195,6 +195,8 @@
     </div>
     </div>
 
+    @include('storefront.products._reviews')
+
     @if ($related->isNotEmpty())
         <section class="section" aria-labelledby="related-title">
             <div class="container">

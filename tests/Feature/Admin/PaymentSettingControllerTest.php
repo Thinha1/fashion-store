@@ -15,8 +15,10 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class PaymentSettingControllerTest extends TestCase
 {
     use RefreshDatabase;

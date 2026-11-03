@@ -11,8 +11,10 @@ use App\Models\SizeChart;
 use App\Models\User;
 use App\Services\Catalog\SizeChartResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class SizeChartTest extends TestCase
 {
     use RefreshDatabase;

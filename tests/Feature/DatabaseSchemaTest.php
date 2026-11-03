@@ -4,13 +4,15 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('system')]
 class DatabaseSchemaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_database_contains_the_twenty_planned_domain_tables(): void
+    public function test_database_contains_the_nineteen_planned_domain_tables(): void
     {
         $tables = [
             'users',
@@ -30,16 +32,28 @@ class DatabaseSchemaTest extends TestCase
             'orders',
             'order_items',
             'reviews',
-            'wishlists',
             'return_requests',
             'audit_logs',
         ];
 
-        $this->assertCount(20, $tables);
+        $this->assertCount(19, $tables);
 
         foreach ($tables as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing domain table: {$table}");
         }
+    }
+
+    public function test_the_unused_wishlists_table_is_gone_and_the_migration_can_be_reversed(): void
+    {
+        $this->assertFalse(Schema::hasTable('wishlists'));
+
+        $migration = require database_path('migrations/2026_11_03_000100_drop_unused_wishlists_table.php');
+        $migration->down();
+        $this->assertTrue(Schema::hasTable('wishlists'));
+        $this->assertTrue(Schema::hasColumns('wishlists', ['id', 'user_id', 'product_id', 'created_at']));
+
+        $migration->up();
+        $this->assertFalse(Schema::hasTable('wishlists'));
     }
 
     public function test_shipping_uses_configuration_instead_of_a_table(): void

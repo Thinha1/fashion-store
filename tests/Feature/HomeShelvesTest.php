@@ -8,8 +8,10 @@ use App\Models\Discount;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class HomeShelvesTest extends TestCase
 {
     use RefreshDatabase;

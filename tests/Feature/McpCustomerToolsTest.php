@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Reports\CustomerStats;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\Concerns\CallsMcpTools;
 use Tests\TestCase;
 
@@ -15,6 +16,7 @@ use Tests\TestCase;
  * The MCP tools about customers: finding one, their history, who spends the
  * most and who stopped coming back. Personal details stay masked.
  */
+#[Group('mcp')]
 class McpCustomerToolsTest extends TestCase
 {
     use CallsMcpTools;

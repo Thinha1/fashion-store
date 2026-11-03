@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\Concerns\CallsMcpTools;
 use Tests\TestCase;
 
@@ -14,6 +15,7 @@ use Tests\TestCase;
  * The MCP tools that look things up for the shop's staff: orders waiting for
  * a decision, one order, and stock by name or SKU.
  */
+#[Group('mcp')]
 class McpLookupToolsTest extends TestCase
 {
     use CallsMcpTools;

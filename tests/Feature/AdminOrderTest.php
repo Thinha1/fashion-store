@@ -10,8 +10,10 @@ use App\Models\ProductVariant;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class AdminOrderTest extends TestCase
 {
     use RefreshDatabase;

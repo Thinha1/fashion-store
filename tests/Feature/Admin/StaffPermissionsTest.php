@@ -10,8 +10,10 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\AdminNavigation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('accounts')]
 class StaffPermissionsTest extends TestCase
 {
     use RefreshDatabase;

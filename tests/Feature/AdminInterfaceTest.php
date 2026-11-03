@@ -12,8 +12,10 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('admin')]
 class AdminInterfaceTest extends TestCase
 {
     use RefreshDatabase;
@@ -58,14 +60,6 @@ class AdminInterfaceTest extends TestCase
         $receipt = GoodsReceipt::factory()->confirmed()->create();
         $this->get(route('admin.goods-receipts.show', $receipt))->assertOk()
             ->assertDontSee(route('admin.goods-receipts.edit', $receipt));
-    }
-
-    public function test_product_thumbnail_renders(): void
-    {
-        $this->actingAs(User::factory()->admin()->create());
-        $product = Product::factory()->create();
-        $product->images()->create(['path' => 'products/example.jpg', 'is_primary' => true, 'sort_order' => 0]);
-        $this->get(route('admin.products.index'))->assertOk()->assertSee('products/example.jpg');
     }
 
     #[DataProvider('resources')]

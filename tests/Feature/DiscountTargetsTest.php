@@ -12,12 +12,14 @@ use App\Services\Pricing\OrderQuote;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * Brand / product / variant picks on the discount form: variant discounts
  * created many at a time, and order vouchers limited to some of the cart.
  */
+#[Group('pricing')]
 class DiscountTargetsTest extends TestCase
 {
     use RefreshDatabase;

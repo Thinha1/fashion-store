@@ -7,8 +7,10 @@ use App\Services\Ai\PdfTextExtractor;
 use App\Services\Ai\ProductDraftPromptBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('ai')]
 class ProductAiPdfReadTest extends TestCase
 {
     use RefreshDatabase;

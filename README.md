@@ -20,7 +20,7 @@ Fashion Store là ứng dụng Laravel monolith phục vụ hai nhóm người d
 
 Ứng dụng dùng Blade để render phía server. Tailwind CSS, Alpine.js và Font Awesome cung cấp giao diện cùng các tương tác nhẹ; dữ liệu nghiệp vụ được lưu trong MySQL.
 
-Bảng đánh giá, yêu thích và đổi/trả đã có trong schema nhưng chưa có giao diện.
+Bảng đánh giá và đổi/trả đã có trong schema nhưng chưa có giao diện.
 
 ## Chức năng hiện có
 
@@ -155,6 +155,12 @@ Trong môi trường local, lệnh trên tạo thêm catalog demo gồm sản ph
 docker compose exec app php artisan db:seed --class=OrderDemoSeeder
 ```
 
+Sau khi có đơn demo, tạo thêm đánh giá demo (khoảng một trong bốn dòng hàng của đơn đã giao; phần lớn đang hiển thị, một ít chờ duyệt hoặc bị ẩn) để thử trang sản phẩm và `/admin/danh-gia`:
+
+```powershell
+docker compose exec app php artisan db:seed --class=ReviewDemoSeeder
+```
+
 `CatalogDemoSeeder` chạy lại an toàn: sản phẩm được nhận diện bằng slug, biến thể bằng SKU, nên chạy lại chỉ cập nhật chứ không tạo trùng. Seeder **không xóa** sản phẩm cũ không còn trong dữ liệu, vì vậy khi dữ liệu demo đổi hẳn (như lần chuyển sang catalog 4 thương hiệu), hãy làm theo mục [Cập nhật lên dữ liệu demo mới](#cập-nhật-lên-dữ-liệu-demo-mới). Xem [nguồn và giấy phép ảnh](database/seeders/assets/catalog/SOURCES.md).
 
 Tài khoản phát triển:
@@ -208,6 +214,7 @@ Dùng khi máy bạn còn catalog cũ (thương hiệu giả lập như Lặng S
    ```powershell
    docker compose exec app php artisan migrate:fresh --seed
    docker compose exec app php artisan db:seed --class=OrderDemoSeeder
+   docker compose exec app php artisan db:seed --class=ReviewDemoSeeder
    ```
 
    > `migrate:fresh` xóa **toàn bộ** dữ liệu MySQL trên máy bạn: tài khoản tự tạo, đơn hàng và cấu hình AI (nhập lại API key ở **Cấu hình AI**). Tài khoản `admin@example.com` được tạo lại.
@@ -258,6 +265,9 @@ docker compose exec app php artisan route:list
 
 # Chạy test
 docker compose exec app php artisan test --compact
+# Chạy riêng một mảng khi đang sửa mảng đó (nhanh hơn nhiều so với cả bộ):
+# accounts admin ai catalog inventory mcp orders pricing reviews system
+docker compose exec app php artisan test --group=orders
 node --test tests/JavaScript/*.test.js
 
 # Kiểm tra định dạng PHP
@@ -295,7 +305,7 @@ Các bảng nghiệp vụ chính (chưa kể bảng hệ thống của Laravel n
 | Catalog | `brands`, `categories`, `products`, `product_variants`, `product_images`, `discounts` |
 | Nhập kho | `suppliers`, `goods_receipts`, `goods_receipt_items` |
 | Thương mại | `carts`, `cart_items`, `orders`, `order_items` |
-| Tương tác | `reviews`, `wishlists`, `return_requests` |
+| Tương tác | `reviews`, `return_requests` |
 | Kiểm soát và cấu hình | `audit_logs`, `ai_settings`, `payment_settings` |
 
 ## Cấu trúc repository

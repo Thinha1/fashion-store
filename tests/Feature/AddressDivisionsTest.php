@@ -6,8 +6,10 @@ use App\Models\Address;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('orders')]
 class AddressDivisionsTest extends TestCase
 {
     use RefreshDatabase;

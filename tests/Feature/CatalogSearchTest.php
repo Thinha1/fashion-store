@@ -12,9 +12,11 @@ use Illuminate\Support\Collection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Laravel\Scout\Engines\CollectionEngine;
+use PHPUnit\Framework\Attributes\Group;
 use RuntimeException;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class CatalogSearchTest extends TestCase
 {
     use RefreshDatabase;

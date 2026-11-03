@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ProductAiAssistController;
 use App\Http\Controllers\Admin\ProductAiAssistStreamController;
 use App\Http\Controllers\Admin\ProductAiPdfController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SizeChartController;
 use App\Http\Controllers\Admin\StaffController;
@@ -78,6 +79,13 @@ Route::prefix('admin')
             ->group(function (): void {
                 Route::get('/', [CustomerController::class, 'index'])->name('index');
                 Route::get('{customer}', [CustomerController::class, 'show'])->name('show');
+            });
+
+        // Product reviews — hide or show again, never edit.
+        Route::middleware('permission:reviews.manage')->prefix('danh-gia')->name('reviews.')
+            ->group(function (): void {
+                Route::get('/', [ReviewController::class, 'index'])->name('index');
+                Route::patch('{review}', [ReviewController::class, 'update'])->name('update');
             });
 
         // Roles and the permissions they grant; staff accounts and their role.

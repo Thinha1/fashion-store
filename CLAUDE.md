@@ -29,6 +29,7 @@ If working directly (PHP/Composer/Node installed locally) instead of through Doc
 ```powershell
 php artisan test                       # full suite (PHPUnit, not Pest)
 php artisan test --filter=testName     # single test
+php artisan test --group=orders        # one area: accounts admin ai catalog inventory mcp orders pricing reviews system
 vendor/bin/phpunit path/to/SomeTest.php
 vendor/bin/pint --dirty --format agent # run after any PHP change, before finishing
 npm run dev                            # Vite dev server
@@ -40,7 +41,7 @@ Tests run against an in-memory SQLite DB (`phpunit.xml`); the app itself runs on
 ## Architecture
 
 - Laravel 13 on PHP 8.5, MySQL. Blade views rendered server-side; Tailwind CSS v4 + Alpine.js handle interactivity (menus, modals, variant pickers); Vite bundles `resources/js/app.js` / `resources/css/app.css`. Forms use POST/Redirect/GET; `fetch` is only for small local updates against ordinary Laravel routes protected by session/CSRF/Policy — there is no separate REST API layer.
-- The data model is a fixed set of **20 business tables** (plan §3 in `fashion-store-plan.md`) — don't add/rename/remove tables without checking that doc first. Current `app/Models/*` mirror them 1:1: `User`, `Address`, `Role`, `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Discount`, `Supplier`, `GoodsReceipt`, `GoodsReceiptItem`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Review`, `Wishlist`, `ReturnRequest`, `AuditLog`.
+- The data model is a fixed set of **19 business tables** (plan §3 in `fashion-store-plan.md`; the plan's `wishlists` table was dropped on 2026-11-03 because nothing used it) — don't add/rename/remove tables without checking that doc first. Current `app/Models/*` mirror them 1:1: `User`, `Address`, `Role`, `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Discount`, `Supplier`, `GoodsReceipt`, `GoodsReceiptItem`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Review`, `ReturnRequest`, `AuditLog`.
 - Models declare mass-assignable fields via the PHP 8.5 `#[Fillable([...])]` attribute (see `app/Models/Product.php`), not the classic `$fillable` property — follow this for new models.
 - Planned (not yet present) controller split, per the plan: `app/Http/Controllers/Storefront/*` for customer-facing pages and `app/Http/Controllers/Admin/*` for the admin panel, under Vietnamese-slug routes (`/san-pham`, `/gio-hang`, `/thanh-toan`, `/don-hang`, `/doi-tra`, `/admin/*`, ...). Admin routes are meant to sit behind `auth` + `verified` + a permission middleware.
 - Business rules to preserve when implementing features (plan §3):

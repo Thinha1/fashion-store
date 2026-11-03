@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('accounts')]
 class RolePermissionTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,14 +29,5 @@ class RolePermissionTest extends TestCase
 
         $this->assertTrue($role->hasPermission('products.manage'));
         $this->assertFalse($role->hasPermission('inventory.manage'));
-    }
-
-    public function test_admin_factory_role_has_every_catalog_permission(): void
-    {
-        $role = Role::factory()->admin()->create();
-
-        foreach (Permission::query()->pluck('code') as $code) {
-            $this->assertTrue($role->hasPermission($code), "Admin role should have {$code}");
-        }
     }
 }

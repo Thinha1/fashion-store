@@ -7,8 +7,10 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('catalog')]
 class ProductFiltersTest extends TestCase
 {
     use RefreshDatabase;

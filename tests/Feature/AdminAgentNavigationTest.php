@@ -15,9 +15,11 @@ use Illuminate\Testing\TestResponse;
 use Laravel\Scout\Builder;
 use Laravel\Scout\EngineManager;
 use Laravel\Scout\Engines\CollectionEngine;
+use PHPUnit\Framework\Attributes\Group;
 use RuntimeException;
 use Tests\TestCase;
 
+#[Group('ai')]
 class AdminAgentNavigationTest extends TestCase
 {
     use RefreshDatabase;

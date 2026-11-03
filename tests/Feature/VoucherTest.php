@@ -13,12 +13,14 @@ use App\Services\Pricing\InvalidCouponException;
 use App\Services\Pricing\OrderQuote;
 use App\Services\Pricing\PriceCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
  * Shipping vouchers and automatic vouchers: one order voucher and one
  * shipping voucher per order, typed or automatic, whichever takes off more.
  */
+#[Group('pricing')]
 class VoucherTest extends TestCase
 {
     use RefreshDatabase;

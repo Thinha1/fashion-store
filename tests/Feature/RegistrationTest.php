@@ -7,8 +7,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('accounts')]
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;

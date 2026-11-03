@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\AiSetting;
 use App\Services\Ai\AiSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('ai')]
 class AiSettingsServiceTest extends TestCase
 {
     use RefreshDatabase;
