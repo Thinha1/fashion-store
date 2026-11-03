@@ -1,0 +1,709 @@
+{
+    "description": "Scenarios for the admin product assistant, run against the real configured AI model with `php artisan agent:eval`. Product names and SKUs come from the demo catalog (CatalogDemoSeeder). Each expectation is a dot path into the assistant's response: {data, navigate, notice}. A plain value must be equal; an object uses one matcher: contains, contains_all, not_empty, empty, one_of, number. A case may carry \"form\": the product form on screen (form_context). contains_text: every listed text appears in the value (JSON for arrays/objects).",
+    "cases": [
+        {
+            "id": "nav-orders",
+            "group": "Chuyển trang",
+            "message": "Đưa tôi tới danh sách đơn hàng",
+            "expect": {
+                "navigate.key": "orders.index",
+                "data.set_fields": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "nav-goods-receipt-create",
+            "group": "Chuyển trang",
+            "message": "tạo phiếu nhập hàng mới giúp mình",
+            "expect": {
+                "navigate.key": "goods-receipts.create"
+            }
+        },
+        {
+            "id": "nav-dashboard",
+            "group": "Chuyển trang",
+            "message": "về trang tổng quan",
+            "expect": {
+                "navigate.key": "dashboard"
+            }
+        },
+        {
+            "id": "nav-discounts",
+            "group": "Chuyển trang",
+            "message": "mở trang giảm giá sản phẩm",
+            "expect": {
+                "navigate.key": "discounts.index"
+            }
+        },
+        {
+            "id": "open-product-by-name",
+            "group": "Mở sản phẩm",
+            "message": "mở áo polo coolmate để sửa",
+            "expect": {
+                "navigate.key": "products.edit",
+                "navigate.label": {
+                    "contains": "Áo Polo nam Premium Pique"
+                }
+            }
+        },
+        {
+            "id": "open-product-english-name",
+            "group": "Mở sản phẩm",
+            "message": "sửa sản phẩm nike club hooded jacket",
+            "expect": {
+                "navigate.label": {
+                    "contains": "Nike Club Hooded Jacket"
+                }
+            }
+        },
+        {
+            "id": "open-product-typo",
+            "group": "Mở sản phẩm",
+            "message": "vào sp ao polo coolmet",
+            "expect": {
+                "navigate.label": {
+                    "contains": "Áo Polo nam Premium Pique"
+                }
+            }
+        },
+        {
+            "id": "open-product-by-sku",
+            "group": "Mở sản phẩm",
+            "message": "mở sản phẩm có SKU YM-QUJEONSU-XD-S",
+            "expect": {
+                "navigate.label": {
+                    "contains": "Quần jeans ống suông DurableTex"
+                }
+            }
+        },
+        {
+            "id": "open-product-unknown",
+            "group": "Mở sản phẩm",
+            "message": "mở sản phẩm áo len cashmere Gucci",
+            "expect": {
+                "navigate": {
+                    "empty": true
+                },
+                "notice": {
+                    "contains": "Không tìm thấy"
+                }
+            }
+        },
+        {
+            "id": "open-and-edit",
+            "group": "Mở sản phẩm",
+            "message": "mở áo polo coolmate rồi đổi giá thành 350k",
+            "expect": {
+                "navigate.key": "products.edit",
+                "navigate.label": {
+                    "contains": "Áo Polo nam Premium Pique"
+                },
+                "data.set_fields.0.field": "price",
+                "data.set_fields.0.value": {
+                    "number": 350000
+                }
+            }
+        },
+        {
+            "id": "edit-price",
+            "group": "Sửa nhanh",
+            "message": "giá 199k",
+            "expect": {
+                "navigate": {
+                    "empty": true
+                },
+                "data.set_fields.0.field": "price",
+                "data.set_fields.0.value": {
+                    "number": 199000
+                }
+            }
+        },
+        {
+            "id": "edit-sizes",
+            "group": "Sửa nhanh",
+            "message": "đổi size thành S, M, L, XL",
+            "expect": {
+                "data.set_fields.0.field": "sizes",
+                "data.set_fields.0.value": {
+                    "contains_all": [
+                        "S",
+                        "M",
+                        "L",
+                        "XL"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "edit-colors-palette",
+            "group": "Sửa nhanh",
+            "message": "sản phẩm này có 2 màu đen với xanh navy",
+            "expect": {
+                "data.set_fields.0.field": "colors",
+                "data.set_fields.0": {
+                    "contains_text": [
+                        "xanh navy"
+                    ]
+                }
+            },
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "edit-archive",
+            "group": "Sửa nhanh",
+            "message": "ngừng bán sản phẩm này",
+            "expect": {
+                "data.set_fields.0.field": "status",
+                "data.set_fields.0.value": "archived"
+            }
+        },
+        {
+            "id": "compose-from-text",
+            "group": "Soạn sản phẩm",
+            "message": "Soạn giúp mình: áo thun cotton nam màu đen và trắng, giá 250k, size M L XL, thương hiệu Coolmate",
+            "expect": {
+                "data.name": {
+                    "not_empty": true
+                },
+                "data.price": {
+                    "number": 250000
+                },
+                "data.sizes": {
+                    "contains_all": [
+                        "M",
+                        "L",
+                        "XL"
+                    ]
+                },
+                "data.colors": {
+                    "contains_all": [
+                        "Đen",
+                        "Trắng"
+                    ]
+                },
+                "data.brand": "Coolmate",
+                "navigate": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "compose-from-photo",
+            "group": "Soạn sản phẩm",
+            "message": "Soạn sản phẩm này giúp mình.",
+            "image": "database/seeders/assets/catalog/ao-khoac-jean-soc-hickory-xanh-nhat.jpg",
+            "expect": {
+                "data.name": {
+                    "contains": "khoác"
+                },
+                "data.category": "Áo khoác",
+                "data.colors": {
+                    "not_empty": true
+                }
+            }
+        },
+        {
+            "id": "small-talk",
+            "group": "An toàn",
+            "message": "chào bạn",
+            "expect": {
+                "navigate": {
+                    "empty": true
+                },
+                "data.set_fields": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "no-unrequested-navigation",
+            "group": "An toàn",
+            "message": "Soạn mô tả cho quần short kaki nam màu be, giá 299k",
+            "expect": {
+                "navigate": {
+                    "empty": true
+                },
+                "data.name": {
+                    "not_empty": true
+                }
+            }
+        },
+        {
+            "id": "variant-price-one-size",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "sửa giá size 2XL thành 350k",
+            "expect": {
+                "data.set_fields.0.field": "variant_price",
+                "data.set_fields.0.value": {
+                    "number": 350000
+                },
+                "data.set_fields.0.match.sizes": {
+                    "contains_all": [
+                        "2XL"
+                    ]
+                },
+                "data.set_fields.1": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "variant-price-two-sizes",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "size L giá 320k còn 2XL giá 350k",
+            "expect": {
+                "data.set_fields.0.match.sizes": {
+                    "not_empty": true
+                },
+                "data.set_fields.1.match.sizes": {
+                    "not_empty": true
+                },
+                "data.set_fields": {
+                    "contains_text": [
+                        "320000",
+                        "350000",
+                        "\"l\"",
+                        "2xl"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "variant-price-by-color",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "M",
+                        "color": "Trắng",
+                        "sku": "CM-AOPONAPR-T-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Trắng",
+                        "sku": "CM-AOPONAPR-T-L",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "màu trắng giá 320k",
+            "expect": {
+                "data.set_fields.0.field": "variant_price",
+                "data.set_fields.0.value": {
+                    "number": 320000
+                },
+                "data.set_fields.0.match.colors": {
+                    "contains_all": [
+                        "Trắng"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "variant-stock-one",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "M",
+                        "color": "Trắng",
+                        "sku": "CM-AOPONAPR-T-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Trắng",
+                        "sku": "CM-AOPONAPR-T-L",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "màu đen size L chỉ còn 5 cái",
+            "expect": {
+                "data.set_fields.0.field": "variant_stock",
+                "data.set_fields.0.value": {
+                    "number": 5
+                },
+                "data.set_fields.0.match": {
+                    "contains_text": [
+                        "\"l\"",
+                        "đen"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "variant-stock-all",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "tồn kho mỗi biến thể 20",
+            "expect": {
+                "data.set_fields.0.field": "variant_stock",
+                "data.set_fields.0.value": {
+                    "number": 20
+                },
+                "data.set_fields.0.match": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "add-size-keeps-others",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "thêm size XL",
+            "expect": {
+                "data.set_fields.0.field": "sizes",
+                "data.set_fields.0.add": {
+                    "contains_all": [
+                        "XL"
+                    ]
+                },
+                "data.set_fields.0.value": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "remove-size",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "bỏ size M đi",
+            "expect": {
+                "data.set_fields.0.field": "sizes",
+                "data.set_fields.0.remove": {
+                    "contains_all": [
+                        "M"
+                    ]
+                },
+                "data.set_fields.0.value": {
+                    "empty": true
+                }
+            }
+        },
+        {
+            "id": "add-color",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "thêm màu xanh navy",
+            "expect": {
+                "data.set_fields.0.field": "colors",
+                "data.set_fields.0.add": {
+                    "contains_all": [
+                        "Xanh navy"
+                    ]
+                }
+            }
+        },
+        {
+            "id": "form-aware-question",
+            "group": "Sửa biến thể",
+            "form": {
+                "mode": "edit",
+                "name": "Áo Polo nam Premium Pique",
+                "price": "299000",
+                "category": "Áo polo",
+                "brand": "Coolmate",
+                "status": "active",
+                "description": "Áo polo vải pique thoáng mát.",
+                "variants": [
+                    {
+                        "size": "M",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-M",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "L",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-L",
+                        "price": "",
+                        "stock": "10"
+                    },
+                    {
+                        "size": "2XL",
+                        "color": "Đen",
+                        "sku": "CM-AOPONAPR-D-2XL",
+                        "price": "",
+                        "stock": "10"
+                    }
+                ]
+            },
+            "message": "giá chung hiện tại bao nhiêu? đổi thành 279k",
+            "expect": {
+                "data.set_fields.0.field": "price",
+                "data.set_fields.0.value": {
+                    "number": 279000
+                }
+            }
+        }
+    ]
+}

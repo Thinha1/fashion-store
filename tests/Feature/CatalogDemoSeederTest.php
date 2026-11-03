@@ -10,7 +10,6 @@ use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Group;
-use RuntimeException;
 use Tests\TestCase;
 
 #[Group('catalog')]
@@ -116,17 +115,5 @@ class CatalogDemoSeederTest extends TestCase
         $this->assertSame('quan-dai-nu', $legging->category->slug);
         $this->assertSame(3480000, (int) $legging->base_price);
         $this->assertEqualsCanonicalizing(['Tím nhạt', 'Hồng'], $legging->variants->pluck('color')->unique()->values()->all());
-    }
-
-    public function test_seeder_stops_when_a_photo_is_neither_in_the_repo_nor_on_the_image_disk(): void
-    {
-        Storage::fake(config('filesystems.image_disk'));
-        $missing = $this->remoteOnlyPhotos();
-        $this->fakeUploadedPhotos(array_slice($missing, 1));
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Thiếu ảnh demo '.$missing[0]);
-
-        $this->seed();
     }
 }

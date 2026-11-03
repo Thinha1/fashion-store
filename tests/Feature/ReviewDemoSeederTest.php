@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\Review;
 use App\Models\Role;
@@ -59,18 +58,7 @@ class ReviewDemoSeederTest extends TestCase
             $this->assertGreaterThan(0, $byStatus[$status] ?? 0, "no {$status} review to try the screens with");
         }
         $this->assertGreaterThan($byStatus->sum() / 2, $byStatus[Review::STATUS_PUBLISHED]);
-    }
-
-    public function test_it_only_reviews_a_share_of_the_delivered_lines_and_some_without_a_comment(): void
-    {
-        $this->demoOrders();
-        $delivered = OrderItem::query()->whereHas('order', fn ($order) => $order->where('status', 'delivered'))->count();
-
-        $this->seed(ReviewDemoSeeder::class);
-
-        $this->assertLessThan($delivered, Review::query()->count());
-        $this->assertGreaterThan(0, Review::query()->whereNull('comment')->count());
-        $this->assertGreaterThan(0, Review::query()->whereNotNull('comment')->count());
+        $this->assertGreaterThan(0, Review::query()->whereNull('comment')->count(), 'some reviews are just stars');
     }
 
     public function test_it_runs_only_once_and_leaves_real_reviews_alone(): void

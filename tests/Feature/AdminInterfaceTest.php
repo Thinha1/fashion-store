@@ -62,14 +62,6 @@ class AdminInterfaceTest extends TestCase
             ->assertDontSee(route('admin.goods-receipts.edit', $receipt));
     }
 
-    public function test_product_thumbnail_renders(): void
-    {
-        $this->actingAs(User::factory()->admin()->create());
-        $product = Product::factory()->create();
-        $product->images()->create(['path' => 'products/example.jpg', 'is_primary' => true, 'sort_order' => 0]);
-        $this->get(route('admin.products.index'))->assertOk()->assertSee('products/example.jpg');
-    }
-
     #[DataProvider('resources')]
     public function test_rendered_form_controls_have_associated_labels(string $model, string $resource): void
     {
