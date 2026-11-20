@@ -24,7 +24,8 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-                <x-label for="mcp_role_id">Vai trò</x-label>
+                {{-- A plain <label> (not <x-label>) so static analysis sees it is tied to the select. --}}
+                <label for="mcp_role_id" class="block text-sm font-medium text-gray-700">Vai trò</label>
                 <select id="mcp_role_id" name="role_id" required class="field mt-1">
                     <option value="">Chọn vai trò</option>
                     @foreach ($mcpRoles as $role)
