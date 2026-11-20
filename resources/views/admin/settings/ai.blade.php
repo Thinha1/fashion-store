@@ -141,4 +141,6 @@
             </tr>
         @endforelse
     </x-admin-table>
+
+    @include('admin.settings._mcp-tokens')
 @endsection

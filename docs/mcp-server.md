@@ -29,6 +29,8 @@ Các tool khách hàng dùng cùng cách tính với màn hình **Khách hàng**
 
 Token gắn với một vai trò. Tool nào hiện ra và gọi được là tuỳ quyền của vai trò **tại lúc gọi**.
 
+Cách nhanh nhất là mục **Token MCP** ở cuối trang **Cấu hình AI** (`/admin/cai-dat/ai`, quyền `settings.ai`): chọn vai trò, số ngày hiệu lực, tên gợi nhớ rồi bấm **Tạo token**; danh sách bên dưới có nút **Thu hồi** từng token. Không tạo được token cho vai trò có quyền mà chính người tạo không có. Hoặc dùng lệnh:
+
 ```bash
 docker compose exec app php artisan mcp:token admin            # 30 ngày
 docker compose exec app php artisan mcp:token staff --days=7 --name="Laptop kho"

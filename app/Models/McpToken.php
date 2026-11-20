@@ -18,7 +18,20 @@ class McpToken extends Model
     /** Container key of the token behind the current MCP request. */
     public const CURRENT = 'mcp.token';
 
+    /** Permissions that unlock at least one MCP tool (see App\Mcp\Tools). */
+    public const TOOL_PERMISSIONS = ['dashboard.view', 'inventory.manage', 'orders.view', 'orders.manage', 'customers.view'];
+
     private const PREFIX = 'fsm_';
+
+    /**
+     * What a token of `$role` could read through MCP, as permission codes.
+     *
+     * @return list<string>
+     */
+    public static function toolPermissions(Role $role): array
+    {
+        return array_values(array_filter(self::TOOL_PERMISSIONS, fn (string $code): bool => $role->hasPermission($code)));
+    }
 
     /**
      * Creates a token for `$role` and returns it with the plain text, which
