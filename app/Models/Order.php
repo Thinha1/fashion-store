@@ -35,8 +35,8 @@ class Order extends Model
 
     /**
      * Where staff can move an order from each status — one step at a time,
-     * never skipping (BUSINESS_FLOWS.md §2). `delivered → returned` belongs
-     * to the return-request flow, not here.
+     * never skipping (BUSINESS_FLOWS.md §2). Nothing moves an order to
+     * `returned` since the returns feature was dropped; only demo orders carry it.
      */
     public const STAFF_TRANSITIONS = [
         'pending' => ['confirmed', 'cancelled'],

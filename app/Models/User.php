@@ -77,11 +77,6 @@ class User extends Authenticatable
         return $this->hasMany(Review::class);
     }
 
-    public function returnRequests(): HasMany
-    {
-        return $this->hasMany(ReturnRequest::class);
-    }
-
     /**
      * Whether the user's role grants the given permission code. A locked
      * account (status "locked", set at /admin/nhan-vien) keeps its role but

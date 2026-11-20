@@ -93,7 +93,7 @@ Entity: `Brand`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Suppl
 
 - **Quản lý đơn** (`Admin/OrderController`): chuyển trạng thái theo luồng `pending → confirmed → preparing → shipping → delivered`, cộng thêm `cancelled`/`returned`; mỗi lần chuyển append vào `orders.status_history` (JSON: trạng thái cũ/mới, người thao tác, ghi chú, thời điểm) và ghi `audit_logs`.
 - **Xác nhận chuyển khoản thủ công** (`Admin/OrderController@confirmPayment` → `Actions/ConfirmTransferPayment`, quyền `orders.manage`): chỉ cho đơn chuyển khoản `unpaid` chưa hủy → `payment_status=paid`, ghi `payment_reviewed_by`/`payment_reviewed_at` + `audit_logs` (`payment.confirmed_manually`). Danh sách đơn lọc được theo trạng thái đơn, trạng thái thanh toán và hình thức thanh toán.
-- **Đổi/trả** (`ReturnRequest`): `Storefront/ReturnRequestController` (khách tạo yêu cầu theo `order_item`, kèm ảnh + lý do, chỉ khi đơn đã giao và còn thời hạn) + `Admin/ReturnRequestController` (duyệt/từ chối; khi hoàn kho phải tăng tồn + ghi `audit_logs` trong cùng transaction — dùng `Actions/ApproveReturnRequest`, plan §3 mục 19).
+- ~~**Đổi/trả** (`ReturnRequest`)~~: bỏ khỏi dự án ngày 20/11/2026; bảng `return_requests` và quyền `returns.manage` đã bị xoá.
 - **Duyệt đánh giá** (`Admin/ReviewController`): ẩn/duyệt review vi phạm (`status`: pending/published/hidden).
 - **Mã giảm giá dạng coupon** (`Discount` `scope=order`): `Admin/CouponController` CRUD theo thời gian, giá trị đơn tối thiểu, giới hạn tổng lượt dùng và giới hạn mỗi khách.
 - **Quản lý nhân sự/khách hàng**: `Admin/StaffController` (gán role, quyền theo nhóm sản phẩm/kho/đơn hàng/khách hàng — Admin toàn quyền), `Admin/CustomerController` (xem khách hàng, địa chỉ, lịch sử mua).

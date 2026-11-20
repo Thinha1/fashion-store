@@ -20,7 +20,7 @@ Fashion Store là ứng dụng Laravel monolith phục vụ hai nhóm người d
 
 Ứng dụng dùng Blade để render phía server. Tailwind CSS, Alpine.js và Font Awesome cung cấp giao diện cùng các tương tác nhẹ; dữ liệu nghiệp vụ được lưu trong MySQL.
 
-Bảng đánh giá và đổi/trả đã có trong schema nhưng chưa có giao diện.
+Dự án không làm chức năng đổi/trả: bảng `return_requests` đã bị xoá (20/11/2026).
 
 ## Chức năng hiện có
 
@@ -305,7 +305,7 @@ Các bảng nghiệp vụ chính (chưa kể bảng hệ thống của Laravel n
 | Catalog | `brands`, `categories`, `products`, `product_variants`, `product_images`, `discounts` |
 | Nhập kho | `suppliers`, `goods_receipts`, `goods_receipt_items` |
 | Thương mại | `carts`, `cart_items`, `orders`, `order_items` |
-| Tương tác | `reviews`, `return_requests` |
+| Tương tác | `reviews` |
 | Kiểm soát và cấu hình | `audit_logs`, `ai_settings`, `payment_settings` |
 
 ## Cấu trúc repository

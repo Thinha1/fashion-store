@@ -184,6 +184,8 @@ Mỗi voucher (mã khách nhập hay voucher tự động) đều phải qua cù
 
 ## 5. Đổi/trả hàng
 
+> **Đã bỏ (20/11/2026):** dự án không làm chức năng đổi/trả; bảng `return_requests` và quyền `returns.manage` đã bị xoá. Sơ đồ dưới đây giữ lại để tham khảo.
+
 ```mermaid
 flowchart TD
     A(["Đơn ở status = delivered"]) --> B["Khách chọn order_item cần đổi/trả"]
