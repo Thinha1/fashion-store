@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
@@ -12,7 +13,7 @@ class DatabaseSchemaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_database_contains_the_nineteen_planned_domain_tables(): void
+    public function test_database_contains_the_eighteen_planned_domain_tables(): void
     {
         $tables = [
             'users',
@@ -32,11 +33,10 @@ class DatabaseSchemaTest extends TestCase
             'orders',
             'order_items',
             'reviews',
-            'return_requests',
             'audit_logs',
         ];
 
-        $this->assertCount(19, $tables);
+        $this->assertCount(18, $tables);
 
         foreach ($tables as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing domain table: {$table}");
@@ -54,6 +54,21 @@ class DatabaseSchemaTest extends TestCase
 
         $migration->up();
         $this->assertFalse(Schema::hasTable('wishlists'));
+    }
+
+    public function test_the_dropped_returns_feature_leaves_no_table_or_permission_and_can_be_reversed(): void
+    {
+        $this->assertFalse(Schema::hasTable('return_requests'));
+        $this->assertFalse(DB::table('permissions')->where('code', 'returns.manage')->exists());
+
+        $migration = require database_path('migrations/2026_11_20_000100_drop_returns_feature.php');
+        $migration->down();
+        $this->assertTrue(Schema::hasColumns('return_requests', ['id', 'request_number', 'order_item_id', 'status']));
+        $this->assertTrue(DB::table('permissions')->where('code', 'returns.manage')->exists());
+
+        $migration->up();
+        $this->assertFalse(Schema::hasTable('return_requests'));
+        $this->assertFalse(DB::table('permissions')->where('code', 'returns.manage')->exists());
     }
 
     public function test_shipping_uses_configuration_instead_of_a_table(): void
