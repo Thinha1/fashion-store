@@ -21,9 +21,6 @@ use Illuminate\Console\Command;
 #[Description('Tạo hoặc thu hồi token MCP theo vai trò')]
 class McpTokenCommand extends Command
 {
-    /** Permissions that unlock at least one MCP tool (see App\Mcp\Tools). */
-    private const TOOL_PERMISSIONS = ['dashboard.view', 'inventory.manage', 'orders.view', 'orders.manage', 'customers.view'];
-
     public function handle(AuditLogger $audit): int
     {
         $role = Role::query()->with('permissions')->where('code', $this->argument('role'))->first();
@@ -47,10 +44,10 @@ class McpTokenCommand extends Command
             return self::FAILURE;
         }
 
-        $permissions = array_values(array_filter(self::TOOL_PERMISSIONS, fn (string $code): bool => $role->hasPermission($code)));
+        $permissions = McpToken::toolPermissions($role);
 
         if ($permissions === []) {
-            $this->error("Vai trò \"{$role->name}\" không có quyền nào dùng được qua MCP (cần một trong: ".implode(', ', self::TOOL_PERMISSIONS).').');
+            $this->error("Vai trò \"{$role->name}\" không có quyền nào dùng được qua MCP (cần một trong: ".implode(', ', McpToken::TOOL_PERMISSIONS).').');
 
             return self::FAILURE;
         }

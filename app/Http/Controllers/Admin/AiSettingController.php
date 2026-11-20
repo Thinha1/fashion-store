@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveAiSettingRequest;
 use App\Models\AiSetting;
+use App\Models\McpToken;
+use App\Models\Role;
 use App\Services\Ai\AiSettings;
 use App\Services\Ai\OpenAiCompatibleProvider;
 use App\Services\Audit\AuditLogger;
@@ -38,6 +40,10 @@ class AiSettingController extends Controller
                 'endpoint' => (string) config('services.ai.openai_compatible.endpoint'),
                 'model' => (string) config('services.ai.openai_compatible.model'),
             ],
+            'mcpTokens' => McpToken::query()->with('role')->latest('id')->limit(50)->get(),
+            // Only roles a token would give something to read.
+            'mcpRoles' => Role::query()->where('code', '!=', 'customer')->with('permissions')->orderBy('name')->get()
+                ->filter(fn (Role $role): bool => McpToken::toolPermissions($role) !== [])->values(),
         ]);
     }
 

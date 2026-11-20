@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\GoodsReceiptController;
+use App\Http\Controllers\Admin\McpTokenController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\ProductAiAssistController;
@@ -226,6 +227,9 @@ Route::prefix('admin')
                 Route::put('ai/{aiSetting}', [AiSettingController::class, 'update'])->middleware('permission:settings.ai')->name('ai.update');
                 Route::post('ai/{aiSetting}/chinh', [AiSettingController::class, 'makePrimary'])->middleware('permission:settings.ai')->name('ai.primary');
                 Route::delete('ai/{aiSetting}', [AiSettingController::class, 'destroy'])->middleware('permission:settings.ai')->name('ai.destroy');
+                // Bearer tokens of the read-only MCP server (/ai/shop), one role each.
+                Route::post('ai/token-mcp', [McpTokenController::class, 'store'])->middleware('permission:settings.ai')->name('mcp-tokens.store');
+                Route::delete('ai/token-mcp/{mcpToken}', [McpTokenController::class, 'destroy'])->middleware('permission:settings.ai')->name('mcp-tokens.destroy');
                 // Bank account for the VietQR code + the SePay webhook key.
                 Route::get('thanh-toan', [PaymentSettingController::class, 'edit'])->middleware('permission:settings.payment')->name('payment.edit');
                 Route::put('thanh-toan', [PaymentSettingController::class, 'update'])->middleware('permission:settings.payment')->name('payment.update');
